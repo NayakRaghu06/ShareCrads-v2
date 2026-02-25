@@ -18,6 +18,7 @@ import SelectTemplateScreen from '../screens/main/SelectTemplateScreen';
 import FinalPreviewScreen from '../screens/main/FinalPreviewScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import ContactsScreen from '../screens/main/ContactsScreen';
+import UploadScreen from '../screens/main/UploadScreen';
 // onboarding screens removed
 
 const Stack = createNativeStackNavigator();
@@ -98,6 +99,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Landing" component={LandingScreen} />
       <Stack.Screen name="UserDetails" component={UserDetailsScreen} />
       <Stack.Screen name="PersonalDetails" component={PersonalDetailsScreen} />
+      <Stack.Screen name="Upload" component={UploadScreen} />
       <Stack.Screen name="BusinessDetails" component={BusinessDetailsScreen} />
       <Stack.Screen name="SocialMedia" component={SocialMediaScreen} />
       <Stack.Screen name="TemplatePreview" component={TemplatePreviewScreen} />

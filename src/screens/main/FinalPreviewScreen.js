@@ -231,7 +231,7 @@ import ViewShot from "react-native-view-shot";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
-import QRCode from "react-native-qrcode-svg";
+// QRCode is optional native dependency; load dynamically and fallback to external image if unavailable
 
 import ClassicTemplate from "../../components/templates/ClassicTemplate";
 import ModernTemplate from "../../components/templates/ModernTemplate";
@@ -250,28 +250,39 @@ const TEMPLATE_COMPONENTS = {
 
 export default function FinalPreviewScreen({ route, navigation }) {
   const { template = "classic" } = route?.params || {};
-  const [cardData, setCardData] = useState({});
-  const [userInitial, setUserInitial] = useState("N");
+  const [selectedTemplate, setSelectedTemplate] = useState(template);
   const viewRef = useRef();
 
-  useEffect(() => {
-    const user = getUser();
-
-    if (user) {
-      setCardData(user);
-
-      if (user.name && user.name.trim() !== "") {
-        setUserInitial(user.name.trim().charAt(0).toUpperCase());
-      }
+  // Compute merged card data from DB + incoming params. This avoids setState inside effects and infinite loops.
+  const effectiveCardData = React.useMemo(() => {
+    try {
+      const rc = route?.params?.cardData || {};
+      const stored = getUser() || {};
+      return { ...stored, ...rc };
+    } catch (e) {
+      console.warn("Failed to compute effectiveCardData", e);
+      return route?.params?.cardData || {};
     }
-  }, []);
+  }, [route?.params?.cardData]);
+
+  // Keep selected template in sync if navigation updates it
+  useEffect(() => {
+    const t = route?.params?.template;
+    if (t) setSelectedTemplate(t);
+  }, [route?.params?.template]);
 
   const SelectedComponent =
-    TEMPLATE_COMPONENTS[template] || ClassicTemplate;
+    TEMPLATE_COMPONENTS[selectedTemplate] || ClassicTemplate;
+
+  const userInitial = effectiveCardData?.name ? effectiveCardData.name.trim().charAt(0).toUpperCase() : 'N';
 
   // Download Image
   const handleDownload = async () => {
     try {
+      if (!viewRef.current || !viewRef.current.capture) {
+        Alert.alert('Error', 'Unable to capture view');
+        return;
+      }
       const uri = await viewRef.current.capture();
       await MediaLibrary.requestPermissionsAsync();
       await MediaLibrary.saveToLibraryAsync(uri);
@@ -284,6 +295,10 @@ export default function FinalPreviewScreen({ route, navigation }) {
   // Share Image
   const handleShare = async () => {
     try {
+      if (!viewRef.current || !viewRef.current.capture) {
+        Alert.alert('Error', 'Unable to capture view');
+        return;
+      }
       const uri = await viewRef.current.capture();
       await Sharing.shareAsync(uri);
     } catch (e) {
@@ -296,12 +311,12 @@ export default function FinalPreviewScreen({ route, navigation }) {
     const html = `
       <html>
         <body style="font-family: Arial; padding:20px;">
-          ${cardData.name ? `<h2>${cardData.name}</h2>` : ""}
-          ${cardData.designation ? `<p>${cardData.designation}</p>` : ""}
-          ${cardData.phone ? `<p>${cardData.phone}</p>` : ""}
-          ${cardData.email ? `<p>${cardData.email}</p>` : ""}
-          ${cardData.companyName ? `<p>${cardData.companyName}</p>` : ""}
-          ${cardData.website ? `<p>${cardData.website}</p>` : ""}
+          ${effectiveCardData.name ? `<h2>${effectiveCardData.name}</h2>` : ""}
+          ${effectiveCardData.designation ? `<p>${effectiveCardData.designation}</p>` : ""}
+          ${effectiveCardData.phone ? `<p>${effectiveCardData.phone}</p>` : ""}
+          ${effectiveCardData.email ? `<p>${effectiveCardData.email}</p>` : ""}
+          ${effectiveCardData.companyName ? `<p>${effectiveCardData.companyName}</p>` : ""}
+          ${effectiveCardData.website ? `<p>${effectiveCardData.website}</p>` : ""}
         </body>
       </html>
     `;
@@ -335,19 +350,19 @@ export default function FinalPreviewScreen({ route, navigation }) {
         {/* CARD CAPTURE */}
         <ViewShot ref={viewRef} options={{ format: "png", quality: 1 }}>
           <View style={{ padding: 20 }}>
-            <SelectedComponent data={cardData} />
-
-            {/* QR Code (only if data exists) */}
-            {Object.keys(cardData).length > 0 && (
-              <View style={{ marginTop: 20, alignItems: "center" }}>
-                <QRCode value={JSON.stringify(cardData)} size={100} />
-              </View>
-            )}
+            <SelectedComponent userData={effectiveCardData} />
           </View>
         </ViewShot>
 
         {/* BUTTONS */}
         <View style={{ marginHorizontal: 20, marginTop: 30 }}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => navigation.navigate('TemplatePreview', { cardData: effectiveCardData })}
+          >
+            <Ionicons name="eye" size={20} color="#D4AF37" />
+            <Text style={styles.secondaryText}>Choose Template</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={handleDownload}

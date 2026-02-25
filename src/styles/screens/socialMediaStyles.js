@@ -183,6 +183,25 @@ export const layoutStyles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 8,
+    resizeMode: 'cover',
+  },
+
+  // Logo specific preview (maintain aspect ratio)
+  uploadedImageLogo: {
+    marginTop: 12,
+    width: '100%',
+    height: 80,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  uploadedImageLogoPreview: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
 
   // ========== BUTTON GROUP ==========

@@ -7,7 +7,8 @@ import DarkTemplate from '../../components/templates/DarkTemplate';
 import ClassicTemplate from '../../components/templates/ClassicTemplate';
 import MinimalTemplate from '../../components/templates/MinimalTemplate';
 import { layoutStyles } from '../../styles/screens/personalDetailsLayoutStyles';
-import { getUser } from '../../utils/storage';
+import { getUser as getUserStorage } from '../../utils/storage';
+import { getUser as getUserDb } from '../../database/userQueries';
 import styles from '../../styles/screens/templatePreviewStyles';
 
 const TemplatePreviewScreen = ({ route, navigation }) => {
@@ -19,6 +20,21 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
   React.useEffect(() => {
     // Log received cardData for debugging
     console.log('TemplatePreviewScreen received cardData:', JSON.stringify(cardData, null, 2));
+  }, [cardData]);
+
+  // If no cardData passed via navigation, try to load from DB (fallback)
+  const effectiveCardData = React.useMemo(() => {
+    try {
+      const stored = getUserDb() || {};
+      // Merge stored values with passed cardData so partial updates don't hide earlier fields
+      if (cardData && Object.keys(cardData).length > 0) {
+        return { ...stored, ...cardData };
+      }
+      return stored;
+    } catch (e) {
+      console.warn('Failed to load stored user for preview', e);
+      return cardData || {};
+    }
   }, [cardData]);
 
   React.useEffect(() => {
@@ -62,8 +78,9 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
 
   const handleViewPreview = () => {
     if (selectedTemplate) {
+      const finalCard = (cardData && Object.keys(cardData).length > 0) ? cardData : effectiveCardData;
       navigation.navigate('FinalPreview', { 
-        cardData, 
+        cardData: finalCard, 
         template: selectedTemplate 
       });
     }
@@ -120,7 +137,7 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
               <View style={styles.cardPreviewWrapper}>
                 {(() => {
                   const TemplateComponent = template.component;
-                  return <TemplateComponent data={cardData} />;
+                  return <TemplateComponent userData={effectiveCardData} />;
                 })()}
               </View>
 

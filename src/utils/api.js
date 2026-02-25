@@ -1,6 +1,6 @@
 
 
-export const BASE_URL = 'http://18.234.86.49:8083';
+export const BASE_URL = 'https://dbc.venturebiz.in';
 
 // Default headers
 export const defaultHeaders = {

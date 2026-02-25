@@ -339,6 +339,8 @@ export default function PersonalDetailsScreen({ navigation }) {
             <Text style={layoutStyles.saveButtonText}>Step 2: Business Details</Text>
           </TouchableOpacity>
 
+          {/* Preview Templates removed from this step (moved to Final Preview) */}
+
           {/* Next Step Button */}
           <TouchableOpacity
             style={layoutStyles.skipButton}

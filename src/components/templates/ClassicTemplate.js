@@ -1,160 +1,205 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import styles from '../../styles/templates/classicStyles';
+import React from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
 
-const ClassicTemplate = ({ data, userData, isSelected }) => {
-  // Support both 'data' (from TemplatePreviewScreen) and 'userData' (from SelectTemplateScreen)
-  const cardData = data || userData || {};
-  
-  const {
-    name = 'John Doe',
-    designation = 'Business Title',
-    company = 'Company Name',
-    phone = '+1 (555) 123-4567',
-    email = 'email@example.com',
-    website = 'www.example.com',
-    description = '',
-    businessDescription = '',
-    searchKeywords = '',
-    linkedin = '',
-    instagram = '',
-    twitter = '',
-  } = cardData;
+const ClassicTemplate = ({ userData }) => {
+  const initial = userData?.name ? userData.name.trim().charAt(0).toUpperCase() : 'Y';
 
-  // If this is being used for template selection (isSelected prop is true)
-  if (isSelected === true) {
-    return (
-      <View style={[styles.selectionContainer, isSelected && styles.selected]}>
-        <View style={styles.selectionHeader}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Classic</Text>
-          </View>
-        </View>
-
-        <View style={styles.selectionContent}>
-          <Text style={styles.selectionName}>{name}</Text>
-          <Text style={styles.selectionTitle}>{designation}</Text>
-
-          <View style={styles.divider} />
-
-          <View style={styles.selectionSection}>
-            <Text style={styles.label}>Company</Text>
-            <Text style={styles.selectionValue}>{company}</Text>
-          </View>
-
-          <View style={styles.selectionSection}>
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.selectionValue}>{email}</Text>
-          </View>
-
-          <View style={styles.selectionSection}>
-            <Text style={styles.label}>Phone</Text>
-            <Text style={styles.selectionValue}>{phone}</Text>
-          </View>
-
-          {website && (
-            <View style={styles.selectionSection}>
-              <Text style={styles.label}>Website</Text>
-              <Text style={styles.selectionValue}>{website}</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.footer} />
-      </View>
-    );
-  }
-
-  // Preview mode (used in TemplatePreviewScreen)
   return (
     <View style={styles.card}>
-      {/* Header Background */}
-      <View style={styles.headerBackground} />
+      {/* Company logo top-right */}
+      {userData?.companyLogo ? (
+        <Image source={{ uri: userData.companyLogo }} style={styles.companyLogo} />
+      ) : null}
 
-      {/* Profile Section */}
-      <View style={styles.profileSection}>
-        {/* Profile Image Placeholder */}
-        <View style={styles.profileImageContainer}>
-          <Text style={styles.profileImagePlaceholder}>👤</Text>
-        </View>
-
-        {/* Name and Designation */}
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.designation}>{designation}</Text>
-        {company && <Text style={styles.company}>{company}</Text>}
-      </View>
-
-      {/* Details Section */}
-      <View style={styles.detailsSection}>
-        {/* Contact Information */}
-        <View style={styles.contactInfo}>
-          {phone && (
-            <View style={styles.contactItem}>
-              <Text style={styles.label}>Phone</Text>
-              <Text style={styles.contactValue}>{phone}</Text>
-            </View>
-          )}
-
-          {email && (
-            <View style={styles.contactItem}>
-              <Text style={styles.label}>Email</Text>
-              <Text style={styles.contactValue}>{email}</Text>
-            </View>
-          )}
-
-          {website && (
-            <View style={styles.contactItem}>
-              <Text style={styles.label}>Website</Text>
-              <Text style={styles.contactValue}>{website}</Text>
-            </View>
+      {/* Neon Circle Avatar */}
+      <View style={styles.avatarOuter}>
+        <View style={styles.avatarInner}>
+          {userData?.profileImage ? (
+            <Image source={{ uri: userData.profileImage }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{initial}</Text>
           )}
         </View>
-
-        {/* Business Description */}
-        {(description || businessDescription) && (
-          <View style={styles.descriptionSection}>
-            <Text style={styles.descriptionLabel}>About Business</Text>
-            <Text style={styles.descriptionText}>{description || businessDescription}</Text>
-          </View>
-        )}
-
-        {/* Keywords */}
-        {searchKeywords && (
-          <View style={styles.keywordsSection}>
-            <Text style={styles.keywordsLabel}>Keywords</Text>
-            <Text style={styles.keywordsText}>{searchKeywords}</Text>
-          </View>
-        )}
-
-        {/* Social Media Links */}
-        {(linkedin || instagram || twitter) && (
-          <View style={styles.socialMediaSection}>
-            <Text style={styles.socialLabel}>Connect</Text>
-            <View style={styles.socialLinksContainer}>
-              {linkedin && (
-                <View style={styles.socialLink}>
-                  <Text style={styles.socialIconLabel}>in</Text>
-                  <Text style={styles.socialText}>{linkedin}</Text>
-                </View>
-              )}
-              {instagram && (
-                <View style={styles.socialLink}>
-                  <Text style={styles.socialIconLabel}>ig</Text>
-                  <Text style={styles.socialText}>{instagram}</Text>
-                </View>
-              )}
-              {twitter && (
-                <View style={styles.socialLink}>
-                  <Text style={styles.socialIconLabel}>𝕏</Text>
-                  <Text style={styles.socialText}>{twitter}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
       </View>
+
+      <Text style={styles.name}>{userData?.name || 'Your Name'}</Text>
+
+      <Text style={styles.role}>{userData?.designation || 'Your Role'}</Text>
+
+      {userData?.companyName ? (
+        <Text style={styles.company}>{userData.companyName}</Text>
+      ) : null}
+
+      {userData?.businessDescription ? (
+        <Text style={styles.description}>{userData.businessDescription}</Text>
+      ) : null}
+
+      <View style={styles.infoBox}>
+        <Text style={styles.info}>📞 {userData?.phone || ''}</Text>
+      </View>
+
+      <View style={styles.infoBox}>
+        <Text style={styles.info}>✉ {userData?.email || ''}</Text>
+      </View>
+
+      <View style={styles.infoBox}>
+        <Text style={styles.info}>🌐 {userData?.website || ''}</Text>
+      </View>
+
+      <View style={styles.infoBox}>
+        <Text style={styles.info}>📍 {userData?.address || ''}</Text>
+      </View>
+
+      {/* QR Code - show only if user uploaded a QR in Social Media */}
+      {userData?.qrCodeImage ? (
+        <View style={styles.qrContainer}>
+          <Image source={{ uri: userData.qrCodeImage }} style={styles.qrImageCentered} />
+        </View>
+      ) : null}
+
+      <View style={styles.socialRow}>
+        {userData?.whatsapp ? (<TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${userData.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+        {userData?.linkedin ? (<TouchableOpacity onPress={() => Linking.openURL(userData.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+        {userData?.instagram ? (<TouchableOpacity onPress={() => Linking.openURL(`https://instagram.com/${userData.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+        {userData?.twitter ? (<TouchableOpacity onPress={() => Linking.openURL(userData.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+        {userData?.facebook ? (<TouchableOpacity onPress={() => Linking.openURL(userData.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+        {userData?.youtube ? (<TouchableOpacity onPress={() => Linking.openURL(userData.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+        {userData?.website ? (<TouchableOpacity onPress={() => Linking.openURL(userData.website)} style={styles.iconBtn}><Ionicons name="globe" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+      </View>
+      {/* Scanned / Existing visiting card preview */}
+      {userData?.businessCard ? (
+        <View style={styles.scannedCard}>
+          <Image source={{ uri: userData.businessCard }} style={styles.scannedCardImage} />
+        </View>
+      ) : null}
     </View>
   );
 };
 
 export default ClassicTemplate;
+
+const styles = StyleSheet.create({
+  card: {
+    margin: 16,
+    padding: 24,
+    borderRadius: 24,
+    backgroundColor: "#0B1023",
+    borderWidth: 2,
+    borderColor: "#00E5FF",
+    alignItems: "center",
+    elevation: 10,
+  },
+  avatarOuter: {
+    borderWidth: 3,
+    borderColor: "#00E5FF",
+    borderRadius: 70,
+    padding: 6,
+    marginBottom: 12,
+  },
+  avatarInner: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#111827",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    fontSize: 40,
+    color: "#00E5FF",
+    fontWeight: "bold",
+  },
+  avatarImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  companyLogo: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    width: 60,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  qrImage: {
+    width: 80,
+    height: 80,
+    marginTop: 12,
+    alignSelf: 'center',
+  },
+  qrContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  qrImageCentered: {
+    width: 90,
+    height: 90,
+    resizeMode: 'contain',
+  },
+  name: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  role: {
+    fontSize: 16,
+    color: "#00E5FF",
+    marginBottom: 18,
+  },
+  company: {
+    fontSize: 14,
+    color: '#E5E7EB',
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  infoBox: {
+    width: "100%",
+    backgroundColor: "#020617",
+    padding: 14,
+    borderRadius: 14,
+    marginVertical: 6,
+    borderWidth: 1,
+    borderColor: "#00E5FF",
+  },
+  info: {
+    color: "#E5E7EB",
+    fontSize: 15,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%'
+  },
+  iconBtn: {
+    marginHorizontal: 6,
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.08)'
+  },
+  scannedCard: {
+    width: '100%',
+    height: 90,
+    marginTop: 12,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scannedCardImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+});
