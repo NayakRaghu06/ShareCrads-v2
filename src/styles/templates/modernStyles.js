@@ -1,0 +1,215 @@
+import { StyleSheet } from 'react-native';
+import colors from '../colors';
+
+const styles = StyleSheet.create({
+  // Template Selection Mode Styles
+  selectionContainer: {
+    width: 280,
+    height: 440,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    overflow: 'hidden',
+    marginHorizontal: 8,
+  },
+  selected: {
+    borderColor: '#667EEA',
+    borderWidth: 3,
+    shadowColor: '#667EEA',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  selectionGradient: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  selectionHeader: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  badge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  selectionContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  selectionName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  selectionTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 20,
+  },
+  selectionContactSection: {
+    marginTop: 16,
+  },
+  selectionContactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    padding: 8,
+  },
+  selectionContactValue: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    flex: 1,
+  },
+
+  // Preview Mode Styles
+  card: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  headerBackground: {
+    height: 100,
+    backgroundColor: '#667EEA',
+  },
+  profileSection: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: -40,
+    paddingBottom: 20,
+    marginTop: -40,
+  },
+  profileImageContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  profileImagePlaceholder: {
+    fontSize: 40,
+    color: '#999',
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  designation: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#667EEA',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  company: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#666',
+    textAlign: 'center',
+  },
+  detailsSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  contactInfo: {
+    marginBottom: 20,
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  contactLabel: {
+    fontSize: 18,
+    marginRight: 12,
+    minWidth: 28,
+  },
+  contactValue: {
+    fontSize: 13,
+    color: '#333',
+    flex: 1,
+    fontWeight: '500',
+  },
+  socialMediaSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingTop: 16,
+  },
+  socialLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#667EEA',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  socialLinksContainer: {
+    marginTop: 8,
+  },
+  socialLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 6,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#667EEA',
+  },
+  socialIconLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#667EEA',
+    marginRight: 10,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  socialText: {
+    fontSize: 13,
+    color: '#333',
+    flex: 1,
+  },
+});
+
+export default styles;
