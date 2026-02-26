@@ -12,13 +12,28 @@ export const defaultHeaders = {
 // ===============================
 
 export const apiFetch = async (endpoint, options = {}) => {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    credentials: 'include', // ⭐ IMPORTANT FOR SESSION
-    headers: defaultHeaders,
-    ...options,
-  });
+  const headers = { ...defaultHeaders, ...(options.headers || {}) };
 
-  const data = await res.json();
+  try {
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
+      credentials: 'include', // important for session cookies if used
+      headers,
+      ...options,
+    });
 
-  return { res, data };
+    // Safely parse JSON (some endpoints may return empty body)
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (e) {
+      // Return raw text if JSON parse fails
+      data = { raw: text };
+    }
+
+    return { res, data };
+  } catch (err) {
+    // Bubble network errors to caller with message
+    throw new Error(err.message || 'Network request failed');
+  }
 };

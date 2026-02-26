@@ -20,18 +20,12 @@ import { signupStyles } from '../../styles/screens/signupStyles';
 //import { saveUser } from "../../utils/storage";
 import { apiFetch } from "../../utils/api";
 
-//// Generate random OTP
-//const generateOTP = (length = 6) => {
-//  return Math.floor(Math.pow(10, length - 1) + Math.random() * (Math.pow(10, length) - Math.pow(10, length - 1)));
-//};
-
 export default function SignupScreen({ navigation }) {
   const [otpVisiblePhone, setOtpVisiblePhone] = useState(false);
   const [otpVisibleEmail, setOtpVisibleEmail] = useState(false);
   const [timerPhone, setTimerPhone] = useState(30);
   const [timerEmail, setTimerEmail] = useState(30);
-//  const [generatedOtpPhone, setGeneratedOtpPhone] = useState('');
-//  const [generatedOtpEmail, setGeneratedOtpEmail] = useState('');
+  // frontend OTP generation removed; backend will send/verify OTPs
   const [otpPhoneVerified, setOtpPhoneVerified] = useState(false);
   const [otpEmailVerified, setOtpEmailVerified] = useState(false);
   const [wrongOtpPhoneCooldown, setWrongOtpPhoneCooldown] = useState(0);
@@ -191,25 +185,25 @@ export default function SignupScreen({ navigation }) {
         email: form.email?.trim() || null,
       };
 
-      const { data } = await apiFetch('/auth/mobile-signup', {
+      const { res, data } = await apiFetch('/auth/mobile-signup', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
-
-      if (data.status === 1) {
+      if (res && res.ok && data && data.status === 1) {
         setOtpVisiblePhone(true);
         setTimerPhone(30);
         setWrongOtpPhoneCooldown(0);
         Alert.alert('Success', 'OTP sent to mobile');
       } else {
-        Alert.alert('Error', data.message);
+        console.log('mobile-signup failed', { resStatus: res?.status, data });
+        Alert.alert('Error', data?.message || `Unable to send mobile OTP (status ${res?.status || 'unknown'})`);
       }
 
     } catch (error) {
-      Alert.alert('Network Error', 'Unable to send OTP');
+      Alert.alert('Network Error', error.message || 'Unable to send OTP');
     }
   };
-  const handleValidateOtpEmail = () => {
+  const handleValidateOtpEmail = async () => {
     if (wrongOtpEmailCooldown > 0) {
       Alert.alert('Please Wait', `You can request OTP again in ${wrongOtpEmailCooldown} seconds`);
       return;
@@ -223,13 +217,28 @@ export default function SignupScreen({ navigation }) {
       Alert.alert('Error', 'Enter a valid email');
       return;
     }
-    setOtpEmailVerified(false);
-    const randomOtp = generateOTP(6).toString();
-    setGeneratedOtpEmail(randomOtp);
-    Alert.alert('Email OTP', `Your email OTP is ${randomOtp}`);
-    setOtpVisibleEmail(true);
-    setTimerEmail(30);
-    setWrongOtpEmailCooldown(0);
+
+    try {
+      // Request backend to send email OTP
+      const payload = { email: form.email.trim() };
+
+      const { res, data } = await apiFetch('/auth/send-email-otp', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      if (res && res.ok && data && data.status === 1) {
+        setOtpVisibleEmail(true);
+        setTimerEmail(30);
+        setWrongOtpEmailCooldown(0);
+        Alert.alert('Success', 'OTP sent to email');
+      } else {
+        console.log('email-otp failed', { resStatus: res?.status, data });
+        Alert.alert('Error', data?.message || `Unable to send email OTP (status ${res?.status || 'unknown'})`);
+      }
+    } catch (e) {
+      Alert.alert('Network Error', e.message || 'Unable to send email OTP');
+    }
   };
 
   const handleResendPhoneOtp = () => {
@@ -242,12 +251,35 @@ export default function SignupScreen({ navigation }) {
       Alert.alert('Error', 'Enter a valid phone number');
       return;
     }
-    setOtpPhoneVerified(false);
-    const randomOtp = generateOTP(6).toString();
-    setGeneratedOtpPhone(randomOtp);
-    Alert.alert('Phone OTP', `Your phone OTP is ${randomOtp}`);
-    setOtpVisiblePhone(true);
-    setTimerPhone(30);
+    // Request resend from backend
+    (async () => {
+      try {
+        setOtpPhoneVerified(false);
+        const payload = {
+          firstName: form.first,
+          middleName: form.middle,
+          lastName: form.last,
+          mobileNumber: Number(form.phone),
+          email: form.email?.trim() || null,
+        };
+
+        const { res, data } = await apiFetch('/auth/mobile-signup', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+
+        if (res && res.ok && data && data.status === 1) {
+          setOtpVisiblePhone(true);
+          setTimerPhone(30);
+            Alert.alert('Success', 'OTP resent to mobile');
+        } else {
+          console.log('mobile-signup resend failed', { resStatus: res?.status, data });
+          Alert.alert('Error', data?.message || `Unable to resend OTP (status ${res?.status || 'unknown'})`);
+        }
+      } catch (e) {
+          Alert.alert('Network Error', e.message || 'Unable to resend OTP');
+      }
+    })();
   };
 
   const handleResendEmailOtp = () => {
@@ -265,12 +297,30 @@ export default function SignupScreen({ navigation }) {
       Alert.alert('Error', 'Enter a valid email');
       return;
     }
-    setOtpEmailVerified(false);
-    const randomOtp = generateOTP(6).toString();
-    setGeneratedOtpEmail(randomOtp);
-    Alert.alert('Email OTP', `Your email OTP is ${randomOtp}`);
-    setOtpVisibleEmail(true);
-    setTimerEmail(30);
+    // Trigger backend resend for email OTP
+    (async () => {
+      try {
+        setOtpEmailVerified(false);
+        const payload = { email: form.email.trim() };
+
+        const { res, data } = await apiFetch('/auth/send-email-otp', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+
+        if (res && res.ok && data && data.status === 1) {
+          setOtpVisibleEmail(true);
+          setTimerEmail(30);
+          setWrongOtpEmailCooldown(0);
+          Alert.alert('Success', 'OTP resent to email');
+        } else {
+          console.log('email-otp resend failed', { resStatus: res?.status, data });
+          Alert.alert('Error', data?.message || `Unable to resend email OTP (status ${res?.status || 'unknown'})`);
+        }
+      } catch (e) {
+          Alert.alert('Network Error', e.message || 'Unable to resend email OTP');
+      }
+    })();
   };
 
 //  const handleVerifyPhoneOtp = () => {
@@ -297,7 +347,7 @@ export default function SignupScreen({ navigation }) {
         email: form.email?.trim() || null,
       };
 
-      const { data } = await apiFetch(
+      const { res, data } = await apiFetch(
         `/auth/verify-phone-otp?otp=${form.otpPhone}`,
         {
           method: 'POST',
@@ -305,75 +355,84 @@ export default function SignupScreen({ navigation }) {
         }
       );
 
-      if (data.status === 1) {
-
+      if (res && res.ok && data && data.status === 1) {
+        // Mark phone OTP as verified. Do NOT create account or navigate here.
         setOtpPhoneVerified(true);
-
-        Alert.alert('Success', 'Account Created', [
-          {
-            text: 'OK',
-            onPress: () => navigation.replace('Login'),
-          },
-        ]);
-
+        Alert.alert('Success', 'Phone OTP Verified');
       } else {
+        console.log('verify-phone-otp failed', { resStatus: res?.status, data });
         setWrongOtpPhoneCooldown(30);
-        Alert.alert('Error', data.message);
+        Alert.alert('Error', data?.message || `Phone OTP verification failed (status ${res?.status || 'unknown'})`);
       }
 
     } catch (error) {
       Alert.alert('Verification Failed');
     }
   };
-  const handleVerifyEmailOtp = () => {
-    if (form.otpEmail === generatedOtpEmail) {
-      setOtpEmailVerified(true);
-      Alert.alert('Verified', 'Email OTP verified');
-    } else {
-      setOtpEmailVerified(false);
-      setForm((p) => ({ ...p, otpEmail: '' }));
-      setWrongOtpEmailCooldown(30);
-      Alert.alert('Invalid', 'Email OTP is incorrect. Try again after 30 seconds');
+  const handleVerifyEmailOtp = async () => {
+    try {
+      const payload = { email: form.email.trim(), otp: form.otpEmail };
+
+      const { res, data } = await apiFetch('/auth/verify-email-otp', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      if (res && res.ok && data && data.status === 1) {
+        setOtpEmailVerified(true);
+        Alert.alert('Success', 'Email OTP Verified');
+      } else {
+        console.log('verify-email-otp failed', { resStatus: res?.status, data });
+        setOtpEmailVerified(false);
+        setForm((p) => ({ ...p, otpEmail: '' }));
+        setWrongOtpEmailCooldown(30);
+        Alert.alert('Error', data?.message || `Email OTP invalid. Try again after 30 seconds (status ${res?.status || 'unknown'})`);
+      }
+    } catch (e) {
+      Alert.alert('Verification Failed');
     }
   };
 
   // ✅ SAVE USER DATA ON SIGNUP
   const handleSubmit = async () => {
-    // Check phone OTP
-//    if (form.otpPhone !== generatedOtpPhone) {
-//      Alert.alert('Wrong OTP', 'Phone OTP is incorrect');
-//      setForm((p) => ({ ...p, otpPhone: '', otpEmail: '' }));
-//      return;
-//    }
+    // Ensure OTP verifications are done before attempting to register
+    if (!otpPhoneVerified) {
+      Alert.alert('OTP Required', 'Please verify your phone OTP before creating an account');
+      return;
+    }
 
-    // Check email OTP if email is provided
-    if (form.email && form.otpEmail !== generatedOtpEmail) {
-      Alert.alert('Wrong OTP', 'Email OTP is incorrect');
-      setForm((p) => ({ ...p, otpPhone: '', otpEmail: '' }));
+    if (form.email && !otpEmailVerified) {
+      Alert.alert('OTP Required', 'Please verify your email OTP before creating an account');
       return;
     }
 
     try {
-      // Save basic user data to AsyncStorage
-      const basicUserData = {
-        first: form.first,
-        middle: form.middle,
-        last: form.last,
-        phone: form.phone,
-        email: form.email || null,
-        isLoggedIn: false, // Not logged in yet
+      const payload = {
+        firstName: form.first,
+        middleName: form.middle,
+        lastName: form.last,
+        mobileNumber: Number(form.phone),
+        email: form.email?.trim() || null,
       };
+      const { res, data } = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
 
-      await saveUser(basicUserData);
-
-      Alert.alert('Success', 'Account Created', [
-        {
-          text: 'OK',
-          onPress: () => navigation.replace('Login'),
-        },
-      ]);
+      if (res && res.ok && data && data.status === 1) {
+        Alert.alert('Success', 'Account Created', [
+          {
+            text: 'OK',
+            onPress: () => navigation.replace('Login'),
+          },
+        ]);
+      } else {
+        console.log('register failed', { resStatus: res?.status, data });
+        Alert.alert('Error', data?.message || `Registration failed (status ${res?.status || 'unknown'})`);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to create account');
+      console.log('register exception', error);
+      Alert.alert('Network Error', error.message || 'Failed to create account');
     }
   };
 
