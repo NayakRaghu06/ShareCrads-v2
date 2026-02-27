@@ -16,6 +16,7 @@ import { formStyles } from '../../styles/screens/personalDetailsFormStyles';
 // import { getUser, saveDashboard } from '../../utils/storage';
 import Footer from '../../components/common/Footer';
 import { saveOrUpdateUser, getUser } from '../../database/userQueries';// Validation rules
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const validations = {
   fullName: {
     minLength: 2,
@@ -98,6 +99,22 @@ export default function PersonalDetailsScreen({ navigation }) {
 
 
   const [errors, setErrors] = useState({});
+  const [phoneLocked, setPhoneLocked] = useState(false);
+
+  useEffect(() => {
+    const loadPhone = async () => {
+      try {
+        const phone = await AsyncStorage.getItem('userPhone');
+        if (phone) {
+          setFormData((prev) => ({ ...prev, phone }));
+          setPhoneLocked(true);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadPhone();
+  }, []);
 
   // Validate single field
   const validateField = (name, value) => {
@@ -291,6 +308,7 @@ export default function PersonalDetailsScreen({ navigation }) {
               keyboardType="phone-pad"
               value={formData.phone}
               onChangeText={(text) => handleFieldChange('phone', text)}
+              editable={!phoneLocked}
               error={errors.phone}
               maxLength={10}
             />

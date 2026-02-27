@@ -513,6 +513,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { layoutStyles } from '../../styles/screens/socialMediaStyles';
 import { formStyles } from '../../styles/screens/socialMediaStyles';
 import Footer from '../../components/common/Footer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Validation rules
 const validations = {
@@ -691,21 +692,43 @@ export default function SocialMediaScreen({ route, navigation }) {
   // Preload any existing images from incoming cardData so previews show existing photos
   React.useEffect(() => {
     if (!cardData) return;
-    setFormData((prev) => ({
-      ...prev,
-      companyLogo: cardData.companyLogo || cardData.logoImage || prev.companyLogo,
-      profilePhoto: cardData.profileImage || cardData.profilePhoto || prev.profilePhoto,
-      qrCode: cardData.qrCodeImage || cardData.qrCode || prev.qrCode,
-      businessCard: cardData.businessCard || prev.businessCard,
-      whatsapp: cardData.whatsapp || prev.whatsapp,
-      linkedin: cardData.linkedin || prev.linkedin,
-      instagram: cardData.instagram || prev.instagram,
-      twitter: cardData.twitter || prev.twitter,
-      facebook: cardData.facebook || prev.facebook,
-      youtube: cardData.youtube || prev.youtube,
-      website: cardData.website || prev.website,
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        companyLogo: cardData.companyLogo || cardData.logoImage || prev.companyLogo,
+        profilePhoto: cardData.profileImage || cardData.profilePhoto || prev.profilePhoto,
+        qrCode: cardData.qrCodeImage || cardData.qrCode || prev.qrCode,
+        businessCard: cardData.businessCard || prev.businessCard,
+        whatsapp: cardData.whatsapp || prev.whatsapp,
+        linkedin: cardData.linkedin || prev.linkedin,
+        instagram: cardData.instagram || prev.instagram,
+        twitter: cardData.twitter || prev.twitter,
+        facebook: cardData.facebook || prev.facebook,
+        youtube: cardData.youtube || prev.youtube,
+        website: cardData.website || prev.website,
+      };
+
+      // Avoid updating state if nothing changed (prevents infinite loops when cardData reference changes)
+      const keys = Object.keys(next);
+      const isSame = keys.every((k) => next[k] === prev[k]);
+      return isSame ? prev : next;
+    });
   }, [cardData]);
+
+  // Auto-populate whatsapp from stored userPhone
+  React.useEffect(() => {
+    const loadPhone = async () => {
+      try {
+        const phone = await AsyncStorage.getItem('userPhone');
+        if (phone) {
+          setFormData((prev) => ({ ...prev, whatsapp: phone }));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadPhone();
+  }, []);
 
   const navigateToBusinessDetails = () => {
     navigation.goBack();
@@ -731,8 +754,8 @@ export default function SocialMediaScreen({ route, navigation }) {
             Social Media & Contact Links
           </Text>
 
-          <InputField
-            label="WhatsApp (Optional, 10 digits)"
+          <InputField 
+            label="WhatsApp (Optional, 10 digits)" 
             placeholder="Mobile number"
             icon="logo-whatsapp"
             keyboardType="phone-pad"
@@ -740,6 +763,7 @@ export default function SocialMediaScreen({ route, navigation }) {
             onChangeText={(text) => handleFieldChange('whatsapp', text)}
             error={errors.whatsapp}
             maxLength={10}
+            editable={false}
           />
 
           <InputField

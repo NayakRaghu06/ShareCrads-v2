@@ -240,6 +240,7 @@ import DarkTemplate from "../../components/templates/DarkTemplate";
 
 import { layoutStyles } from "../../styles/screens/personalDetailsLayoutStyles";
 import { getUser } from "../../database/userQueries";
+import { saveDashboard, getDashboard, addDashboardCard } from '../../utils/storage';
 
 const TEMPLATE_COMPONENTS = {
   classic: ClassicTemplate,
@@ -275,6 +276,22 @@ export default function FinalPreviewScreen({ route, navigation }) {
     TEMPLATE_COMPONENTS[selectedTemplate] || ClassicTemplate;
 
   const userInitial = effectiveCardData?.name ? effectiveCardData.name.trim().charAt(0).toUpperCase() : 'N';
+
+  const previewOnly = route?.params?.previewOnly === true;
+
+  if (previewOnly) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <ViewShot ref={viewRef} options={{ format: 'png', quality: 1 }}>
+            <View style={{ padding: 20 }}>
+              <SelectedComponent userData={effectiveCardData} />
+            </View>
+          </ViewShot>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // Download Image
   const handleDownload = async () => {
@@ -356,6 +373,37 @@ export default function FinalPreviewScreen({ route, navigation }) {
 
         {/* BUTTONS */}
         <View style={{ marginHorizontal: 20, marginTop: 30 }}>
+          {/* Premium Save Card button (gold) */}
+          <TouchableOpacity
+            style={styles.premiumButton}
+            onPress={async () => {
+              try {
+                // Capture the rendered card as an image so dashboard shows thumbnail
+                let savedImage = null;
+                try {
+                  if (viewRef.current && viewRef.current.capture) {
+                    savedImage = await viewRef.current.capture();
+                  }
+                } catch (captureErr) {
+                  console.warn('Capture failed', captureErr);
+                  savedImage = null;
+                }
+
+                const toSave = savedImage
+                  ? { ...effectiveCardData, savedImage }
+                  : { ...effectiveCardData };
+
+                await addDashboardCard(toSave);
+                Alert.alert('Success', 'Card saved successfully 🎉');
+                navigation.navigate('Landing');
+              } catch (e) {
+                Alert.alert('Error', e.message || 'Failed to save card');
+              }
+            }}
+          >
+            <Ionicons name="bookmark" size={20} color="#FFFFFF" />
+            <Text style={[styles.primaryText, { marginLeft: 10 }]}>Save Card</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryButton}
             onPress={() => navigation.navigate('TemplatePreview', { cardData: effectiveCardData })}
@@ -422,5 +470,19 @@ const styles = StyleSheet.create({
     color: "#D4AF37",
     fontWeight: "600",
     marginLeft: 8,
+  },
+  premiumButton: {
+    backgroundColor: '#D4AF37',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });

@@ -345,13 +345,14 @@ import {
   TextInput,
   BackHandler,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { landingStyles } from '../../styles/screens/landingStyles';
 import COLORS from '../../styles/colors';
 import { getDBCUsers } from '../../utils/contacts';
-import { getDashboard, clearUser } from '../../utils/storage';
+import { getDashboard, clearUser, saveDashboard, removeDashboardCard } from '../../utils/storage';
 
 export default function LandingScreen({ navigation }) {
   const [contacts, setContacts] = useState([]);
@@ -399,6 +400,28 @@ export default function LandingScreen({ navigation }) {
     } catch (e) {
       setDashboardCards([]);
     }
+  };
+
+  const handleDeleteCard = (index) => {
+    Alert.alert(
+      'Delete Card',
+      'Remove this saved card?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const cards = await removeDashboardCard(index);
+              setDashboardCards(Array.isArray(cards) ? cards : []);
+            } catch (e) {
+              console.warn('Failed to delete card', e);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const loadContacts = async () => {
@@ -526,12 +549,94 @@ export default function LandingScreen({ navigation }) {
             <TouchableOpacity onPress={handleLogout}>
               <Text style={{ fontSize: 16, color: 'red' }}>Logout</Text>
             </TouchableOpacity>
+
+            {/* Saved Cards in Side Menu */}
+            <View style={{ marginTop: 22 }}>
+              <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 10, color: COLORS.accent }}>Saved Cards</Text>
+              {Array.isArray(dashboardCards) && dashboardCards.length === 0 ? (
+                <Text style={{ color: '#171616', marginBottom: 12 }}>No cards saved</Text>
+              ) : (
+                (dashboardCards || []).map((card, idx) => (
+                  <TouchableOpacity
+                    key={`menu-card-${idx}`}
+                    style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' }}
+                    onPress={() => {
+                      setMenuVisible(false);
+                      navigation.navigate('FinalPreview', { cardData: card });
+                    }}
+                  >
+                    <Text style={{ fontSize: 15, color: '#222' }}>{card.name || 'Unnamed'}</Text>
+                    <Text style={{ fontSize: 12, color: '#888' }}>{card.designation || ''}</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
 
       {/* 🔥 CONTACTS */}
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+
+        {/* My Saved Cards Dashboard */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 8 }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 10 }}>
+            My Saved Cards
+          </Text>
+
+          {Array.isArray(dashboardCards) && dashboardCards.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+              <Ionicons name="bookmark-outline" size={50} color={COLORS.accent} />
+              <Text style={{ fontSize: 16, fontWeight: '600', marginTop: 12 }}>No saved cards yet</Text>
+              <Text style={{ color: '#666', marginTop: 6 }}>Save your first digital card</Text>
+            </View>
+          ) : (
+                (dashboardCards || []).map((card, idx) => (
+              <TouchableOpacity
+                key={`saved-${idx}`}
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate('FinalPreview', { cardData: card })}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  padding: 12,
+                  marginBottom: 12,
+                  elevation: 3,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.08,
+                  shadowRadius: 6,
+                  shadowOffset: { width: 0, height: 2 },
+                  position: 'relative'
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => handleDeleteCard(idx)}
+                  style={{ position: 'absolute', right: 10, top: 10, zIndex: 10 }}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#b71c1c" />
+                </TouchableOpacity>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                    {card.savedImage ? (
+                      <Image source={{ uri: card.savedImage }} style={{ width: 60, height: 60, borderRadius: 8, marginRight: 12 }} />
+                    ) : (
+                      <View style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: '#f2f2f2', marginRight: 12 }} />
+                    )}
+
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#111' }}>{card.name || 'Unnamed'}</Text>
+                      <Text style={{ fontSize: 13, color: '#666', marginTop: 4 }}>{card.designation || ''}</Text>
+                    </View>
+                  </View>
+
+                  <Ionicons name="chevron-forward" size={22} color="#999" />
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+
         <View style={landingStyles.contactsListContainer}>
           {filteredContacts.length > 0 ? (
             filteredContacts.map((contact, index) => (

@@ -1,0 +1,80 @@
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, StatusBar, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+import ClassicTemplate from '../../components/templates/ClassicTemplate';
+import ModernTemplate from '../../components/templates/ModernTemplate';
+import MinimalTemplate from '../../components/templates/MinimalTemplate';
+import DarkTemplate from '../../components/templates/DarkTemplate';
+
+const TEMPLATE_COMPONENTS = {
+  classic: ClassicTemplate,
+  modern: ModernTemplate,
+  minimal: MinimalTemplate,
+  dark: DarkTemplate,
+};
+
+export default function SavedCardViewScreen({ route, navigation }) {
+  const cardData = route?.params?.cardData || {};
+  const template = cardData.template || 'classic';
+  const SelectedComponent = TEMPLATE_COMPONENTS[template] || ClassicTemplate;
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={26} color="#D4AF37" />
+        </TouchableOpacity>
+
+        <Text style={styles.title}>Saved Card</Text>
+
+        <View style={{ width: 36 }} />
+      </View>
+
+      <View style={styles.center}>
+        <View style={styles.cardWrapper}>
+          <SelectedComponent userData={cardData} />
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#eee',
+  },
+  backBtn: {
+    width: 36,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  cardWrapper: {
+    width: '100%',
+    maxWidth: 420,
+  },
+});

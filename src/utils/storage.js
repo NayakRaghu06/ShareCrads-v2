@@ -40,3 +40,32 @@ export const getDashboard = async () => {
 export const clearDashboard = async () => {
   await AsyncStorage.removeItem('DASHBOARD');
 };
+
+// Convenience helpers: add/remove single card to dashboard
+export const addDashboardCard = async (card) => {
+  try {
+    const data = await AsyncStorage.getItem('DASHBOARD');
+    let cards = data ? JSON.parse(data) : [];
+    if (!Array.isArray(cards)) cards = [];
+    cards.push(card);
+    await AsyncStorage.setItem('DASHBOARD', JSON.stringify(cards));
+    return cards;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const removeDashboardCard = async (index) => {
+  try {
+    const data = await AsyncStorage.getItem('DASHBOARD');
+    let cards = data ? JSON.parse(data) : [];
+    if (!Array.isArray(cards)) cards = [];
+    if (index >= 0 && index < cards.length) {
+      cards.splice(index, 1);
+      await AsyncStorage.setItem('DASHBOARD', JSON.stringify(cards));
+    }
+    return cards;
+  } catch (e) {
+    throw e;
+  }
+};

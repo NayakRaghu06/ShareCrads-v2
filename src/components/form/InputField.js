@@ -15,6 +15,7 @@ export default function InputField({
   icon,
   error,
   rightButton,
+  editable = true,
 }) {
   return (
     <View style={styles.wrapper}>
@@ -37,6 +38,7 @@ export default function InputField({
         style={[
           styles.inputBox,
           error && { borderColor: '#FF0000' },
+          !editable && styles.inputBoxDisabled,
         ]}
       >
         {showCountry && (
@@ -52,6 +54,7 @@ export default function InputField({
           keyboardType={keyboardType || 'default'}
           value={value}
           onChangeText={onChangeText}
+          editable={editable}
         />
         {rightButton ? (
           <TouchableOpacity
@@ -122,6 +125,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+
+  inputBoxDisabled: {
+    backgroundColor: '#F3F4F6',
+    opacity: 0.9,
   },
 
   // +91 pill

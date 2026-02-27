@@ -279,6 +279,7 @@ import Header from '../../components/common/Header';
 import InputField from '../../components/form/InputField';
 import PrimaryButton from '../../components/buttons/PrimaryButton';
 import { loginStyles } from '../../styles/screens/loginStyles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 🔥 IMPORT YOUR API
 import { apiFetch } from '../../utils/api';
@@ -434,6 +435,13 @@ export default function LoginScreen({ navigation }) {
       });
 
       if (res.ok && data.status === 1) {
+
+        // Save phone after successful OTP verification
+        try {
+          await AsyncStorage.setItem('userPhone', phone);
+        } catch (e) {
+          console.warn('Failed to save userPhone', e);
+        }
 
         Alert.alert('Success 🎉', 'Login Successful');
         navigation.replace('Landing');

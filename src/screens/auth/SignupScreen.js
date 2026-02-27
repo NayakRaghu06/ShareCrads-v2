@@ -19,6 +19,7 @@ import { COLORS } from '../../styles/colors';
 import { signupStyles } from '../../styles/screens/signupStyles';
 //import { saveUser } from "../../utils/storage";
 import { apiFetch } from "../../utils/api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignupScreen({ navigation }) {
   const [otpVisiblePhone, setOtpVisiblePhone] = useState(false);
@@ -358,6 +359,11 @@ export default function SignupScreen({ navigation }) {
       if (res && res.ok && data && data.status === 1) {
         // Mark phone OTP as verified. Do NOT create account or navigate here.
         setOtpPhoneVerified(true);
+        try {
+          await AsyncStorage.setItem('userPhone', form.phone);
+        } catch (e) {
+          console.warn('Failed to save userPhone', e);
+        }
         Alert.alert('Success', 'Phone OTP Verified');
       } else {
         console.log('verify-phone-otp failed', { resStatus: res?.status, data });

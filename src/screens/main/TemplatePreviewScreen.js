@@ -41,9 +41,9 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
     let mounted = true;
     const loadUser = async () => {
       try {
-        const user = await getUser();
+        const user = await getUserStorage();
         if (mounted && user) {
-          const name = user.first || user.fullName || user.firstName || '';
+          const name = user.first || user.fullName || user.firstName || user.name || '';
           const initial = name && name.trim().length ? name.trim().charAt(0).toUpperCase() : 'N';
           setUserInitial(initial);
         }
