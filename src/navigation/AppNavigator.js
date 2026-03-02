@@ -17,6 +17,7 @@ import TemplatePreviewScreen from '../screens/main/TemplatePreviewScreen';
 import SelectTemplateScreen from '../screens/main/SelectTemplateScreen';
 import FinalPreviewScreen from '../screens/main/FinalPreviewScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
+import MyCardsScreen from '../screens/main/MyCardsScreen';
 import ContactsScreen from '../screens/main/ContactsScreen';
 import UploadScreen from '../screens/main/UploadScreen';
 // onboarding screens removed
@@ -107,6 +108,7 @@ export default function AppNavigator() {
       <Stack.Screen name="FinalPreview" component={FinalPreviewScreen} />
       <Stack.Screen name="Contacts" component={ContactsScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="MyCards" component={MyCardsScreen} />
       <Stack.Screen name="Dashboard" component={DashboardTabs} />
     </Stack.Navigator>
   );

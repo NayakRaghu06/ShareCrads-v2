@@ -361,6 +361,7 @@ export default function LandingScreen({ navigation }) {
   const [filteredContacts, setFilteredContacts] = useState([]);
   const [activeTab, setActiveTab] = useState('home');
   const [menuVisible, setMenuVisible] = useState(false);
+  const [showSavedCards, setShowSavedCards] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
   // 🔥 BACK BUTTON EXIT HANDLING
@@ -459,8 +460,25 @@ export default function LandingScreen({ navigation }) {
   const handleMicPress = () => setIsListening(!isListening);
 
   const handleLogout = async () => {
-    await clearUser();
-    navigation.replace('Login');
+    try {
+      // Call backend logout API
+      const phone = await AsyncStorage.getItem('userPhone');
+      if (phone) {
+        try {
+          await apiFetch('/auth/logout', {
+            method: 'POST',
+            body: JSON.stringify({ mobileNumber: phone }),
+          });
+        } catch (e) {
+          // Ignore network errors for logout
+        }
+      }
+      // Clear only session/auth
+      await AsyncStorage.removeItem('userPhone');
+      navigation.replace('Login');
+    } catch {
+      Alert.alert('Error', 'Failed to logout');
+    }
   };
 
   return (
@@ -526,6 +544,7 @@ export default function LandingScreen({ navigation }) {
             position: 'absolute',
             left: 0,
             top: 0,
+            justifyContent: 'flex-start',
           }}>
             <Text style={{
               fontSize: 22,
@@ -536,41 +555,104 @@ export default function LandingScreen({ navigation }) {
               Menu
             </Text>
 
+      {/* Modal for Saved Cards */}
+      <Modal visible={showSavedCards} animationType="slide" transparent>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ width: '90%', maxHeight: '80%', backgroundColor: '#fff', borderRadius: 16, padding: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: COLORS.accent }}>My Saved Cards</Text>
+              <TouchableOpacity onPress={() => setShowSavedCards(false)}>
+                <Ionicons name="close" size={26} color={COLORS.accent} />
+              </TouchableOpacity>
+            </View>
+            {Array.isArray(dashboardCards) && dashboardCards.length === 0 ? (
+              <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                <Ionicons name="bookmark-outline" size={50} color={COLORS.accent} />
+                <Text style={{ fontSize: 16, fontWeight: '600', marginTop: 12 }}>No saved cards yet</Text>
+                <Text style={{ color: '#666', marginTop: 6 }}>Save your first digital card</Text>
+              </View>
+            ) : (
+              <ScrollView style={{ maxHeight: 400 }}>
+                {(dashboardCards || []).map((card, idx) => (
+                  <TouchableOpacity
+                    key={`modal-saved-${idx}`}
+                    activeOpacity={0.9}
+                    onPress={() => {
+                      setShowSavedCards(false);
+                      navigation.navigate('FinalPreview', { cardData: card });
+                    }}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: 12,
+                      padding: 12,
+                      marginBottom: 12,
+                      elevation: 2,
+                      shadowColor: '#000',
+                      shadowOpacity: 0.06,
+                      shadowRadius: 4,
+                      shadowOffset: { width: 0, height: 1 },
+                      position: 'relative',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        {card.savedImage ? (
+                          <Image source={{ uri: card.savedImage }} style={{ width: 60, height: 60, borderRadius: 8, marginRight: 12 }} />
+                        ) : (
+                          <View style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: '#f2f2f2', marginRight: 12 }} />
+                        )}
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111' }}>{card.name || 'Unnamed'}</Text>
+                          <Text style={{ fontSize: 13, color: '#666', marginTop: 4 }}>{card.designation || ''}</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="chevron-forward" size={22} color="#999" />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+            {/* Settings */}
             <TouchableOpacity
-              style={{ marginBottom: 20 }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                height: 48,
+                paddingHorizontal: 10,
+                borderRadius: 10,
+                marginBottom: 18,
+                backgroundColor: '#f7f7f7',
+              }}
               onPress={() => {
                 setMenuVisible(false);
                 navigation.navigate('Profile');
               }}
+              activeOpacity={0.85}
             >
-              <Text style={{ fontSize: 16 }}>Settings</Text>
+              <Ionicons name="settings-outline" size={22} color={COLORS.accent} style={{ marginRight: 16 }} />
+              <Text style={{ fontSize: 16, color: '#222', fontWeight: '500' }}>Settings</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleLogout}>
-              <Text style={{ fontSize: 16, color: 'red' }}>Logout</Text>
+            {/* Logout */}
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                height: 48,
+                paddingHorizontal: 10,
+                borderRadius: 10,
+                backgroundColor: '#f7f7f7',
+              }}
+              onPress={handleLogout}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="log-out-outline" size={22} color={'red'} style={{ marginRight: 16 }} />
+              <Text style={{ fontSize: 16, color: 'red', fontWeight: '500' }}>Logout</Text>
             </TouchableOpacity>
-
-            {/* Saved Cards in Side Menu */}
-            <View style={{ marginTop: 22 }}>
-              <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 10, color: COLORS.accent }}>Saved Cards</Text>
-              {Array.isArray(dashboardCards) && dashboardCards.length === 0 ? (
-                <Text style={{ color: '#171616', marginBottom: 12 }}>No cards saved</Text>
-              ) : (
-                (dashboardCards || []).map((card, idx) => (
-                  <TouchableOpacity
-                    key={`menu-card-${idx}`}
-                    style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' }}
-                    onPress={() => {
-                      setMenuVisible(false);
-                      navigation.navigate('FinalPreview', { cardData: card });
-                    }}
-                  >
-                    <Text style={{ fontSize: 15, color: '#222' }}>{card.name || 'Unnamed'}</Text>
-                    <Text style={{ fontSize: 12, color: '#888' }}>{card.designation || ''}</Text>
-                  </TouchableOpacity>
-                ))
-              )}
-            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -579,7 +661,7 @@ export default function LandingScreen({ navigation }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
 
         {/* My Saved Cards Dashboard */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 8 }}>
+        {/* <View style={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: 8 }}>
           <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 10 }}>
             My Saved Cards
           </Text>
@@ -635,7 +717,7 @@ export default function LandingScreen({ navigation }) {
               </TouchableOpacity>
             ))
           )}
-        </View>
+        </View> */}
 
         <View style={landingStyles.contactsListContainer}>
           {filteredContacts.length > 0 ? (
@@ -690,6 +772,21 @@ export default function LandingScreen({ navigation }) {
                 />
                 <Text style={landingStyles.createButtonText}>
                   Create Your Card
+                </Text>
+              </TouchableOpacity>
+
+              {/* MY CARDS BUTTON */}
+              <TouchableOpacity
+                style={[landingStyles.createButton, { marginTop: 12, backgroundColor: COLORS.accent }]}
+                onPress={() => navigation.navigate('MyCards')}
+              >
+                <Ionicons
+                  name="albums-outline"
+                  size={20}
+                  color="#FFF"
+                />
+                <Text style={landingStyles.createButtonText}>
+                  My Cards
                 </Text>
               </TouchableOpacity>
             </View>

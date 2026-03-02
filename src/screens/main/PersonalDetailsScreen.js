@@ -37,13 +37,13 @@ const validations = {
     message: 'Phone must be 10 digits',
   },
   email: {
-    required: true,
+    required: false,
     emailFormat: true,
     message: 'Enter valid email format',
   },
   designation: {
+    required: true,
     maxLength: 40,
-    required: false,
     message: 'Designation cannot exceed 40 characters',
   },
   address: {
@@ -122,11 +122,12 @@ export default function PersonalDetailsScreen({ navigation }) {
     if (!rule) return '';
 
     if (rule.required && !value.trim()) {
+      // Custom label for Designation
+      if (name === 'designation') return 'Designation is required';
       return `${name.replace(/([A-Z])/g, ' $1').trim()} is required`;
     }
-
     if (!rule.required && !value.trim()) {
-      return ''; // Optional field is OK if empty
+      return '';
     }
 
     if (name === 'fullName') {
@@ -149,7 +150,7 @@ export default function PersonalDetailsScreen({ navigation }) {
     }
 
     if (name === 'email') {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
         return 'Enter valid email format';
       }
     }
@@ -236,23 +237,15 @@ export default function PersonalDetailsScreen({ navigation }) {
           {/* Back Button */}
           <TouchableOpacity
             onPress={navigateToLanding}
-            style={{ width: 24, justifyContent: 'center', alignItems: 'center' }}
+            style={{ width: 24, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}
           >
             <Ionicons name="chevron-back" size={28} color="#D4AF37" />
           </TouchableOpacity>
 
-          {/* App Title */}
-          <Text style={layoutStyles.appTitle}>
-            DIGITAL BUSINESS CARD
-          </Text>
-
-          {/* Profile Icon */}
-          <TouchableOpacity
-            style={layoutStyles.profileIcon}
-            onPress={navigateToProfile}
-          >
-            <Text style={layoutStyles.profileIconText}>{userInitial}</Text>
-          </TouchableOpacity>
+          {/* App Title Centered */}
+          <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 1 }}>
+            <Text style={layoutStyles.appTitle}>DIGITAL BUSINESS CARD</Text>
+          </View>
         </View>
 
         {/* ========== TITLE SECTION ========== */}
@@ -292,7 +285,8 @@ export default function PersonalDetailsScreen({ navigation }) {
 
             {/* Designation */}
             <InputField
-              label="Designation (max 40 chars)"
+              label="Designation (max 40 chars) *"
+              required={true}
               placeholder="Enter designation"
               icon="briefcase"
               value={formData.designation}
@@ -315,7 +309,7 @@ export default function PersonalDetailsScreen({ navigation }) {
 
             {/* Email */}
             <InputField
-              label="Email *"
+              label="Email (optional)"
               placeholder="your.email@gmail.com"
               icon="mail"
               keyboardType="email-address"

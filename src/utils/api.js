@@ -1,6 +1,6 @@
 
 
-export const BASE_URL = 'https://dbc.venturebiz.in';
+export const BASE_URL = 'https://backend.sharecards.in';
 
 // Default headers
 export const defaultHeaders = {

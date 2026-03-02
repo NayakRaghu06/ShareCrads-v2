@@ -104,23 +104,15 @@ export default function SelectTemplateScreen({ route, navigation }) {
         {/* Back Button */}
         <TouchableOpacity 
           onPress={handleBack}
-          style={{ width: 24, justifyContent: 'center', alignItems: 'center' }}
+          style={{ width: 24, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}
         >
           <Ionicons name="chevron-back" size={28} color="#D4AF37" />
         </TouchableOpacity>
 
-        {/* App Title */}
-        <Text style={layoutStyles.appTitle}>
-          DIGITAL BUSINESS CARD
-        </Text>
-
-        {/* Profile Icon */}
-        <TouchableOpacity 
-          style={layoutStyles.profileIcon}
-          onPress={navigateToProfile}
-        >
-          <Text style={layoutStyles.profileIconText}>{userInitial}</Text>
-        </TouchableOpacity>
+        {/* App Title Centered */}
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 1 }}>
+          <Text style={layoutStyles.appTitle}>DIGITAL BUSINESS CARD</Text>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>

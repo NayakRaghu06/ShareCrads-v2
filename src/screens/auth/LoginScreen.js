@@ -293,21 +293,23 @@ export default function LoginScreen({ navigation }) {
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
+  const [cooldown, setCooldown] = useState(false); // disables both buttons
+  const [sendingOtp, setSendingOtp] = useState(false); // prevents double API
 
   const inputs = useRef([]);
 
   // ================= TIMER =================
   useEffect(() => {
     let interval;
-
-    if (otpSent && timer > 0) {
+    if (otpSent && cooldown && timer > 0) {
       interval = setInterval(() => setTimer((t) => t - 1), 1000);
     }
-
-    if (timer === 0) setCanResend(true);
-
+    if (timer === 0 && cooldown) {
+      setCanResend(true);
+      setCooldown(false);
+    }
     return () => clearInterval(interval);
-  }, [otpSent, timer]);
+  }, [otpSent, timer, cooldown]);
 
   // ================= PHONE INPUT =================
   const handlePhoneChange = (text) => {
@@ -318,71 +320,62 @@ export default function LoginScreen({ navigation }) {
 
   // ================= SEND OTP =================
   const handleSendOtp = async () => {
-
+    if (cooldown || sendingOtp) return;
     if (!/^[1-9]\d{9}$/.test(phone)) {
       Alert.alert('Invalid Number', 'Enter valid 10 digit mobile number');
       return;
     }
-
+    setSendingOtp(true);
     try {
-
       const { res, data } = await apiFetch('/auth/mobile/login', {
         method: 'POST',
         body: JSON.stringify({ mobileNumber: phone }),
       });
-
       if (res.ok && data.status === 1) {
-
         Alert.alert('OTP Sent ✅', data.message || 'Check your mobile');
-
         setOtpSent(true);
         setTimer(30);
         setCanResend(false);
+        setCooldown(true);
         setOtp(Array(OTP_LENGTH).fill(''));
-
         setTimeout(() => {
           inputs.current[0]?.focus();
         }, 300);
-
       } else {
         Alert.alert('Error', data.message || 'Failed to send OTP');
       }
-
     } catch {
       Alert.alert('Error', 'Network error');
+    } finally {
+      setSendingOtp(false);
     }
   };
 
   // ================= RESEND OTP =================
   const handleResendOtp = async () => {
-
-    if (!canResend) return;
-
+    if (!canResend || cooldown || sendingOtp) return;
+    setSendingOtp(true);
     try {
-
       const { res, data } = await apiFetch('/auth/resend/login-otp', {
         method: 'POST',
         body: JSON.stringify({ mobileNumber: phone }),
       });
-
       if (res.ok && data.status === 1) {
-
         Alert.alert('OTP Resent ✅');
-
         setTimer(30);
         setCanResend(false);
+        setCooldown(true);
         setOtp(Array(OTP_LENGTH).fill(''));
-
         setTimeout(() => {
           inputs.current[0]?.focus();
         }, 300);
-
       } else {
         Alert.alert('Error', data.message || 'Failed');
       }
-
     } catch {
       Alert.alert('Error', 'Network error');
+    } finally {
+      setSendingOtp(false);
     }
   };
 
@@ -489,7 +482,11 @@ export default function LoginScreen({ navigation }) {
                 maxLength={10}
               />
 
-              <PrimaryButton title="Send OTP" onPress={handleSendOtp} />
+              <PrimaryButton
+                title="Send OTP"
+                onPress={handleSendOtp}
+                disabled={cooldown || sendingOtp}
+              />
 
               {otpSent && (
                 <>
@@ -514,11 +511,11 @@ export default function LoginScreen({ navigation }) {
 
                   <TouchableOpacity
                     onPress={handleResendOtp}
-                    disabled={!canResend}
+                    disabled={!canResend || cooldown || sendingOtp}
                     style={loginStyles.resendWrap}
                   >
                     <Text style={loginStyles.resendText}>
-                      {canResend
+                      {canResend && !cooldown
                         ? 'Resend OTP'
                         : `Resend OTP in ${timer}s`}
                     </Text>

@@ -16,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { profileStyles } from '../../styles/screens/profileStyles';
 import { COLORS } from '../../styles/colors';
 import { getUser, saveUser, clearUser } from '../../utils/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiFetch } from '../../utils/api';
 import Footer from '../../components/common/Footer';
 
 export default function ProfileScreen({ navigation, route }) {
@@ -36,10 +38,24 @@ export default function ProfileScreen({ navigation, route }) {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const user = await getUser();
-        if (user) {
-          setProfileData(user);
-          setEditedData(user);
+        // Get phone from AsyncStorage
+        const phone = await AsyncStorage.getItem('userPhone');
+        if (!phone) throw new Error('No phone found in session');
+        // Fetch profile from backend
+        const { res, data } = await apiFetch(`/user/profile/${phone}`);
+        if (res.status === 401) {
+          // Session expired
+          Alert.alert('Session Expired', 'Please log in again.');
+          navigation.replace('Login');
+          return;
+        }
+        if (res.ok && data) {
+          setProfileData(data);
+          setEditedData(data);
+          // Optionally update local cache
+          await AsyncStorage.setItem('USER', JSON.stringify(data));
+        } else {
+          throw new Error('Failed to fetch profile');
         }
       } catch (error) {
         Alert.alert('Error', 'Failed to load profile');
@@ -230,7 +246,7 @@ export default function ProfileScreen({ navigation, route }) {
                   {item.label}
                 </Text>
 
-                {isEditing ? (
+                {isEditing && item.key !== 'phone' ? (
                   <TextInput
                     style={{
                       fontSize: 15,
@@ -242,7 +258,6 @@ export default function ProfileScreen({ navigation, route }) {
                       handleEditChange(item.key, value)
                     }
                     editable={true}
-
                   />
                 ) : (
                   <Text style={{

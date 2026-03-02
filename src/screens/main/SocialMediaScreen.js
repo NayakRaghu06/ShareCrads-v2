@@ -240,14 +240,15 @@
 //         <TouchableOpacity 
 //           style={layoutStyles.backButton}
 //           onPress={navigateToBusinessDetails}
+//           zIndex={2}
 //         >
 //           <Ionicons name="chevron-back" size={28} color="#D4AF37" />
 //         </TouchableOpacity>
 
-//         {/* App Title */}
-//         <Text style={layoutStyles.appTitle}>
-//           SOCIAL MEDIA
-//         </Text>
+//         {/* App Title Centered */}
+//         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 1 }}>
+//           <Text style={layoutStyles.appTitle}>SOCIAL MEDIA</Text>
+//         </View>
 
 //         {/* Step Indicator */}
 //         <View style={layoutStyles.stepIndicator}>
@@ -738,12 +739,18 @@ export default function SocialMediaScreen({ route, navigation }) {
     <SafeAreaView style={layoutStyles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
+      {/* Header */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 18, paddingBottom: 10, backgroundColor: '#fff' }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4, marginRight: 8 }}>
+          <Ionicons name="chevron-back" size={26} color="#D4AF37" />
+        </TouchableOpacity>
+        <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#222', flex: 1 }}>Social Media & Uploads</Text>
+        <View style={{ width: 32 }} />
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false}>
 
         <View style={layoutStyles.titleSection}>
-          <Text style={layoutStyles.mainTitle}>
-            Social Media & Uploads
-          </Text>
           <Text style={layoutStyles.subtitle}>
             Add your social links and upload media
           </Text>
@@ -837,6 +844,14 @@ export default function SocialMediaScreen({ route, navigation }) {
             <Text style={layoutStyles.saveButtonText}>
               Save & Submit
             </Text>
+          </TouchableOpacity>
+
+          {/* Go Back Button */}
+          <TouchableOpacity
+            style={[layoutStyles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D4AF37', marginTop: 12 }]}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={[layoutStyles.saveButtonText, { color: '#D4AF37' }]}>← Go Back</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
