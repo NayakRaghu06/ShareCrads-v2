@@ -99,7 +99,7 @@ export default function PersonalDetailsScreen({ navigation }) {
 
 
   const [errors, setErrors] = useState({});
-  const [phoneLocked, setPhoneLocked] = useState(false);
+  const [phoneLocked, setPhoneLocked] = useState(true);
 
   useEffect(() => {
     const loadPhone = async () => {
@@ -107,7 +107,6 @@ export default function PersonalDetailsScreen({ navigation }) {
         const phone = await AsyncStorage.getItem('userPhone');
         if (phone) {
           setFormData((prev) => ({ ...prev, phone }));
-          setPhoneLocked(true);
         }
       } catch (e) {
         // ignore
@@ -302,7 +301,7 @@ export default function PersonalDetailsScreen({ navigation }) {
               keyboardType="phone-pad"
               value={formData.phone}
               onChangeText={(text) => handleFieldChange('phone', text)}
-              editable={!phoneLocked}
+              editable={false}
               error={errors.phone}
               maxLength={10}
             />
@@ -370,7 +369,18 @@ export default function PersonalDetailsScreen({ navigation }) {
   );
 }
 
-function InputField({ label, placeholder, icon, multiline, keyboardType, value, onChangeText, maxLength, error }) {
+function InputField({
+  label,
+  placeholder,
+  icon,
+  multiline,
+  keyboardType,
+  value,
+  onChangeText,
+  maxLength,
+  error,
+  editable = true
+}) {
   const renderLabel = () => {
     if (!label) return null;
 
@@ -418,6 +428,7 @@ function InputField({ label, placeholder, icon, multiline, keyboardType, value, 
           maxLength={maxLength}
           value={value}
           onChangeText={onChangeText}
+          editable={editable}
         />
       </View>
       {error && (

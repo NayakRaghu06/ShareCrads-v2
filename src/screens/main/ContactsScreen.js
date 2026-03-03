@@ -38,28 +38,26 @@ export default function ContactsScreen({ navigation }) {
     try {
       // Step 1: Request contact permission
       const hasPermission = await requestContactPermission();
-      
       if (!hasPermission) {
         Alert.alert('Permission Denied', 'Cannot access contacts without permission');
+        setPermissionGranted(false);
         setLoading(false);
         return;
       }
-
       setPermissionGranted(true);
-
       // Step 2: Read phone contacts
       const phoneContacts = await readPhoneContacts();
-
+      // Debug log for contacts count
+      console.log('Contacts Count:', phoneContacts.length);
       // Step 3: Get DBC users
       const dbcUsers = await getDBCUsers();
-
       // Step 4: Compare and merge
       const mergedContacts = compareContactsWithUsers(phoneContacts, dbcUsers);
-      
       setContacts(mergedContacts);
     } catch (error) {
       console.error('Error loading contacts:', error);
       Alert.alert('Error', 'Failed to load contacts');
+      setContacts([]);
     } finally {
       setLoading(false);
     }

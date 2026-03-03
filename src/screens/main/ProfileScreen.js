@@ -15,8 +15,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { profileStyles } from '../../styles/screens/profileStyles';
 import { COLORS } from '../../styles/colors';
-import { getUser, saveUser, clearUser } from '../../utils/storage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
 import Footer from '../../components/common/Footer';
 
@@ -30,30 +28,39 @@ export default function ProfileScreen({ navigation, route }) {
     email: '',
     profileImage: null,
   });
-
-  const [editedData, setEditedData] = useState(profileData);
+  const [editedData, setEditedData] = useState({
+    first: '',
+    middle: '',
+    last: '',
+    phone: '',
+    email: '',
+    profileImage: null,
+  });
   const [loading, setLoading] = useState(true);
   const fromScreen = route?.params?.fromScreen || null;
 
   useEffect(() => {
     const loadUserData = async () => {
+      setLoading(true);
       try {
-        // Get phone from AsyncStorage
-        const phone = await AsyncStorage.getItem('userPhone');
-        if (!phone) throw new Error('No phone found in session');
-        // Fetch profile from backend
-        const { res, data } = await apiFetch(`/user/profile/${phone}`);
+        const { res, data } = await apiFetch('/user/profile', { credentials: 'include' });
         if (res.status === 401) {
-          // Session expired
-          Alert.alert('Session Expired', 'Please log in again.');
+          Alert.alert('Session expired', 'Please log in again.');
+          // Clear session/token here if needed
           navigation.replace('Login');
           return;
         }
-        if (res.ok && data) {
-          setProfileData(data);
-          setEditedData(data);
-          // Optionally update local cache
-          await AsyncStorage.setItem('USER', JSON.stringify(data));
+        if (res.ok && data && data.status === 1 && data.data) {
+          const mapped = {
+            first: data.data.firstName || '',
+            middle: data.data.middleName || '',
+            last: data.data.lastName || '',
+            phone: data.data.mobileNumber || '',
+            email: data.data.email || '',
+            profileImage: null,
+          };
+          setProfileData(mapped);
+          setEditedData(mapped);
         } else {
           throw new Error('Failed to fetch profile');
         }
@@ -92,10 +99,38 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleSave = async () => {
     try {
-      await saveUser(editedData);
-      setProfileData(editedData);
-      setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      const payload = {
+        firstName: editedData.first,
+        middleName: editedData.middle,
+        lastName: editedData.last,
+        email: editedData.email,
+      };
+      const { res, data } = await apiFetch('/user/update-profile', {
+        method: 'PUT',
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 401) {
+        Alert.alert('Session expired', 'Please log in again.');
+        navigation.replace('Login');
+        return;
+      }
+      if (res.ok && data && data.status === 1 && data.data) {
+        const mapped = {
+          first: data.data.firstName || '',
+          middle: data.data.middleName || '',
+          last: data.data.lastName || '',
+          phone: data.data.mobileNumber || '',
+          email: data.data.email || '',
+          profileImage: profileData.profileImage,
+        };
+        setProfileData(mapped);
+        setEditedData(mapped);
+        setIsEditing(false);
+        Alert.alert('Success', 'Profile updated successfully');
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch {
       Alert.alert('Error', 'Failed to save profile');
     }
@@ -108,8 +143,12 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleLogout = async () => {
     try {
-      await clearUser();
-      navigation.replace('Splash');
+      const { res } = await apiFetch('/user/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      // Clear session/token here if needed
+      navigation.replace('Login');
     } catch {
       Alert.alert('Error', 'Failed to logout');
     }
@@ -257,7 +296,7 @@ export default function ProfileScreen({ navigation, route }) {
                     onChangeText={(value) =>
                       handleEditChange(item.key, value)
                     }
-                    editable={true}
+                    editable={item.key !== 'phone' ? true : false}
                   />
                 ) : (
                   <Text style={{
@@ -265,7 +304,7 @@ export default function ProfileScreen({ navigation, route }) {
                     fontWeight: '500',
                     marginTop: 3
                   }}>
-                    {profileData[item.key] || 'N/A'}
+                    {profileData[item.key]}
                   </Text>
                 )}
               </View>
