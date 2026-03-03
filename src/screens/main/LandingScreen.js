@@ -11,6 +11,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import { useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { landingStyles } from '../../styles/screens/landingStyles';
@@ -53,6 +54,62 @@ export default function LandingScreen({ navigation }) {
     return () => backHandler.remove();
   }, []);
 
+        // InboxButton component
+        function InboxButton({ navigation }) {
+          const [unreadCount, setUnreadCount] = useState(2); // Example: 2 unread
+          const isMounted = useRef(true);
+
+          React.useEffect(() => {
+            return () => { isMounted.current = false; };
+          }, []);
+
+          const handleInboxPress = () => {
+            navigation.navigate('InboxScreen');
+            // Reset unread count after navigation
+            setTimeout(() => {
+              if (isMounted.current) setUnreadCount(0);
+            }, 500);
+          };
+
+          return (
+            <View style={{ width: '100%', alignItems: 'center' }}>
+              <TouchableOpacity
+                style={[landingStyles.createButton, { marginTop: 12, backgroundColor: '#D4AF37', position: 'relative' }]}
+                onPress={handleInboxPress}
+                activeOpacity={0.85}
+              >
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color="#FFF"
+                />
+                <Text style={landingStyles.createButtonText}>
+                  Inbox
+                </Text>
+                {/* Notification Badge */}
+                {unreadCount > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 30,
+                    backgroundColor: '#EF4444',
+                    borderRadius: 10,
+                    minWidth: 20,
+                    height: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingHorizontal: 6,
+                    zIndex: 10,
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                  }}>
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{unreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          );
+        }
   useEffect(() => {
     loadContacts();
     loadDashboardCards();
@@ -500,6 +557,9 @@ export default function LandingScreen({ navigation }) {
                   My Cards
                 </Text>
               </TouchableOpacity>
+
+              {/* INBOX BUTTON */}
+              <InboxButton navigation={navigation} />
             </View>
           )}
         </View>
