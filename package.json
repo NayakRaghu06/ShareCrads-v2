@@ -19,6 +19,7 @@
     "expo-document-picker": "~14.0.8",
     "expo-image-picker": "~17.0.10",
     "expo-linear-gradient": "~15.0.8",
+    "expo-linking": "^55.0.7",
     "expo-media-library": "~18.2.1",
     "expo-print": "~15.0.8",
     "expo-sharing": "~14.0.8",
@@ -37,6 +38,8 @@
   },
   "private": true,
   "devDependencies": {
-    "@react-native-community/cli": "latest"
+    "@babel/preset-flow": "^7.27.1",
+    "@react-native-community/cli": "latest",
+    "@react-native/metro-config": "^0.84.1"
   }
 }

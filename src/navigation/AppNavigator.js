@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 import SplashScreen from '../screens/auth/SplashScreen';
+import CardDetailsScreen from '../screens/main/CardDetailsScreen';
 import LocationPermissionScreen from '../screens/auth/LocationPermissionScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
@@ -18,6 +19,7 @@ import SelectTemplateScreen from '../screens/main/SelectTemplateScreen';
 import FinalPreviewScreen from '../screens/main/FinalPreviewScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import MyCardsScreen from '../screens/main/MyCardsScreen';
+import EditCardScreen from '../screens/main/EditCardScreen';
 import ContactsScreen from '../screens/main/ContactsScreen';
 import UploadScreen from '../screens/main/UploadScreen';
 // onboarding screens removed
@@ -109,6 +111,8 @@ export default function AppNavigator() {
       <Stack.Screen name="Contacts" component={ContactsScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="MyCards" component={MyCardsScreen} />
+      <Stack.Screen name="EditCardScreen" component={EditCardScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CardDetailsScreen" component={CardDetailsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Dashboard" component={DashboardTabs} />
     </Stack.Navigator>
   );

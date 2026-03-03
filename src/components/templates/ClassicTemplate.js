@@ -1,78 +1,118 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert } from "react-native";
+import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 
-const ClassicTemplate = ({ userData }) => {
-  const initial = userData?.name ? userData.name.trim().charAt(0).toUpperCase() : 'Y';
+const ClassicTemplate = ({ userData, data }) => {
+  const d = data || userData || {};
+  const phone = d.phone || d.mobile || d.whatsapp || null;
+  const initial = d?.name ? d.name.trim().charAt(0).toUpperCase() : 'Y';
+
+  const handlePdf = async (pdf) => {
+    if (!pdf) return;
+    const uri = typeof pdf === 'string' ? pdf : pdf.uri || pdf;
+    try {
+      const available = await Sharing.isAvailableAsync();
+      if (available) await Sharing.shareAsync(uri);
+      else Linking.canOpenURL(uri).then(supported => supported && Linking.openURL(uri)).catch(e => Alert.alert('Error', e.message));
+    } catch (e) { Alert.alert('Error opening PDF', e.message); }
+  };
 
   return (
     <View style={styles.card}>
+      {/* decorative corner boxes */}
+      <View style={styles.cornerBoxTopLeft} />
+      <View style={styles.cornerBoxTopRight} />
+      <View style={styles.cornerBoxBottomLeft} />
+      <View style={styles.cornerBoxBottomRight} />
       {/* Company logo top-right */}
-      {userData?.companyLogo ? (
-        <Image source={{ uri: userData.companyLogo }} style={styles.companyLogo} />
+      {d?.companyLogo ? (
+        <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
       ) : null}
 
       {/* Neon Circle Avatar */}
       <View style={styles.avatarOuter}>
         <View style={styles.avatarInner}>
-          {userData?.profileImage ? (
-            <Image source={{ uri: userData.profileImage }} style={styles.avatarImage} />
+          {d?.profileImage ? (
+            <Image source={{ uri: d.profileImage }} style={styles.avatarImage} />
           ) : (
             <Text style={styles.avatarText}>{initial}</Text>
           )}
         </View>
       </View>
 
-      <Text style={styles.name}>{userData?.name || 'Your Name'}</Text>
+      {/* Title block removed to avoid duplication; labeled fields shown below */}
 
-      <Text style={styles.role}>{userData?.designation || 'Your Role'}</Text>
+      {/* Labeled fields: Name / Designation / Company / Business Description */}
+      <View style={styles.fieldsContainer}>
+        <View style={styles.row}><Text style={styles.label}>Name:</Text><Text style={styles.value}>{d?.name || '—'}</Text></View>
+        {d?.designation ? <View style={styles.row}><Text style={styles.label}>Designation:</Text><Text style={styles.value}>{d.designation}</Text></View> : null}
+        {d?.companyName ? <View style={styles.row}><Text style={styles.label}>Company Name:</Text><Text style={styles.value}>{d.companyName}</Text></View> : null}
+        {d?.description || d?.businessDescription ? (
+          <View style={styles.row}><Text style={styles.label}>Business Description:</Text><Text style={styles.value}>{d.description || d.businessDescription}</Text></View>
+        ) : null}
+      </View>
 
-      {userData?.companyName ? (
-        <Text style={styles.company}>{userData.companyName}</Text>
+      {phone ? (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.infoBox}
+          onPress={() => Linking.openURL(`tel:${phone}`)}
+        >
+          <View style={styles.row}><Text style={styles.label}>Mobile:</Text><Text style={styles.value}>{phone}</Text></View>
+        </TouchableOpacity>
       ) : null}
 
-      {userData?.businessDescription ? (
-        <Text style={styles.description}>{userData.businessDescription}</Text>
+      {d?.email ? (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.infoBox}
+          onPress={() => Linking.openURL(`mailto:${d.email}`)}
+        >
+          <View style={styles.row}><Text style={styles.label}>Email:</Text><Text style={styles.value}>{d.email}</Text></View>
+        </TouchableOpacity>
       ) : null}
 
-      <View style={styles.infoBox}>
-        <Text style={styles.info}>📞 {userData?.phone || ''}</Text>
-      </View>
+      {d?.website ? (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.infoBox}
+          onPress={() => Linking.openURL(d.website)}
+        >
+          <View style={styles.row}><Text style={styles.label}>Website:</Text><Text style={styles.value}>{d.website}</Text></View>
+        </TouchableOpacity>
+      ) : null}
 
-      <View style={styles.infoBox}>
-        <Text style={styles.info}>✉ {userData?.email || ''}</Text>
-      </View>
+      {d?.address ? (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.infoBox}
+          onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}
+        >
+          <View style={styles.row}><Text style={styles.label}>Address:</Text><Text style={styles.value}>{d.address}</Text></View>
+        </TouchableOpacity>
+      ) : null}
 
-      <View style={styles.infoBox}>
-        <Text style={styles.info}>🌐 {userData?.website || ''}</Text>
-      </View>
-
-      <View style={styles.infoBox}>
-        <Text style={styles.info}>📍 {userData?.address || ''}</Text>
-      </View>
-
-      {/* QR Code - show only if user uploaded a QR in Social Media */}
-      {userData?.qrCodeImage ? (
+      {/* QR Code - uploaded image (auto-generated QR disabled) */}
+      {d?.qrCodeImage ? (
         <View style={styles.qrContainer}>
-          <Image source={{ uri: userData.qrCodeImage }} style={styles.qrImageCentered} />
+          <Image source={{ uri: d.qrCodeImage }} style={styles.qrImageCentered} />
         </View>
       ) : null}
 
       <View style={styles.socialRow}>
-        {userData?.whatsapp ? (<TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${userData.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
-        {userData?.linkedin ? (<TouchableOpacity onPress={() => Linking.openURL(userData.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
-        {userData?.instagram ? (<TouchableOpacity onPress={() => Linking.openURL(`https://instagram.com/${userData.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
-        {userData?.twitter ? (<TouchableOpacity onPress={() => Linking.openURL(userData.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
-        {userData?.facebook ? (<TouchableOpacity onPress={() => Linking.openURL(userData.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
-        {userData?.youtube ? (<TouchableOpacity onPress={() => Linking.openURL(userData.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
-        {userData?.website ? (<TouchableOpacity onPress={() => Linking.openURL(userData.website)} style={styles.iconBtn}><Ionicons name="globe" size={18} color="#00E5FF" /></TouchableOpacity>) : null}
+        {phone ? (<TouchableOpacity onPress={() => Linking.openURL(`tel:${phone}`)} style={styles.iconBtn}><Ionicons name="call" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.whatsapp ? (<TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${d.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.linkedin ? (<TouchableOpacity onPress={() => Linking.openURL(d.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.instagram ? (<TouchableOpacity onPress={() => Linking.openURL(d.instagram.startsWith('http') ? d.instagram : `https://instagram.com/${d.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.twitter ? (<TouchableOpacity onPress={() => Linking.openURL(d.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.facebook ? (<TouchableOpacity onPress={() => Linking.openURL(d.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.youtube ? (<TouchableOpacity onPress={() => Linking.openURL(d.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.website ? (<TouchableOpacity onPress={() => Linking.openURL(d.website)} style={styles.iconBtn}><Ionicons name="globe" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.descriptionPdf ? (<TouchableOpacity onPress={() => handlePdf(d.descriptionPdf)} style={styles.iconBtn}><Ionicons name="document" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.address ? (<TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} style={styles.iconBtn}><Ionicons name="location" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
       </View>
-      {/* Scanned / Existing visiting card preview */}
-      {userData?.businessCard ? (
-        <View style={styles.scannedCard}>
-          <Image source={{ uri: userData.businessCard }} style={styles.scannedCardImage} />
-        </View>
-      ) : null}
+      {/* visiting card removed (no longer used) */}
     </View>
   );
 };
@@ -119,8 +159,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     top: 16,
-    width: 60,
-    height: 40,
+    width: 80,
+    height: 48,
     resizeMode: 'contain',
   },
   qrImage: {
@@ -173,6 +213,7 @@ const styles = StyleSheet.create({
   info: {
     color: "#E5E7EB",
     fontSize: 15,
+    textAlign: 'left',
   },
   socialRow: {
     flexDirection: 'row',
@@ -201,5 +242,68 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  /* new alignment styles */
+  fieldsContainer: {
+    width: '85%',
+    alignSelf: 'center',
+    marginTop: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  label: {
+    width: 130,
+    color: '#9CA3AF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  value: {
+    flex: 1,
+    color: '#E5E7EB',
+    fontSize: 15,
+  },
+  /* small decorative corner boxes */
+  cornerBoxTopLeft: {
+    position: 'absolute',
+    left: 10,
+    top: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
+  },
+  cornerBoxTopRight: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
+  },
+  cornerBoxBottomLeft: {
+    position: 'absolute',
+    left: 10,
+    bottom: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
+  },
+  cornerBoxBottomRight: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
   },
 });
