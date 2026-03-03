@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert } from "react-native";
 import * as Sharing from 'expo-sharing';
+import { File, Paths } from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
 
 const DarkTemplate = ({ userData, data }) => {
@@ -10,12 +11,31 @@ const DarkTemplate = ({ userData, data }) => {
 
   const handlePdf = async (pdf) => {
     if (!pdf) return;
-    const uri = typeof pdf === 'string' ? pdf : pdf.uri || pdf;
     try {
+      let uri = typeof pdf === 'string' ? pdf : (pdf.uri || pdf.fileUri || pdf.localUri || pdf.path || pdf.url || null);
+
+      if (uri && uri.startsWith('data:')) {
+        const base64 = uri.split(',')[1];
+        const file = new File(Paths.cache, `temp_${Date.now()}.pdf`);
+        try {
+          file.write(base64, { encoding: 'base64' });
+        } catch (e) {
+          file.create({ intermediates: true, overwrite: true });
+          file.write(base64, { encoding: 'base64' });
+        }
+        uri = file.uri;
+      }
+
       const available = await Sharing.isAvailableAsync();
-      if (available) await Sharing.shareAsync(uri);
-      else Linking.canOpenURL(uri).then(supported => supported && Linking.openURL(uri)).catch(e => Alert.alert('Error', e.message));
-    } catch (e) { Alert.alert('Error opening PDF', e.message); }
+      if (available) {
+        await Sharing.shareAsync(uri);
+        return;
+      }
+
+      const supported = uri && await Linking.canOpenURL(uri);
+      if (supported) await Linking.openURL(uri);
+      else Alert.alert('Cannot open PDF', 'No handler available for this PDF.');
+    } catch (e) { Alert.alert('Error opening PDF', e.message || String(e)); }
   };
 
   return (
@@ -24,45 +44,48 @@ const DarkTemplate = ({ userData, data }) => {
         <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
       ) : null}
 
-      <View style={styles.circle}>
-        {d?.profileImage ? (
-          <Image source={{ uri: d.profileImage }} style={styles.profileImage} />
-        ) : (
-          <Text style={styles.avatarText}>{initial}</Text>
-        )}
+      <View style={styles.avatarOuter}>
+        <View style={styles.avatarInner}>
+          {d?.profileImage ? (
+            <Image source={{ uri: d.profileImage }} style={styles.profileImage} />
+          ) : (
+            <Text style={styles.avatarText}>{initial}</Text>
+          )}
+        </View>
       </View>
 
-      {/* Title block removed to avoid duplication; labeled fields shown below */}
-      {/* Labeled fields: Name / Designation / Company / Business Description */}
-      <View style={{ width: '85%', alignSelf: 'center', marginTop: 12, alignItems: 'flex-start' }}>
-        <Text style={styles.info}><Text style={{fontWeight:'700'}}>Name:</Text>  {d?.name || '—'}</Text>
-        {d?.designation ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Designation:</Text>  {d.designation}</Text> : null}
-        {d?.companyName ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Company Name:</Text>  {d.companyName}</Text> : null}
+      <View style={styles.fieldsContainer}>
+        <View style={styles.fieldBox}><Text style={styles.label}>Name</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d?.name || '—'}</Text></View>
+        {d?.designation ? <View style={styles.fieldBox}><Text style={styles.label}>Designation</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.designation}</Text></View> : null}
+        {d?.companyName ? <View style={styles.fieldBox}><Text style={styles.label}>Company Name</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.companyName}</Text></View> : null}
         {d?.description || d?.businessDescription ? (
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Business Description:</Text>  {d.description || d.businessDescription}</Text>
+          <View style={styles.fieldBox}><Text style={styles.label}>Business Description</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.description || d.businessDescription}</Text></View>
+        ) : null}
+
+        {phone ? (
+          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`tel:${phone}`)}>
+            <View style={styles.fieldBox}><Text style={styles.label}>Mobile</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{phone}</Text></View>
+          </TouchableOpacity>
+        ) : null}
+
+        {d?.email ? (
+          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`mailto:${d.email}`)}>
+            <View style={styles.fieldBox}><Text style={styles.label}>Email</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.email}</Text></View>
+          </TouchableOpacity>
+        ) : null}
+
+        {d?.website ? (
+          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(d.website)}>
+            <View style={styles.fieldBox}><Text style={styles.label}>Website</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.website}</Text></View>
+          </TouchableOpacity>
+        ) : null}
+
+        {d?.address ? (
+          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}>
+            <View style={styles.fieldBox}><Text style={styles.label}>Address</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.address}</Text></View>
+          </TouchableOpacity>
         ) : null}
       </View>
-
-      {phone ? (
-        <TouchableOpacity activeOpacity={0.8} style={styles.infoCard} onPress={() => Linking.openURL(`tel:${phone}`)}>
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Mobile:</Text>  {phone}</Text>
-        </TouchableOpacity>
-      ) : null}
-      {d?.email ? (
-        <TouchableOpacity activeOpacity={0.8} style={styles.infoCard} onPress={() => Linking.openURL(`mailto:${d.email}`)}>
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Email:</Text>  {d.email}</Text>
-        </TouchableOpacity>
-      ) : null}
-      {d?.website ? (
-        <TouchableOpacity activeOpacity={0.8} style={styles.infoCard} onPress={() => Linking.openURL(d.website)}>
-          <Text style={styles.info}>🌐 {d.website}</Text>
-        </TouchableOpacity>
-      ) : null}
-      {d?.address ? (
-        <TouchableOpacity activeOpacity={0.8} style={styles.infoCard} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}>
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Address:</Text>  {d.address}</Text>
-        </TouchableOpacity>
-      ) : null}
 
       {d?.qrCodeImage ? (
         <View style={styles.qrContainer}>
@@ -92,40 +115,48 @@ export default DarkTemplate;
 const styles = StyleSheet.create({
   card: {
     margin: 16,
-    padding: 24,
-    borderRadius: 24,
+    paddingVertical: 20,
+    paddingHorizontal: 18,
+    borderRadius: 20,
     backgroundColor: "#020617",
     borderWidth: 1,
-    borderColor: "#06B6D4",
+    borderColor: "#071023",
     alignItems: "center",
   },
-  circle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  avatarOuter: {
     borderWidth: 3,
-    borderColor: "#06B6D4",
-    justifyContent: "center",
-    alignItems: "center",
+    borderColor: "#D4AF37",
+    borderRadius: 48,
+    padding: 4,
     marginBottom: 12,
   },
+  avatarInner: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: '#08101A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   avatarText: {
-    fontSize: 36,
-    color: "#06B6D4",
+    fontSize: 34,
+    color: "#D4AF37",
     fontWeight: "bold",
   },
   profileImage: {
-    width: 112,
-    height: 112,
-    borderRadius: 56,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
   },
   companyLogo: {
     position: 'absolute',
-    right: 16,
-    top: 16,
-    width: 80,
-    height: 48,
-    resizeMode: 'contain',
+    left: 12,
+    top: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    overflow: 'hidden',
+    resizeMode: 'cover',
   },
   qrImage: {
     width: 80,
@@ -187,13 +218,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 12,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
   },
   iconBtn: {
     marginHorizontal: 6,
     padding: 6,
     borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.04)'
+  },
+  /* new unified styles */
+  fieldsContainer: {
+    width: '100%',
+    alignSelf: 'center',
+    marginTop: 8,
+    paddingHorizontal: 6,
+  },
+  fieldBox: {
+    width: '100%',
+    backgroundColor: '#0E131A',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  label: {
+    width: 120,
+    color: '#EDEDED',
+    fontWeight: '800',
+    fontSize: 14,
+    marginRight: 8,
+  },
+  value: {
+    flex: 1,
+    color: '#D1D5DB',
+    fontSize: 15,
+    lineHeight: 20,
   },
   scannedCard: {
     width: '100%',

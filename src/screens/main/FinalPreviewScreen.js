@@ -231,6 +231,7 @@ import ViewShot from "react-native-view-shot";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
+import shareCardAsVCard from '../../utils/shareVCard';
 // QRCode is optional native dependency; load dynamically and fallback to external image if unavailable
 
 import ClassicTemplate from "../../components/templates/ClassicTemplate";
@@ -331,17 +332,12 @@ export default function FinalPreviewScreen({ route, navigation }) {
     }
   };
 
-  // Share Image
+  // Share vCard (delegates to utils/shareVCard)
   const handleShare = async () => {
     try {
-      if (!viewRef.current || !viewRef.current.capture) {
-        Alert.alert('Error', 'Unable to capture view');
-        return;
-      }
-      const uri = await viewRef.current.capture();
-      await Sharing.shareAsync(uri);
+      await shareCardAsVCard(effectiveCardData);
     } catch (e) {
-      Alert.alert("Error", e.message);
+      Alert.alert("Error", e.message || String(e));
     }
   };
 

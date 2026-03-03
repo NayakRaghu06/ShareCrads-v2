@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   avatarWrap: { marginRight: 12 },
   avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#eee' },
   avatarPlaceholder: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#D4AF37', justifyContent: 'center', alignItems: 'center' },
-  logo: { width: 80, height: 80, resizeMode: 'contain' },
+  logo: { width: 80, height: 80, borderRadius: 40, overflow: 'hidden', resizeMode: 'cover' },
   main: { marginTop: 12 },
   name: { fontSize: 18, fontWeight: '700', color: '#111' },
   designation: { fontSize: 14, color: '#444', marginTop: 2 },
