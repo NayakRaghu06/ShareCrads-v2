@@ -282,13 +282,35 @@ export default function FinalPreviewScreen({ route, navigation }) {
   if (previewOnly) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
           <ViewShot ref={viewRef} options={{ format: 'png', quality: 1 }}>
             <View style={{ padding: 20 }}>
               <SelectedComponent userData={effectiveCardData} />
             </View>
           </ViewShot>
-        </View>
+
+          {/* Key Info */}
+          <View style={{ marginTop: 20, padding: 12, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB' }}>
+            <Text style={{ fontWeight: '700', marginBottom: 8 }}>Key Info</Text>
+            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Designation:</Text><Text style={{ color: '#111' }}>{effectiveCardData.designation || effectiveCardData.role || ''}</Text></View>
+            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Company:</Text><Text style={{ color: '#111' }}>{effectiveCardData.companyName || effectiveCardData.company || ''}</Text></View>
+            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Description:</Text><Text style={{ color: '#111' }}>{effectiveCardData.businessDescription || effectiveCardData.description || ''}</Text></View>
+            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Mobile:</Text><Text style={{ color: '#111' }}>{effectiveCardData.phone || effectiveCardData.mobile || effectiveCardData.whatsapp || ''}</Text></View>
+            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Email:</Text><Text style={{ color: '#111' }}>{effectiveCardData.email || ''}</Text></View>
+            <View><Text style={{ color: '#6B7280' }}>Address:</Text><Text style={{ color: '#111' }}>{effectiveCardData.address || effectiveCardData.location || ''}</Text></View>
+          </View>
+
+          {/* All Fields list shown in preview-only for verification */}
+          <View style={{ marginTop: 14, padding: 12, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB' }}>
+            <Text style={{ fontWeight: '700', marginBottom: 8 }}>All Fields</Text>
+            {Object.entries(effectiveCardData || {}).map(([k, v]) => (
+              <View key={k} style={{ flexDirection: 'row', marginBottom: 6 }}>
+                <Text style={{ color: '#6B7280', width: 140 }}>{k}:</Text>
+                <Text style={{ flex: 1, color: '#111' }}>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -371,6 +393,8 @@ export default function FinalPreviewScreen({ route, navigation }) {
           </View>
         </ViewShot>
 
+        {/* Preview shows only the rendered card; debug panels removed */}
+
         {/* BUTTONS */}
         <View style={{ marginHorizontal: 20, marginTop: 30 }}>
           {/* Premium Save Card button (gold) */}
@@ -406,33 +430,10 @@ export default function FinalPreviewScreen({ route, navigation }) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => navigation.navigate('TemplatePreview', { cardData: effectiveCardData })}
-          >
-            <Ionicons name="eye" size={20} color="#D4AF37" />
-            <Text style={styles.secondaryText}>Choose Template</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleDownload}
-          >
-            <Ionicons name="download" size={20} color="#FFFFFF" />
-            <Text style={styles.primaryText}>Download Image</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.secondaryButton}
             onPress={handleShare}
           >
             <Ionicons name="share-social" size={20} color="#D4AF37" />
-            <Text style={styles.secondaryText}>Share Image</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={handleExportPDF}
-          >
-            <Ionicons name="document" size={20} color="#D4AF37" />
-            <Text style={styles.secondaryText}>Export as PDF</Text>
+            <Text style={styles.secondaryText}>Share Card</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

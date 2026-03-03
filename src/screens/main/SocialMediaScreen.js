@@ -389,51 +389,7 @@
 //           </TouchableOpacity>
 
 //           {/* QR Code Upload */}
-//           <TouchableOpacity 
-//             style={layoutStyles.uploadBox}
-//             onPress={() => handleImagePicker('qrCode')}
-//           >
-//             <View style={layoutStyles.uploadContent}>
-//               <Ionicons name="qr-code" size={32} color="#D4AF37" />
-//               <Text style={layoutStyles.uploadLabel}>QR Code</Text>
-//               <Text style={layoutStyles.uploadHint}>Tap to upload (Max 5MB)</Text>
-//             </View>
-//             {formData.qrCode && (
-//               <View style={layoutStyles.uploadedImage}>
-//                 <Image 
-//                   source={{ uri: formData.qrCode }} 
-//                   style={layoutStyles.uploadedImagePreview}
-//                 />
-//               </View>
-//             )}
-//           </TouchableOpacity>
-
-//           {/* Existing Visiting Card Upload */}
-//           <TouchableOpacity 
-//             style={layoutStyles.uploadBox}
-//             onPress={() => handleImagePicker('businessCard')}
-//           >
-//             <View style={layoutStyles.uploadContent}>
-//               <Ionicons name="card" size={32} color="#D4AF37" />
-//               <Text style={layoutStyles.uploadLabel}>Existing Visiting Card</Text>
-//               <Text style={layoutStyles.uploadHint}>Tap to upload (Max 5MB)</Text>
-//             </View>
-//             {formData.businessCard && (
-//               <View style={layoutStyles.uploadedImage}>
-//                 <Image 
-//                   source={{ uri: formData.businessCard }} 
-//                   style={layoutStyles.uploadedImagePreview}
-//                 />
-//               </View>
-//             )}
-//           </TouchableOpacity>
-//         </View>
-
-//         {/* Action Buttons */}
-//         <View style={layoutStyles.buttonGroup}>
-//           <TouchableOpacity 
-//             style={layoutStyles.saveButton}
-//             onPress={handleSave}
+          
 //           >
 //             <Ionicons name="checkmark-done" size={18} color="#0F0F0F" />
 //             <Text style={layoutStyles.saveButtonText}>Save & Submit</Text>
@@ -515,6 +471,7 @@ import { layoutStyles } from '../../styles/screens/socialMediaStyles';
 import { formStyles } from '../../styles/screens/socialMediaStyles';
 import Footer from '../../components/common/Footer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// template previews moved to TemplatePreview flow
 
 // Validation rules
 const validations = {
@@ -550,8 +507,6 @@ export default function SocialMediaScreen({ route, navigation }) {
     website: '',
     companyLogo: null,
     profilePhoto: null,
-    qrCode: null,
-    businessCard: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -660,12 +615,8 @@ export default function SocialMediaScreen({ route, navigation }) {
       const uploadMap = {
         // templates expect `profileImage` for avatar
         profileImage: formData.profilePhoto || cardData.profileImage || cardData.profilePhoto || null,
-        // QR image key used in templates
-        qrCodeImage: formData.qrCode || cardData.qrCodeImage || cardData.qrCode || null,
         // company logo
         companyLogo: formData.companyLogo || cardData.companyLogo || cardData.logoImage || null,
-        // scanned visiting card
-        businessCard: formData.businessCard || cardData.businessCard || null,
       };
 
       const socialFields = {
@@ -684,6 +635,25 @@ export default function SocialMediaScreen({ route, navigation }) {
         ...socialFields,
       };
 
+      // Build QR payload from merged data
+      const qrPayload = {
+        name: finalCardData.name || finalCardData.fullName || finalCardData.firstName || null,
+        designation: finalCardData.designation || finalCardData.role || null,
+        companyName: finalCardData.companyName || finalCardData.company || null,
+        phone: finalCardData.phone || finalCardData.whatsapp || null,
+        email: finalCardData.email || null,
+        address: finalCardData.address || null,
+        description: finalCardData.businessDescription || finalCardData.description || null,
+        social: {
+          whatsapp: finalCardData.whatsapp || null,
+          linkedin: finalCardData.linkedin || null,
+          instagram: finalCardData.instagram || null,
+          website: finalCardData.website || null,
+        },
+        logo: finalCardData.companyLogo || null,
+      };
+
+      // Do not auto-generate QR. Attach merged data and navigate to template picker.
       navigation.navigate('TemplatePreview', { cardData: finalCardData });
     } else {
       Alert.alert('Validation Error', 'Please fix all errors');
@@ -698,8 +668,6 @@ export default function SocialMediaScreen({ route, navigation }) {
         ...prev,
         companyLogo: cardData.companyLogo || cardData.logoImage || prev.companyLogo,
         profilePhoto: cardData.profileImage || cardData.profilePhoto || prev.profilePhoto,
-        qrCode: cardData.qrCodeImage || cardData.qrCode || prev.qrCode,
-        businessCard: cardData.businessCard || prev.businessCard,
         whatsapp: cardData.whatsapp || prev.whatsapp,
         linkedin: cardData.linkedin || prev.linkedin,
         instagram: cardData.instagram || prev.instagram,
@@ -804,7 +772,7 @@ export default function SocialMediaScreen({ route, navigation }) {
 
           <Text style={layoutStyles.sectionTitle}>Media Uploads</Text>
 
-          {['companyLogo', 'profilePhoto', 'qrCode', 'businessCard'].map((field) => (
+          {['companyLogo', 'profilePhoto'].map((field) => (
             <TouchableOpacity
               key={field}
               style={layoutStyles.uploadBox}
@@ -836,6 +804,8 @@ export default function SocialMediaScreen({ route, navigation }) {
               )}
             </TouchableOpacity>
           ))}
+
+          {/* Template selection moved to TemplatePreview after Save & Submit */}
 
           <TouchableOpacity
             style={layoutStyles.saveButton}

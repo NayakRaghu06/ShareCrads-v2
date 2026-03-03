@@ -1,75 +1,112 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert } from "react-native";
+import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 
-const ModernTemplate = ({ userData }) => {
-  const initial = userData?.name ? userData.name.trim().charAt(0).toUpperCase() : 'Y';
+const ModernTemplate = ({ userData, data }) => {
+  const d = data || userData || {};
+  const phone = d.phone || d.mobile || d.whatsapp || null;
+  const initial = d?.name ? d.name.trim().charAt(0).toUpperCase() : 'Y';
+
+  const handlePdf = async (pdf) => {
+    if (!pdf) return;
+    const uri = typeof pdf === 'string' ? pdf : pdf.uri || pdf;
+    try {
+      const available = await Sharing.isAvailableAsync();
+      if (available) {
+        await Sharing.shareAsync(uri);
+      } else {
+        Linking.canOpenURL(uri).then(supported => supported && Linking.openURL(uri)).catch(e => Alert.alert('Error', e.message));
+      }
+    } catch (e) {
+      Alert.alert('Error opening PDF', e.message);
+    }
+  };
 
   return (
     <View style={styles.card}>
-      {userData?.companyLogo ? (
-        <Image source={{ uri: userData.companyLogo }} style={styles.companyLogo} />
+      {d?.companyLogo ? (
+        <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
       ) : null}
 
       <View style={styles.avatar}>
-        {userData?.profileImage ? (
-          <Image source={{ uri: userData.profileImage }} style={styles.avatarImage} />
+        {d?.profileImage ? (
+          <Image source={{ uri: d.profileImage }} style={styles.avatarImage} />
         ) : (
           <Text style={styles.avatarText}>{initial}</Text>
         )}
       </View>
 
       <View style={styles.nameBox}>
-        <Text style={styles.name}>{userData?.name || 'Your Name'}</Text>
-        <Text style={styles.role}>{userData?.designation || 'Your Role'}</Text>
-        {userData?.companyName ? (
-          <Text style={styles.company}>{userData.companyName}</Text>
-        ) : null}
-        {userData?.businessDescription ? (
-          <Text style={styles.description}>{userData.businessDescription}</Text>
-        ) : null}
+        {/* Title block removed to avoid duplication; labeled fields shown below */}
+        {/* Labeled fields: Name / Designation / Company / Business Description */}
+        <View style={{ width: '85%', alignSelf: 'center', marginTop: 12, alignItems: 'flex-start' }}>
+          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Name:</Text>  {d?.name || '—'}</Text>
+          {d?.designation ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Designation:</Text>  {d.designation}</Text> : null}
+          {d?.companyName ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Company Name:</Text>  {d.companyName}</Text> : null}
+          {d?.description || d?.businessDescription ? (
+            <Text style={styles.info}><Text style={{fontWeight:'700'}}>Business Description:</Text>  {d.description || d.businessDescription}</Text>
+          ) : null}
+        </View>
       </View>
 
-      <Text style={styles.info}>📞 {userData?.phone || ''}</Text>
-      <Text style={styles.info}>✉ {userData?.email || ''}</Text>
-      <Text style={styles.info}>🌐 {userData?.website || ''}</Text>
-      <Text style={styles.info}>📍 {userData?.address || ''}</Text>
+      {phone ? (
+        <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(`tel:${phone}`)}>
+          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Mobile:</Text>  {phone}</Text>
+        </TouchableOpacity>
+      ) : null}
+      {d?.email ? (
+        <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(`mailto:${d.email}`)}>
+          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Email:</Text>  {d.email}</Text>
+        </TouchableOpacity>
+      ) : null}
+      {d?.website ? (
+        <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(d.website)}>
+          <Text style={styles.info}>🌐 {d.website}</Text>
+        </TouchableOpacity>
+      ) : null}
+      {d?.address ? (
+        <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}>
+          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Address:</Text>  {d.address}</Text>
+        </TouchableOpacity>
+      ) : null}
 
-      {userData?.qrCodeImage ? (
+      {d?.qrCodeImage ? (
         <View style={styles.qrContainer}>
-          <Image source={{ uri: userData.qrCodeImage }} style={styles.qrImageCentered} />
+          <Image source={{ uri: d.qrCodeImage }} style={styles.qrImageCentered} />
         </View>
       ) : null}
 
       {/* Social icons */}
       <View style={styles.socialRow}>
-        {userData?.whatsapp ? (
-          <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${userData.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={20} color="#FFF" /></TouchableOpacity>
+        {phone ? (<TouchableOpacity onPress={() => Linking.openURL(`tel:${phone}`)} style={styles.iconBtn}><Ionicons name="call" size={20} color="#D4AF37" /></TouchableOpacity>) : null}
+        {d?.whatsapp ? (
+          <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${d.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
-        {userData?.linkedin ? (
-          <TouchableOpacity onPress={() => Linking.openURL(userData.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={20} color="#FFF" /></TouchableOpacity>
+        {d?.linkedin ? (
+          <TouchableOpacity onPress={() => Linking.openURL(d.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
-        {userData?.instagram ? (
-          <TouchableOpacity onPress={() => Linking.openURL(`https://instagram.com/${userData.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={20} color="#FFF" /></TouchableOpacity>
+        {d?.instagram ? (
+          <TouchableOpacity onPress={() => Linking.openURL(`https://instagram.com/${d.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
-        {userData?.twitter ? (
-          <TouchableOpacity onPress={() => Linking.openURL(userData.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={20} color="#FFF" /></TouchableOpacity>
+        {d?.twitter ? (
+          <TouchableOpacity onPress={() => Linking.openURL(d.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
-        {userData?.facebook ? (
-          <TouchableOpacity onPress={() => Linking.openURL(userData.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={20} color="#FFF" /></TouchableOpacity>
+        {d?.facebook ? (
+          <TouchableOpacity onPress={() => Linking.openURL(d.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
-        {userData?.youtube ? (
-          <TouchableOpacity onPress={() => Linking.openURL(userData.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={20} color="#FFF" /></TouchableOpacity>
+        {d?.youtube ? (
+          <TouchableOpacity onPress={() => Linking.openURL(d.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
-        {userData?.website ? (
-          <TouchableOpacity onPress={() => Linking.openURL(userData.website)} style={styles.iconBtn}><Ionicons name="globe" size={20} color="#FFF" /></TouchableOpacity>
+        {d?.website ? (
+          <TouchableOpacity onPress={() => Linking.openURL(d.website)} style={styles.iconBtn}><Ionicons name="globe" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
+        {d?.descriptionPdf ? (
+          <TouchableOpacity onPress={() => handlePdf(d.descriptionPdf)} style={styles.iconBtn}><Ionicons name="document" size={20} color="#D4AF37" /></TouchableOpacity>
+        ) : null}
+        {d?.address ? (<TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} style={styles.iconBtn}><Ionicons name="location" size={20} color="#D4AF37" /></TouchableOpacity>) : null}
       </View>
-      {userData?.businessCard ? (
-        <View style={styles.scannedCard}>
-          <Image source={{ uri: userData.businessCard }} style={styles.scannedCardImage} />
-        </View>
-      ) : null}
+      {/* visiting card removed */}
     </View>
   );
 };
@@ -103,8 +140,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 12,
     top: 12,
-    width: 60,
-    height: 36,
+    width: 80,
+    height: 48,
     resizeMode: 'contain',
   },
   qrImage: {
@@ -164,6 +201,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#E5E7EB",
     marginVertical: 5,
+    textAlign: 'left',
   },
   socialRow: {
     flexDirection: 'row',

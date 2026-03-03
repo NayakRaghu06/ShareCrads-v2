@@ -14,7 +14,7 @@ import styles from '../../styles/screens/templatePreviewStyles';
 const TemplatePreviewScreen = ({ route, navigation }) => {
   const routeParams = route?.params || {};
   const { cardData = {} } = routeParams;
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(cardData?.selectedTemplate || null);
   const [userInitial, setUserInitial] = React.useState('N');
 
   React.useEffect(() => {
@@ -86,6 +86,8 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
     }
   };
 
+  // previews show only the card templates; field debug panels removed
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -153,6 +155,8 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* previews show only templates; debug panels removed */}
 
       </ScrollView>
 
