@@ -229,6 +229,11 @@ export default function PersonalDetailsScreen({ navigation }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 30 }}
+        onScroll={event => {
+          const y = event.nativeEvent.contentOffset.y;
+          console.log('Scroll Y:', y);
+        }}
+        scrollEventThrottle={16}
       >
 
         {/* ========== HEADER SECTION ========== */}

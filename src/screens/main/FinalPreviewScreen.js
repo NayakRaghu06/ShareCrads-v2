@@ -414,8 +414,21 @@ export default function FinalPreviewScreen({ route, navigation }) {
                   : { ...effectiveCardData };
 
                 await addDashboardCard(toSave);
-                Alert.alert('Success', 'Card saved successfully 🎉');
-                navigation.navigate('MyCards');
+                Alert.alert(
+                  'Success',
+                  'Card saved successfully!',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        navigation.reset({
+                          index: 0,
+                          routes: [{ name: 'Landing' }],
+                        });
+                      },
+                    },
+                  ]
+                );
               } catch (e) {
                 Alert.alert('Error', e.message || 'Failed to save card');
               }

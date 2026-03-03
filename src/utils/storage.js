@@ -16,26 +16,30 @@ export const clearCardDraft = async () => {
 
 // Dashboard data helpers
 export const saveDashboard = async (dashboard) => {
-  await AsyncStorage.setItem('DASHBOARD', JSON.stringify(dashboard));
+  const user = await AsyncStorage.getItem('loggedInUser');
+  await AsyncStorage.setItem(`DASHBOARD_${user}`, JSON.stringify(dashboard));
 };
 
 export const getDashboard = async () => {
-  const data = await AsyncStorage.getItem('DASHBOARD');
-  return data ? JSON.parse(data) : null;
+  const user = await AsyncStorage.getItem('loggedInUser');
+  const data = await AsyncStorage.getItem(`DASHBOARD_${user}`);
+  return data ? JSON.parse(data) : [];
 };
 
 export const clearDashboard = async () => {
-  await AsyncStorage.removeItem('DASHBOARD');
+  const user = await AsyncStorage.getItem('loggedInUser');
+  await AsyncStorage.removeItem(`DASHBOARD_${user}`);
 };
 
 // Convenience helpers: add/remove single card to dashboard
 export const addDashboardCard = async (card) => {
   try {
-    const data = await AsyncStorage.getItem('DASHBOARD');
+    const user = await AsyncStorage.getItem('loggedInUser');
+    const data = await AsyncStorage.getItem(`DASHBOARD_${user}`);
     let cards = data ? JSON.parse(data) : [];
     if (!Array.isArray(cards)) cards = [];
     cards.push(card);
-    await AsyncStorage.setItem('DASHBOARD', JSON.stringify(cards));
+    await AsyncStorage.setItem(`DASHBOARD_${user}`, JSON.stringify(cards));
     return cards;
   } catch (e) {
     throw e;
@@ -44,12 +48,13 @@ export const addDashboardCard = async (card) => {
 
 export const removeDashboardCard = async (index) => {
   try {
-    const data = await AsyncStorage.getItem('DASHBOARD');
+    const user = await AsyncStorage.getItem('loggedInUser');
+    const data = await AsyncStorage.getItem(`DASHBOARD_${user}`);
     let cards = data ? JSON.parse(data) : [];
     if (!Array.isArray(cards)) cards = [];
     if (index >= 0 && index < cards.length) {
       cards.splice(index, 1);
-      await AsyncStorage.setItem('DASHBOARD', JSON.stringify(cards));
+      await AsyncStorage.setItem(`DASHBOARD_${user}`, JSON.stringify(cards));
     }
     return cards;
   } catch (e) {
