@@ -254,9 +254,9 @@ export default function PersonalDetailsScreen({ navigation }) {
 
         {/* ========== TITLE SECTION ========== */}
         <View style={layoutStyles.titleSection}>
-          <Text style={layoutStyles.mainTitle}>
+          {/* <Text style={layoutStyles.mainTitle}>
             Digital Business Card Creator
-          </Text>
+          </Text> */}
           <Text style={layoutStyles.subtitle}>
             Create your professional digital business card in minutes
           </Text>

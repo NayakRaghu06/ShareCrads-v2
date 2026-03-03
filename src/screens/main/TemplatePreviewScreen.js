@@ -103,17 +103,13 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
         </TouchableOpacity>
 
         {/* App Title */}
+        
         <Text style={layoutStyles.appTitle}>
           DIGITAL BUSINESS CARD
         </Text>
-
-        {/* Profile Icon */}
-        <TouchableOpacity 
-          style={layoutStyles.profileIcon}
-          onPress={navigateToProfile}
-        >
-          <Text style={layoutStyles.profileIconText}>{userInitial}</Text>
-        </TouchableOpacity>
+           
+           
+    
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30, paddingHorizontal: 16, paddingTop: 20 }}>

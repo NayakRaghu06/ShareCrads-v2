@@ -11,6 +11,7 @@ import SignupScreen from '../screens/auth/SignupScreen';
 import LandingScreen from '../screens/main/LandingScreen';
 import UserDetailsScreen from '../screens/main/UserDetailsScreen';
 // ...existing code...
+import InboxScreen from '../screens/main/InboxScreen';
 import PersonalDetailsScreen from '../screens/main/PersonalDetailsScreen';
 import BusinessDetailsScreen from '../screens/main/BusinessDetailsScreen';
 import SocialMediaScreen from '../screens/main/SocialMediaScreen';
@@ -112,6 +113,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Contacts" component={ContactsScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="MyCards" component={MyCardsScreen} />
+      <Stack.Screen name="InboxScreen" component={InboxScreen} options={{ headerShown: false }} />
       <Stack.Screen name="EditCardScreen" component={EditCardScreen} options={{ headerShown: false }} />
       <Stack.Screen name="CardDetailsScreen" component={CardDetailsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ShareCardScreen" component={require('../screens/main/ShareCardScreen').default} />
