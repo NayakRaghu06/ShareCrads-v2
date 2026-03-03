@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { getAllSavedCards, deleteSavedCard } from '../../database/userQueries';
+import { getDashboard, removeDashboardCard } from '../../utils/storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../../styles/colors';
@@ -9,11 +9,12 @@ export default function MyCardsScreen({ navigation }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch cards from AsyncStorage on mount and when screen is focused
   useEffect(() => {
     const loadCards = async () => {
       try {
-        const dbCards = await getAllSavedCards();
-        setCards(dbCards || []);
+        const stored = await getDashboard();
+        setCards(Array.isArray(stored) ? stored : []);
       } catch {
         setCards([]);
       } finally {
@@ -25,13 +26,19 @@ export default function MyCardsScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  const handleDelete = async (id) => {
-    await deleteSavedCard(id);
-    setCards(cards.filter(card => card.id !== id));
+  const handleDelete = async (index) => {
+    await removeDashboardCard(index);
+    const updated = await getDashboard();
+    setCards(Array.isArray(updated) ? updated : []);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.cardItem}>
+  // Landscape Card View
+  const renderItem = ({ item, index }) => (
+    <TouchableOpacity
+      style={styles.cardItem}
+      activeOpacity={0.9}
+      onPress={() => navigation.navigate('CardDetailsScreen', { cardData: item })}
+    >
       {item.savedImage ? (
         <Image source={{ uri: item.savedImage }} style={styles.image} />
       ) : (
@@ -39,12 +46,31 @@ export default function MyCardsScreen({ navigation }) {
       )}
       <View style={styles.info}>
         <Text style={styles.name}>{item.name || 'Unnamed'}</Text>
-        <Text style={styles.designation}>{item.designation || ''}</Text>
+        <Text style={styles.company}>{item.companyName || item.company || ''}</Text>
+        <Text style={styles.phone}>{item.phone || ''}</Text>
+        <Text style={styles.email}>{item.email || ''}</Text>
+        <Text style={styles.template}>{item.template || ''}</Text>
       </View>
-      <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
-        <Ionicons name="trash-outline" size={20} color="#b71c1c" />
-      </TouchableOpacity>
-    </View>
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("EditCardScreen", {
+              cardData: item,
+              cardIndex: index
+            })
+          }
+          style={styles.editBtn}
+        >
+          <Ionicons name="create-outline" size={20} color="#1976d2" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleDelete(index)}
+          style={styles.deleteBtn}
+        >
+          <Ionicons name="trash-outline" size={20} color="#b71c1c" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -64,7 +90,7 @@ export default function MyCardsScreen({ navigation }) {
       ) : (
         <FlatList
           data={cards}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(_, idx) => idx.toString()}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 30 }}
         />
@@ -95,7 +121,18 @@ const styles = StyleSheet.create({
   imagePlaceholder: { width: 54, height: 54, borderRadius: 8, marginRight: 14, backgroundColor: '#e0e0e0' },
   info: { flex: 1 },
   name: { fontSize: 16, fontWeight: '700', color: '#111' },
-  designation: { fontSize: 13, color: '#666', marginTop: 4 },
+  company: { fontSize: 13, color: '#666', marginTop: 2 },
+  phone: { fontSize: 12, color: '#444', marginTop: 2 },
+  email: { fontSize: 12, color: '#444', marginTop: 2 },
+  template: { fontSize: 11, color: '#888', marginTop: 2 },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  editBtn: {
+    padding: 6,
+    marginRight: 10
+  },
   deleteBtn: { padding: 6 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60 },
   emptyText: { fontSize: 16, color: '#888', marginTop: 16 },
