@@ -1,4 +1,5 @@
 import React from "react";
+<<<<<<< HEAD
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert } from "react-native";
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,9 +18,54 @@ const MinimalTemplate = ({ userData, data }) => {
       else Linking.canOpenURL(uri).then(supported => supported && Linking.openURL(uri)).catch(e => Alert.alert('Error', e.message));
     } catch (e) { Alert.alert('Error opening PDF', e.message); }
   };
+=======
+import { View, Text, Image, TouchableOpacity, Linking, StyleSheet } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
 
+const MinimalTemplate = ({ data, landscape }) => {
+  const userData = data || {};
+  const initial = userData?.name ? userData.name.trim().charAt(0).toUpperCase() : 'Y';
+>>>>>>> bf81763f2212004d36b66297f710ca1cf2998c3d
+
+  if (landscape) {
+    return (
+      <View style={styles.cardContainer}>
+        <View style={styles.leftSection}>
+          <View style={styles.avatar}>
+            {userData?.profileImage ? (
+              <Image source={{ uri: userData.profileImage }} style={styles.avatarImage} />
+            ) : (
+              <Text style={styles.avatarText}>{initial}</Text>
+            )}
+          </View>
+          <Text style={styles.name}>{userData?.name || 'Your Name'}</Text>
+          <Text style={styles.role}>{userData?.designation || 'Your Role'}</Text>
+          {userData?.companyName ? (
+            <Text style={styles.company}>{userData.companyName}</Text>
+          ) : null}
+        </View>
+        <View style={styles.rightSection}>
+          <Text style={styles.info}>📞 {userData?.phone || ''}</Text>
+          <Text style={styles.info}>✉ {userData?.email || ''}</Text>
+          <Text style={styles.info}>🌐 {userData?.website || ''}</Text>
+          <Text style={styles.info}>📍 {userData?.address || ''}</Text>
+          <View style={styles.socialRow}>
+            {userData?.whatsapp ? (<TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${userData.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+            {userData?.linkedin ? (<TouchableOpacity onPress={() => Linking.openURL(userData.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+            {userData?.instagram ? (<TouchableOpacity onPress={() => Linking.openURL(`https://instagram.com/${userData.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+            {userData?.twitter ? (<TouchableOpacity onPress={() => Linking.openURL(userData.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+            {userData?.facebook ? (<TouchableOpacity onPress={() => Linking.openURL(userData.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+            {userData?.youtube ? (<TouchableOpacity onPress={() => Linking.openURL(userData.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+            {userData?.website ? (<TouchableOpacity onPress={() => Linking.openURL(userData.website)} style={styles.iconBtn}><Ionicons name="globe" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
+          </View>
+        </View>
+      </View>
+    );
+  }
+  // ...existing code...
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       {d?.companyLogo ? (
         <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
       ) : null}
@@ -83,6 +129,9 @@ const MinimalTemplate = ({ userData, data }) => {
         {d?.address ? (<TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} style={styles.iconBtn}><Ionicons name="location" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
       </View>
       {/* visiting card removed */}
+=======
+      {/* ...existing code... */}
+>>>>>>> bf81763f2212004d36b66297f710ca1cf2998c3d
     </View>
   );
 };
@@ -90,6 +139,28 @@ const MinimalTemplate = ({ userData, data }) => {
 export default MinimalTemplate;
 
 const styles = StyleSheet.create({
+  cardContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: 20,
+    flexDirection: 'row',
+    padding: 15,
+    alignItems: 'center',
+    backgroundColor: '#0F0F0F',
+    borderWidth: 1.5,
+    borderColor: '#D4AF37',
+    marginBottom: 18,
+  },
+  leftSection: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingRight: 12,
+  },
+  rightSection: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingLeft: 12,
+  },
   container: {
     margin: 16,
     padding: 26,
@@ -97,7 +168,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#0F0F0F",
     borderWidth: 1.5,
     borderColor: "#D4AF37",
-    alignItems: "center",
   },
   avatar: {
     width: 110,

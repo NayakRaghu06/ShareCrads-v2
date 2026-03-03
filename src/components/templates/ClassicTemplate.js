@@ -20,6 +20,11 @@ const ClassicTemplate = ({ userData, data }) => {
 
   return (
     <View style={styles.card}>
+      {/* decorative corner boxes */}
+      <View style={styles.cornerBoxTopLeft} />
+      <View style={styles.cornerBoxTopRight} />
+      <View style={styles.cornerBoxBottomLeft} />
+      <View style={styles.cornerBoxBottomRight} />
       {/* Company logo top-right */}
       {d?.companyLogo ? (
         <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
@@ -39,12 +44,12 @@ const ClassicTemplate = ({ userData, data }) => {
       {/* Title block removed to avoid duplication; labeled fields shown below */}
 
       {/* Labeled fields: Name / Designation / Company / Business Description */}
-      <View style={{ width: '85%', alignSelf: 'center', marginTop: 12, alignItems: 'flex-start' }}>
-        <Text style={styles.info}><Text style={{fontWeight:'700'}}>Name:</Text>  {d?.name || '—'}</Text>
-        {d?.designation ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Designation:</Text>  {d.designation}</Text> : null}
-        {d?.companyName ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Company Name:</Text>  {d.companyName}</Text> : null}
+      <View style={styles.fieldsContainer}>
+        <View style={styles.row}><Text style={styles.label}>Name:</Text><Text style={styles.value}>{d?.name || '—'}</Text></View>
+        {d?.designation ? <View style={styles.row}><Text style={styles.label}>Designation:</Text><Text style={styles.value}>{d.designation}</Text></View> : null}
+        {d?.companyName ? <View style={styles.row}><Text style={styles.label}>Company Name:</Text><Text style={styles.value}>{d.companyName}</Text></View> : null}
         {d?.description || d?.businessDescription ? (
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Business Description:</Text>  {d.description || d.businessDescription}</Text>
+          <View style={styles.row}><Text style={styles.label}>Business Description:</Text><Text style={styles.value}>{d.description || d.businessDescription}</Text></View>
         ) : null}
       </View>
 
@@ -54,7 +59,7 @@ const ClassicTemplate = ({ userData, data }) => {
           style={styles.infoBox}
           onPress={() => Linking.openURL(`tel:${phone}`)}
         >
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Mobile:</Text>  {phone}</Text>
+          <View style={styles.row}><Text style={styles.label}>Mobile:</Text><Text style={styles.value}>{phone}</Text></View>
         </TouchableOpacity>
       ) : null}
 
@@ -64,7 +69,7 @@ const ClassicTemplate = ({ userData, data }) => {
           style={styles.infoBox}
           onPress={() => Linking.openURL(`mailto:${d.email}`)}
         >
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Email:</Text>  {d.email}</Text>
+          <View style={styles.row}><Text style={styles.label}>Email:</Text><Text style={styles.value}>{d.email}</Text></View>
         </TouchableOpacity>
       ) : null}
 
@@ -74,7 +79,7 @@ const ClassicTemplate = ({ userData, data }) => {
           style={styles.infoBox}
           onPress={() => Linking.openURL(d.website)}
         >
-          <Text style={styles.info}>🌐 {d.website}</Text>
+          <View style={styles.row}><Text style={styles.label}>Website:</Text><Text style={styles.value}>{d.website}</Text></View>
         </TouchableOpacity>
       ) : null}
 
@@ -84,7 +89,7 @@ const ClassicTemplate = ({ userData, data }) => {
           style={styles.infoBox}
           onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}
         >
-          <Text style={styles.info}><Text style={{fontWeight:'700'}}>Address:</Text>  {d.address}</Text>
+          <View style={styles.row}><Text style={styles.label}>Address:</Text><Text style={styles.value}>{d.address}</Text></View>
         </TouchableOpacity>
       ) : null}
 
@@ -237,5 +242,68 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  /* new alignment styles */
+  fieldsContainer: {
+    width: '85%',
+    alignSelf: 'center',
+    marginTop: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  label: {
+    width: 130,
+    color: '#9CA3AF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  value: {
+    flex: 1,
+    color: '#E5E7EB',
+    fontSize: 15,
+  },
+  /* small decorative corner boxes */
+  cornerBoxTopLeft: {
+    position: 'absolute',
+    left: 10,
+    top: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
+  },
+  cornerBoxTopRight: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
+  },
+  cornerBoxBottomLeft: {
+    position: 'absolute',
+    left: 10,
+    bottom: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
+  },
+  cornerBoxBottomRight: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: '#D4AF37',
+    opacity: 0.95,
   },
 });

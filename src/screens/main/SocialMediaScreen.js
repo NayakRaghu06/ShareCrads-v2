@@ -1,4 +1,3 @@
- 
 // //         error && { borderColor: '#EF4444', borderWidth: 2 }
 // //       ]}>
 // //         <Ionicons 
@@ -192,37 +191,34 @@
 
 //   const handleImagePicker = async (field) => {
 //     try {
-//       const picker = await import('react-native-image-picker');
+//       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-//       // launchImageLibrary uses a callback; wrap it in a Promise
-//       const res = await new Promise((resolve) => {
-//         picker.launchImageLibrary(
-//           { mediaType: 'photo', selectionLimit: 1, quality: 0.8 },
-//           (response) => resolve(response)
+//       if (!permission.granted) {
+//         Alert.alert(
+//           "Permission Required",
+//           "Please allow gallery access to upload images."
 //         );
-//       });
-
-//       if (!res) return;
-//       if (res.didCancel) return;
-//       if (res.errorCode) {
-//         Alert.alert('Image error', res.errorMessage || 'Unable to pick image');
 //         return;
 //       }
 
-//       const asset = res.assets && res.assets[0];
-//       if (!asset || !asset.uri) return;
+//       const result = await ImagePicker.launchImageLibraryAsync({
+//         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+//         allowsEditing: true,
+//         aspect: [1, 1],
+//         quality: 0.7,
+//       });
 
-//       // Map incoming field to formData key and set URI
-//       setFormData((prev) => ({ ...prev, [field]: asset.uri }));
+//       if (!result.canceled) {
+//         const selectedImage = result.assets[0].uri;
 
-//       // Optional: clear any related errors
-//       setErrors((prev) => ({ ...prev, [field]: '' }));
-//     } catch (e) {
-//       Alert.alert(
-//         'Image Picker Unavailable',
-//         'Install react-native-image-picker and rebuild the app to enable native image selection.'
-//       );
-//       console.log('Image picker load error', e);
+//         setFormData((prev) => ({
+//           ...prev,
+//           [field]: selectedImage,
+//         }));
+//       }
+//     } catch (error) {
+//       console.log("Image Picker Error:", error);
+//       Alert.alert("Error", "Something went wrong while selecting image");
 //     }
 //   };
 
@@ -237,24 +233,30 @@
 //       {/* ========== HEADER SECTION ========== */}
 //       <View style={layoutStyles.headerSection}>
 //         {/* Back Button */}
-//         <TouchableOpacity 
-//           style={layoutStyles.backButton}
-//           onPress={navigateToBusinessDetails}
-//           zIndex={2}
+//         <TouchableOpacity
+//           onPress={() => navigation.goBack()}
+//           style={{ width: 24, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}
 //         >
 //           <Ionicons name="chevron-back" size={28} color="#D4AF37" />
 //         </TouchableOpacity>
 
 //         {/* App Title Centered */}
-//         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 1 }}>
-//           <Text style={layoutStyles.appTitle}>SOCIAL MEDIA</Text>
-//         </View>
-
-//         {/* Step Indicator */}
-//         <View style={layoutStyles.stepIndicator}>
-//           <Text style={layoutStyles.stepText}>3</Text>
+//         <View style={{
+//           position: 'absolute',
+//           left: 0,
+//           right: 0,
+//           top: 0,
+//           bottom: 0,
+//           justifyContent: 'center',
+//           alignItems: 'center',
+//           zIndex: 1
+//         }}>
+//           <Text style={layoutStyles.appTitle}>
+//             DIGITAL BUSINESS CARD
+//           </Text>
 //         </View>
 //       </View>
+//       <View style={{ height: 4, backgroundColor: '#D4AF37', marginBottom: 10 }} />
 
 //       {/* ========== TITLE SECTION ========== */}
 //       <View style={layoutStyles.titleSection}>
@@ -273,7 +275,7 @@
 //         <View style={layoutStyles.cardHeader}>
 //           <Text style={layoutStyles.cardTitle}>Step 3 of 3</Text>
 //           <Text style={layoutStyles.cardSubtitle}>
-//             Complete your digital business card
+//             All fields marked with * are mandatory
 //           </Text>
 //         </View>
 
@@ -287,7 +289,7 @@
 //             icon="logo-whatsapp"
 //             keyboardType="phone-pad"
 //             value={formData.whatsapp}
-//             onChangeText={(text) => handleFieldChange('whatsapp', text)}
+//             onChangeText={(text) => handleFieldChange('whatsapp', text.replace(/[^0-9]/g, '').slice(0, 10))}
 //             error={errors.whatsapp}
 //             maxLength={10}
 //           />
@@ -735,10 +737,10 @@ export default function SocialMediaScreen({ route, navigation }) {
             icon="logo-whatsapp"
             keyboardType="phone-pad"
             value={formData.whatsapp}
-            onChangeText={(text) => handleFieldChange('whatsapp', text)}
+            onChangeText={(text) => handleFieldChange('whatsapp', text.replace(/[^0-9]/g, '').slice(0, 10))}
             error={errors.whatsapp}
             maxLength={10}
-            editable={false}
+            editable={true}
           />
 
           <InputField
