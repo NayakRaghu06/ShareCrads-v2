@@ -52,23 +52,33 @@ export default function MyCardsScreen({ navigation }) {
         <Text style={styles.template}>{item.template || ''}</Text>
       </View>
       <View style={styles.actionButtons}>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("EditCardScreen", {
-              cardData: item,
-              cardIndex: index
-            })
-          }
-          style={styles.editBtn}
-        >
-          <Ionicons name="create-outline" size={20} color="#1976d2" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleDelete(index)}
-          style={styles.deleteBtn}
-        >
-          <Ionicons name="trash-outline" size={20} color="#b71c1c" />
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ShareCardScreen", {
+                cardData: item
+              })
+            }
+            style={styles.shareBtn}
+          >
+            <Ionicons name="share-social-outline" size={20} color="#2e7d32" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("EditCardScreen", {
+                cardData: item,
+                cardIndex: index
+              })
+            }
+            style={styles.editBtn}
+          >
+            <Ionicons name="create-outline" size={20} color="#1976d2" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleDelete(index)}
+            style={styles.deleteBtn}
+          >
+            <Ionicons name="trash-outline" size={20} color="#b71c1c" />
+          </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -101,9 +111,23 @@ export default function MyCardsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 16 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 18
+  },
+
   backBtn: { padding: 4, marginRight: 8 },
-  title: { fontSize: 22, fontWeight: 'bold', color: COLORS.accent, flex: 1, textAlign: 'left' },
+
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.accent,
+    flex: 1,
+    textAlign: 'left'
+  },
+
   cardItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -115,25 +139,85 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 1 }
   },
-  image: { width: 54, height: 54, borderRadius: 8, marginRight: 14 },
-  imagePlaceholder: { width: 54, height: 54, borderRadius: 8, marginRight: 14, backgroundColor: '#e0e0e0' },
+
+  image: {
+    width: 54,
+    height: 54,
+    borderRadius: 8,
+    marginRight: 14
+  },
+
+  imagePlaceholder: {
+    width: 54,
+    height: 54,
+    borderRadius: 8,
+    marginRight: 14,
+    backgroundColor: '#e0e0e0'
+  },
+
   info: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '700', color: '#111' },
-  company: { fontSize: 13, color: '#666', marginTop: 2 },
-  phone: { fontSize: 12, color: '#444', marginTop: 2 },
-  email: { fontSize: 12, color: '#444', marginTop: 2 },
-  template: { fontSize: 11, color: '#888', marginTop: 2 },
+
+  name: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111'
+  },
+
+  company: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2
+  },
+
+  phone: {
+    fontSize: 12,
+    color: '#444',
+    marginTop: 2
+  },
+
+  email: {
+    fontSize: 12,
+    color: '#444',
+    marginTop: 2
+  },
+
+  template: {
+    fontSize: 11,
+    color: '#888',
+    marginTop: 2
+  },
+
   actionButtons: {
     flexDirection: 'row',
     alignItems: 'center'
   },
+
+  shareBtn: {
+    padding: 6,
+    marginRight: 10
+  },
+
   editBtn: {
     padding: 6,
     marginRight: 10
   },
-  deleteBtn: { padding: 6 },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60 },
-  emptyText: { fontSize: 16, color: '#888', marginTop: 16 },
+
+  deleteBtn: {
+    padding: 6
+  },
+
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60
+  },
+
+  emptyText: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 16
+  }
 });
