@@ -13,7 +13,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSContactsUsageDescription": "This app needs access to your contacts to display them."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +24,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.raghunayak.dbc"
+      "package": "com.raghunayak.dbc",
+      "permissions": ["READ_CONTACTS"]
     },
     "web": {
       "favicon": "./src/assets/icons/favicon.png"

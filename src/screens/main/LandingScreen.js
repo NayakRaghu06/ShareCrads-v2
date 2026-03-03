@@ -751,14 +751,14 @@ export default function LandingScreen({ navigation }) {
             ))
           ) : (
             <View style={landingStyles.emptyContainer}>
-              <Ionicons
+              {/* <Ionicons
                 name="person-add"
                 size={60}
                 color={COLORS.accent}
-              />
-              <Text style={landingStyles.emptyText}>
+              /> */}
+              {/* <Text style={landingStyles.emptyText}>
                 No contacts found
-              </Text>
+              </Text> */}
 
               {/* 🔥 CREATE CARD BUTTON */}
               <TouchableOpacity
@@ -870,7 +870,6 @@ export default function LandingScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
-
     </SafeAreaView>
   );
 }
