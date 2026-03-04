@@ -9,7 +9,6 @@ import Footer from '../../components/common/Footer';
 import { getUser } from "../../utils/storage";
 import ClassicTemplate from "../../components/templates/ClassicTemplate";
 import ModernTemplate from "../../components/templates/ModernTemplate";
-import MinimalTemplate from "../../components/templates/MinimalTemplate";
 import DarkTemplate from "../../components/templates/DarkTemplate";
 
 export default function SelectTemplateScreen({ route, navigation }) {
@@ -83,7 +82,6 @@ export default function SelectTemplateScreen({ route, navigation }) {
   const templates = [
     { id: 'classic', name: 'Classic', component: ClassicTemplate },
     { id: 'modern', name: 'Modern', component: ModernTemplate },
-    { id: 'minimal', name: 'Minimal', component: MinimalTemplate },
     { id: 'dark', name: 'Dark', component: DarkTemplate },
   ];
 

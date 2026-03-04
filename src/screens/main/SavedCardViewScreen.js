@@ -5,13 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 import ClassicTemplate from '../../components/templates/ClassicTemplate';
 import ModernTemplate from '../../components/templates/ModernTemplate';
-import MinimalTemplate from '../../components/templates/MinimalTemplate';
 import DarkTemplate from '../../components/templates/DarkTemplate';
 
 const TEMPLATE_COMPONENTS = {
   classic: ClassicTemplate,
   modern: ModernTemplate,
-  minimal: MinimalTemplate,
   dark: DarkTemplate,
 };
 

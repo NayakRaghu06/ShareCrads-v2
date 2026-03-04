@@ -21,7 +21,6 @@ import shareCardAsVCard from '../../utils/shareVCard';
 
 import ClassicTemplate from "../../components/templates/ClassicTemplate";
 import ModernTemplate from "../../components/templates/ModernTemplate";
-import MinimalTemplate from "../../components/templates/MinimalTemplate";
 import DarkTemplate from "../../components/templates/DarkTemplate";
 
 import { layoutStyles } from "../../styles/screens/personalDetailsLayoutStyles";
@@ -31,7 +30,6 @@ import { saveDashboard, getDashboard, addDashboardCard } from '../../utils/stora
 const TEMPLATE_COMPONENTS = {
   classic: ClassicTemplate,
   modern: ModernTemplate,
-  minimal: MinimalTemplate,
   dark: DarkTemplate,
 };
 

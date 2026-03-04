@@ -1,7 +1,6 @@
 // Template exports for easy importing
 export { default as ClassicTemplate } from './ClassicTemplate';
 export { default as ModernTemplate } from './ModernTemplate';
-export { default as MinimalTemplate } from './MinimalTemplate';
 export { default as DarkTemplate } from './DarkTemplate';
 
 export const TEMPLATES = [

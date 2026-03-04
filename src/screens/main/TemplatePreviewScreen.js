@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import ModernTemplate from '../../components/templates/ModernTemplate';
 import DarkTemplate from '../../components/templates/DarkTemplate';
 import ClassicTemplate from '../../components/templates/ClassicTemplate';
-import MinimalTemplate from '../../components/templates/MinimalTemplate';
 import { layoutStyles } from '../../styles/screens/personalDetailsLayoutStyles';
 import { getUser as getUserStorage } from '../../utils/storage';
 import { getUser as getUserDb } from '../../database/userQueries';
@@ -60,7 +59,6 @@ const TemplatePreviewScreen = ({ route, navigation }) => {
   const templates = [
     { id: 'classic', name: 'Classic', component: ClassicTemplate },
     { id: 'modern', name: 'Modern', component: ModernTemplate },
-    { id: 'minimal', name: 'Minimal', component: MinimalTemplate },
     { id: 'dark', name: 'Dark', component: DarkTemplate },
   ];
 
