@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { layoutStyles } from '../../styles/screens/personalDetailsLayoutStyles';
 import { formStyles } from '../../styles/screens/personalDetailsFormStyles';
+import AppHeader from '../../components/common/AppHeader';
 // import { getUser, saveDashboard } from '../../utils/storage';
 import Footer from '../../components/common/Footer';
 import { saveOrUpdateUser, getUser } from '../../database/userQueries';// Validation rules
@@ -226,31 +227,12 @@ export default function PersonalDetailsScreen({ navigation }) {
   return (
     <SafeAreaView style={layoutStyles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AppHeader />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 30 }}
-        onScroll={event => {
-          const y = event.nativeEvent.contentOffset.y;
-          console.log('Scroll Y:', y);
-        }}
         scrollEventThrottle={16}
       >
-
-        {/* ========== HEADER SECTION ========== */}
-        <View style={layoutStyles.headerSection}>
-          {/* Back Button */}
-          <TouchableOpacity
-            onPress={navigateToLanding}
-            style={{ width: 24, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}
-          >
-            <Ionicons name="chevron-back" size={28} color="#D4AF37" />
-          </TouchableOpacity>
-
-          {/* App Title Centered */}
-          <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 1 }}>
-            <Text style={layoutStyles.appTitle}>DIGITAL BUSINESS CARD</Text>
-          </View>
-        </View>
 
         {/* ========== TITLE SECTION ========== */}
         <View style={layoutStyles.titleSection}>

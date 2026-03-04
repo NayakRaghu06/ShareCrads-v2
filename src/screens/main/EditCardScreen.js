@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDashboard, saveDashboard } from '../../utils/storage';
+import AppHeader from '../../components/common/AppHeader';
 
 export default function EditCardScreen({ route, navigation }) {
   const { cardData, cardIndex } = route.params;
@@ -73,13 +74,7 @@ export default function EditCardScreen({ route, navigation }) {
   const firstLetter = name && name.length > 0 ? name.trim().charAt(0).toUpperCase() : 'N';
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Gold Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerBackBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.headerBackIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Business Card</Text>
-      </View>
+      <AppHeader />
 
       {/* Avatar Preview */}
       <View style={styles.avatarContainer}>
@@ -184,39 +179,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: SOFT_BG,
-  },
-  header: {
-    backgroundColor: GOLD,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 70,
-    paddingHorizontal: 16,
-    ...SHADOW,
-    borderBottomLeftRadius: CARD_RADIUS,
-    borderBottomRightRadius: CARD_RADIUS,
-  },
-  headerBackBtn: {
-    position: 'absolute',
-    left: 16,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 2,
-  },
-  headerBackIcon: {
-    fontSize: 28,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 22,
-    color: '#fff',
-    fontWeight: 'bold',
-    letterSpacing: 1,
   },
   avatarContainer: {
     alignItems: 'center',

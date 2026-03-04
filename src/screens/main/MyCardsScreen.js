@@ -1,15 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { getDashboard, removeDashboardCard } from '../../utils/storage';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import COLORS from '../../styles/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AppHeader from '../../components/common/AppHeader';
+
+const GOLD = '#C9A227';
+const BTN_SIZE = 36;
 
 export default function MyCardsScreen({ navigation }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch cards from AsyncStorage on mount and when screen is focused
   useEffect(() => {
     const loadCards = async () => {
       try {
@@ -32,69 +41,86 @@ export default function MyCardsScreen({ navigation }) {
     setCards(Array.isArray(updated) ? updated : []);
   };
 
-  // Landscape Card View
   const renderItem = ({ item, index }) => (
     <TouchableOpacity
-      style={styles.cardItem}
-      activeOpacity={0.9}
+      style={styles.card}
+      activeOpacity={0.85}
       onPress={() => navigation.navigate('CardDetailsScreen', { cardData: item })}
     >
-      {item.savedImage ? (
-        <Image source={{ uri: item.savedImage }} style={styles.image} />
-      ) : (
-        <View style={styles.imagePlaceholder} />
-      )}
-      <View style={styles.info}>
-        <Text style={styles.name}>{item.name || 'Unnamed'}</Text>
-        <Text style={styles.company}>{item.companyName || item.company || ''}</Text>
-        <Text style={styles.phone}>{item.phone || ''}</Text>
-        <Text style={styles.email}>{item.email || ''}</Text>
-        <Text style={styles.template}>{item.template || ''}</Text>
-      </View>
-      <View style={styles.actionButtons}>
+      <View style={styles.cardRow}>
+
+        {/* Left: Thumbnail */}
+        {item.savedImage ? (
+          <Image source={{ uri: item.savedImage }} style={styles.thumb} />
+        ) : (
+          <View style={styles.thumbPlaceholder}>
+            <Ionicons name="card-outline" size={28} color={GOLD} />
+          </View>
+        )}
+
+        {/* Middle: Info */}
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
+          {(item.designation || item.role) ? (
+            <Text style={styles.designation} numberOfLines={1}>
+              {item.designation || item.role}
+            </Text>
+          ) : null}
+          {(item.companyName || item.company) ? (
+            <Text style={styles.company} numberOfLines={1}>
+              {item.companyName || item.company}
+            </Text>
+          ) : null}
+          {item.phone ? (
+            <Text style={styles.phone} numberOfLines={1}>{item.phone}</Text>
+          ) : null}
+        </View>
+
+        {/* Right: Action Buttons */}
+        <View style={styles.actions}>
+          {/* Share — full gold */}
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("ShareCardScreen", {
-                cardData: item
-              })
-            }
             style={styles.shareBtn}
+            onPress={() => navigation.navigate('ShareCardScreen', { cardData: item })}
+            activeOpacity={0.8}
           >
-            <Ionicons name="share-social-outline" size={20} color="#2e7d32" />
+            <Ionicons name="share-social" size={17} color="#fff" />
           </TouchableOpacity>
+
+          {/* Edit — gold outline */}
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("EditCardScreen", {
-                cardData: item,
-                cardIndex: index
-              })
-            }
             style={styles.editBtn}
+            onPress={() => navigation.navigate('EditCardScreen', { cardData: item, cardIndex: index })}
+            activeOpacity={0.8}
           >
-            <Ionicons name="create-outline" size={20} color="#1976d2" />
+            <Ionicons name="create-outline" size={17} color={GOLD} />
           </TouchableOpacity>
+
+          {/* Delete — red outline */}
           <TouchableOpacity
-            onPress={() => handleDelete(index)}
             style={styles.deleteBtn}
+            onPress={() => handleDelete(index)}
+            activeOpacity={0.8}
           >
-            <Ionicons name="trash-outline" size={20} color="#b71c1c" />
+            <Ionicons name="trash-outline" size={17} color="#DC2626" />
           </TouchableOpacity>
+        </View>
+
       </View>
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={26} color={COLORS.accent} />
-        </TouchableOpacity>
-        <Text style={styles.title}>My Cards</Text>
-        <View style={{ width: 32 }} />
-      </View>
+      <AppHeader />
+
+      {/* ── Section Label ── */}
+      <Text style={styles.sectionTitle}>My Cards</Text>
+
+      {/* ── Content ── */}
       {loading ? null : cards.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="albums-outline" size={60} color={COLORS.accent} />
+          <Ionicons name="albums-outline" size={64} color={GOLD} />
           <Text style={styles.emptyText}>No saved cards yet</Text>
         </View>
       ) : (
@@ -102,7 +128,8 @@ export default function MyCardsScreen({ navigation }) {
           data={cards}
           keyExtractor={(_, idx) => idx.toString()}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 30 }}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </SafeAreaView>
@@ -110,114 +137,142 @@ export default function MyCardsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 18
-  },
-
-  backBtn: { padding: 4, marginRight: 8 },
-
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: COLORS.accent,
+  container: {
     flex: 1,
-    textAlign: 'left'
+    backgroundColor: '#fff',
   },
 
-  cardItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f7f7f7',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 }
-  },
-
-  image: {
-    width: 54,
-    height: 54,
-    borderRadius: 8,
-    marginRight: 14
-  },
-
-  imagePlaceholder: {
-    width: 54,
-    height: 54,
-    borderRadius: 8,
-    marginRight: 14,
-    backgroundColor: '#e0e0e0'
-  },
-
-  info: { flex: 1 },
-
-  name: {
+  /* ── Section Label ── */
+  sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111'
+    color: GOLD,
+    letterSpacing: 0.4,
+    textAlign: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F3E9D2',
   },
 
+  /* ── List ── */
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 30,
+  },
+
+  /* ── Card ── */
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F3E9D2',
+    shadowColor: '#C9A227',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  /* Thumbnail */
+  thumb: {
+    width: 62,
+    height: 62,
+    borderRadius: 10,
+    marginRight: 14,
+    backgroundColor: '#F5F5F5',
+  },
+  thumbPlaceholder: {
+    width: 62,
+    height: 62,
+    borderRadius: 10,
+    marginRight: 14,
+    backgroundColor: '#FDF6E3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F3E9D2',
+  },
+
+  /* Info */
+  info: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 3,
+  },
+  designation: {
+    fontSize: 13,
+    color: GOLD,
+    marginBottom: 2,
+  },
   company: {
     fontSize: 13,
-    color: '#666',
-    marginTop: 2
+    color: '#555',
+    marginBottom: 2,
   },
-
   phone: {
     fontSize: 12,
-    color: '#444',
-    marginTop: 2
-  },
-
-  email: {
-    fontSize: 12,
-    color: '#444',
-    marginTop: 2
-  },
-
-  template: {
-    fontSize: 11,
     color: '#888',
-    marginTop: 2
   },
 
-  actionButtons: {
-    flexDirection: 'row',
-    alignItems: 'center'
+  /* Action Buttons */
+  actions: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+    gap: 7,
   },
-
   shareBtn: {
-    padding: 6,
-    marginRight: 10
+    width: BTN_SIZE,
+    height: BTN_SIZE,
+    borderRadius: 8,
+    backgroundColor: GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
   editBtn: {
-    padding: 6,
-    marginRight: 10
+    width: BTN_SIZE,
+    height: BTN_SIZE,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
   deleteBtn: {
-    padding: 6
+    width: BTN_SIZE,
+    height: BTN_SIZE,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#DC2626',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
+  /* Empty */
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 60
   },
-
   emptyText: {
     fontSize: 16,
     color: '#888',
-    marginTop: 16
-  }
+    marginTop: 14,
+  },
 });

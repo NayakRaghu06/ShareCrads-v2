@@ -1,442 +1,83 @@
-// import React, { useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   StyleSheet,
-//   SafeAreaView,
-//   Image,
-//   Linking
-//     Alert,
-//     Linking
-// } from 'react-native';
-// import { Ionicons } from '@expo/vector-icons';
-
-// export default function ShareCardScreen({ navigation, route }) {
-
-//   const { cardData } = route.params;
-//   const [mobile, setMobile] = useState('');
-//   const [userStatus, setUserStatus] = useState("none"); 
-//   // "none" | "found" | "notfound"
-
-//   const cardLink = `https://sharecards.in/card/${cardData.phone}`;
-//   const message = `Check my Digital Business Card 👇\n\n${cardLink}`;
-
-//     // Professional WhatsApp invite function
-//     const handleSendInvite = async () => {
-//       if (mobile.length !== 10) return;
-
-//       const inviteMessage =
-//         `Hi 👋\n\nI am using ShareCards to share my Digital Business Card.\n\nJoin here:\nhttps://sharecards.in\n\nIt’s easy and free!`;
-
-//       const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(inviteMessage)}`;
-
-//       const supported = await Linking.canOpenURL(url);
-//       if (supported) {
-//         await Linking.openURL(url);
-//       } else {
-//         Alert.alert("WhatsApp not installed");
-//       }
-//     };
-//   const handleCheckUser = () => {
-//     if (mobile === "9876543210") {
-//       setUserStatus("found");
-//     } else {
-//       setUserStatus("notfound");
-//     }
-//   };
-
-//   const handleWhatsApp = async () => {
-//     if (mobile.length !== 10) return;
-
-//     const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(message)}`;
-//     await Linking.openURL(url);
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.safeArea}>
-
-//       {/* HEADER */}
-//       <View style={styles.header}>
-//         <TouchableOpacity onPress={() => navigation.goBack()}>
-//           <Ionicons name="arrow-back" size={26} color="#111" />
-//         </TouchableOpacity>
-//         <Text style={styles.headerTitle}>Share Card</Text>
-//         <View style={{ width: 26 }} />
-//       </View>
-
-//       <View style={styles.container}>
-
-//         {/* INPUT SECTION */}
-//         <Text style={styles.label}>Enter Mobile Number</Text>
-
-//         <View style={styles.inputWrapper}>
-//           <View style={styles.countryBox}>
-//             <Text style={styles.countryText}>+91</Text>
-//           </View>
-//           <TextInput
-//             style={styles.input}
-//             placeholder="10 digit mobile number"
-//             placeholderTextColor="#999"
-//             keyboardType="phone-pad"
-//             maxLength={10}
-//             value={mobile}
-//             onChangeText={setMobile}
-//           />
-//         </View>
-
-//         <TouchableOpacity style={styles.checkBtn} onPress={handleCheckUser}>
-//           <Text style={styles.checkBtnText}>Check User</Text>
-//         </TouchableOpacity>
-
-//         {/* USER FOUND */}
-//         {userStatus === "found" && (
-//           <>
-//             <View style={styles.successCard}>
-//               <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
-//               <Text style={styles.successText}>  User Found!</Text>
-//             </View>
-
-//             <View style={styles.userCard}>
-//               <Image
-//                 source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
-//                 style={styles.profile}
-//               />
-//               <View>
-//                 <Text style={styles.name}>Rahul Sharma</Text>
-//                 <Text style={styles.designation}>Software Engineer</Text>
-//                 <Text style={styles.company}>DBC Technologies</Text>
-//               </View>
-//             </View>
-
-//             <Text style={styles.shareTitle}>Choose Share Option</Text>
-
-//             <TouchableOpacity style={styles.shareInAppBtn}>
-//               <Text style={styles.shareInAppText}>Share In App</Text>
-//             </TouchableOpacity>
-
-//             <TouchableOpacity style={styles.whatsappBtn} onPress={handleWhatsApp}>
-//               <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-//               <Text style={styles.whatsappText}>  Share on WhatsApp</Text>
-//             </TouchableOpacity>
-//           </>
-//         )}
-
-//         {/* USER NOT FOUND */}
-//         {userStatus === "notfound" && (
-//           <>
-//             <View style={styles.errorCard}>
-//               <Ionicons name="close-circle" size={20} color="#FF4D4F" />
-//               <Text style={styles.errorText}>  User Not Found</Text>
-//             </View>
-
-//             <Text style={styles.errorDesc}>
-//               This number is not registered on ShareCards.
-//             </Text>
-
-//             <TouchableOpacity style={styles.inviteBtn}>
-//               <TouchableOpacity style={styles.inviteBtn} onPress={handleSendInvite}>
-//                 <Text style={styles.inviteText}>Send Invitation</Text>
-//               </TouchableOpacity>
-//         )}
-
-//       </View>
-//     </SafeAreaView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-
-//   safeArea: {
-//     flex: 1,
-//     backgroundColor: '#F6F8FB',
-//   },
-
-//   header: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'space-between',
-//     paddingHorizontal: 20,
-//     paddingVertical: 18,
-//     backgroundColor: '#fff',
-//   },
-
-//   headerTitle: {
-//     fontSize: 20,
-//     fontWeight: '700',
-//     color: '#111',
-//   },
-
-//   container: {
-//     paddingHorizontal: 20,
-//     marginTop: 25,
-//   },
-
-//   label: {
-//     fontSize: 15,
-//     fontWeight: '600',
-//     color: '#333',
-//     marginBottom: 10,
-//   },
-
-//   inputWrapper: {
-//     flexDirection: 'row',
-//     backgroundColor: '#fff',
-//     borderRadius: 14,
-//     padding: 6,
-//     borderWidth: 1,
-//     borderColor: '#E5E7EB',
-//     marginBottom: 18,
-//     elevation: 2,
-//   },
-
-//   countryBox: {
-//     backgroundColor: '#F3F4F6',
-//     paddingHorizontal: 14,
-//     paddingVertical: 12,
-//     borderRadius: 10,
-//   },
-
-//   countryText: {
-//     fontSize: 15,
-//     fontWeight: '600',
-//     color: '#111',
-//   },
-
-//   input: {
-//     flex: 1,
-//     paddingHorizontal: 12,
-//     fontSize: 16,
-//     color: '#111',
-//   },
-
-//   checkBtn: {
-//     backgroundColor: '#2563EB',
-//     paddingVertical: 16,
-//     borderRadius: 14,
-//     alignItems: 'center',
-//     elevation: 4,
-//   },
-
-//   checkBtnText: {
-//     color: '#fff',
-//     fontWeight: '700',
-//     fontSize: 16,
-//   },
-
-//   successCard: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#E8FCEB',
-//     padding: 14,
-//     borderRadius: 12,
-//     marginTop: 24,
-//   },
-
-//   successText: {
-//     color: '#16A34A',
-//     fontWeight: '600',
-//   },
-
-//   userCard: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#fff',
-//     borderRadius: 16,
-//     padding: 16,
-//     marginTop: 15,
-//     elevation: 3,
-//   },
-
-//   profile: {
-//     width: 55,
-//     height: 55,
-//     borderRadius: 30,
-//     marginRight: 15,
-//   },
-
-//   name: {
-//     fontSize: 16,
-//     fontWeight: '700',
-//     color: '#111',
-//   },
-
-//   designation: {
-//     color: '#2563EB',
-//     marginTop: 2,
-//   },
-
-//   company: {
-//     color: '#666',
-//     marginTop: 2,
-//   },
-
-//   shareTitle: {
-//     textAlign: 'center',
-//     marginTop: 18,
-//     marginBottom: 12,
-//     fontWeight: '600',
-//     color: '#444',
-//   },
-
-//   shareInAppBtn: {
-//     backgroundColor: '#2563EB',
-//     paddingVertical: 15,
-//     borderRadius: 14,
-//     alignItems: 'center',
-//     marginBottom: 12,
-//   },
-
-//   shareInAppText: {
-//     color: '#fff',
-//     fontWeight: '700',
-//   },
-
-//   whatsappBtn: {
-//     flexDirection: 'row',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     backgroundColor: '#25D366',
-//     paddingVertical: 15,
-//     borderRadius: 14,
-//   },
-
-//   whatsappText: {
-//     color: '#fff',
-//     fontWeight: '700',
-//   },
-
-//   errorCard: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#FFEDEE',
-//     padding: 14,
-//     borderRadius: 12,
-//     marginTop: 24,
-//   },
-
-//   errorText: {
-//     color: '#FF4D4F',
-//     fontWeight: '600',
-//   },
-
-//   errorDesc: {
-//     textAlign: 'center',
-//     marginTop: 14,
-//     color: '#555',
-//   },
-
-//   inviteBtn: {
-//     backgroundColor: '#FF8A00',
-//     marginTop: 18,
-//     paddingVertical: 16,
-//     borderRadius: 14,
-//     alignItems: 'center',
-//   },
-
-//   inviteText: {
-//     color: '#fff',
-//     fontWeight: '700',
-//   },
-
-// });
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Image,
   Linking,
-  Alert
+  Alert,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AppHeader from '../../components/common/AppHeader';
+
+const GOLD = '#C9A227';
+const GOLD_LIGHT = '#E6D7A3';
+const GOLD_BG = '#FDF6E3';
 
 export default function ShareCardScreen({ navigation, route }) {
-
   const { cardData } = route.params;
 
   const [mobile, setMobile] = useState('');
-  const [userStatus, setUserStatus] = useState("none"); 
+  const [userStatus, setUserStatus] = useState('none');
   // "none" | "found" | "notfound"
 
   const cardLink = `https://sharecards.in/card/${cardData.phone}`;
-  const message = `Check my Digital Business Card 👇\n\n${cardLink}`;
+  const waMessage = `Check my Digital Business Card 👇\n\n${cardLink}`;
 
-  // ✅ CHECK USER (Demo)
+  // CHECK USER
   const handleCheckUser = () => {
     if (mobile.length !== 10) {
-      Alert.alert("Enter valid 10 digit mobile number");
+      Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
       return;
     }
-
-    if (mobile === "9876543210") {
-      setUserStatus("found");
+    if (mobile === '9876543210') {
+      setUserStatus('found');
     } else {
-      setUserStatus("notfound");
+      setUserStatus('notfound');
     }
   };
 
-  // ✅ SHARE CARD ON WHATSAPP
+  // SHARE ON WHATSAPP
   const handleWhatsApp = async () => {
-    if (mobile.length !== 10) {
-      Alert.alert("Enter valid mobile number");
-      return;
-    }
-
-    const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(message)}`;
-
+    const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(waMessage)}`;
     try {
       await Linking.openURL(url);
-    } catch (error) {
-      Alert.alert("Unable to open WhatsApp");
+    } catch {
+      Alert.alert('Unable to open WhatsApp');
     }
   };
 
-  // ✅ SEND INVITE FUNCTION
-  const handleSendInvite = async () => {
+  // SEND INVITATION via SMS
+  const handleSendInvite = () => {
     if (mobile.length !== 10) {
-      Alert.alert("Enter valid mobile number");
+      Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
       return;
     }
-
-    const inviteMessage =
-      `Hi 👋\n\nI am using ShareCards to share my Digital Business Card.\n\nJoin here:\nhttps://sharecards.in\n\nIt’s easy and free!`;
-
-    const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(inviteMessage)}`;
-
-    try {
-      const supported = await Linking.canOpenURL(url);
-
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert("WhatsApp not installed");
-      }
-    } catch (error) {
-      Alert.alert("Something went wrong");
-    }
+    const smsMessage =
+      'Hi! Join Digital Business Card (DBC) to receive my card. Download the app and connect with me.';
+    const separator = Platform.OS === 'ios' ? '&' : '?';
+    const url = `sms:${mobile}${separator}body=${encodeURIComponent(smsMessage)}`;
+    Linking.openURL(url).catch(() =>
+      Alert.alert('Error', 'Unable to open SMS app.')
+    );
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <AppHeader />
 
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Share Card</Text>
-        <View style={{ width: 26 }} />
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
 
-      <View style={styles.container}>
-
-        {/* INPUT SECTION */}
+        {/* ── Input Section ── */}
         <Text style={styles.label}>Enter Mobile Number</Text>
 
         <View style={styles.inputWrapper}>
@@ -446,269 +87,307 @@ export default function ShareCardScreen({ navigation, route }) {
           <TextInput
             style={styles.input}
             placeholder="10 digit mobile number"
-            placeholderTextColor="#999"
+            placeholderTextColor="#aaa"
             keyboardType="phone-pad"
             maxLength={10}
             value={mobile}
-            onChangeText={setMobile}
+            onChangeText={(t) => { setMobile(t); setUserStatus('none'); }}
           />
         </View>
 
-        <TouchableOpacity style={styles.checkBtn} onPress={handleCheckUser}>
+        {/* ── Check User Button ── */}
+        <TouchableOpacity style={styles.checkBtn} onPress={handleCheckUser} activeOpacity={0.85}>
           <Text style={styles.checkBtnText}>Check User</Text>
         </TouchableOpacity>
 
-        {/* USER FOUND */}
-        {userStatus === "found" && (
+        {/* ── USER FOUND ── */}
+        {userStatus === 'found' && (
           <>
             <View style={styles.successCard}>
-              <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
+              <Ionicons name="checkmark-circle" size={22} color="#fff" />
               <Text style={styles.successText}>  User Found!</Text>
             </View>
 
             <View style={styles.userCard}>
               <Image
-                source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+                source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }}
                 style={styles.profile}
               />
-              <View>
-                <Text style={styles.name}>Rahul Sharma</Text>
-                <Text style={styles.designation}>Software Engineer</Text>
-                <Text style={styles.company}>DBC Technologies</Text>
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>Rahul Sharma</Text>
+                <Text style={styles.userDesignation}>Software Engineer</Text>
+                <Text style={styles.userCompany}>DBC Technologies</Text>
               </View>
             </View>
 
-            <Text style={styles.shareTitle}>Choose Share Option</Text>
+            <View style={styles.shareTitleRow}>
+              <View style={styles.divider} />
+              <Text style={styles.shareTitle}>Choose Share Option:</Text>
+              <View style={styles.divider} />
+            </View>
 
-            <TouchableOpacity style={styles.shareInAppBtn}>
-              <Text style={styles.shareInAppText}>Share In App</Text>
+            <TouchableOpacity
+              style={styles.shareInAppBtn}
+              onPress={() => navigation.navigate('AppShareScreen', { cardData })}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="phone-portrait-outline" size={20} color="#fff" />
+              <Text style={styles.shareBtnText}>  Share In App</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.whatsappBtn} onPress={handleWhatsApp}>
+            <TouchableOpacity style={styles.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.85}>
               <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-              <Text style={styles.whatsappText}>  Share on WhatsApp</Text>
+              <Text style={styles.shareBtnText}>  Share on WhatsApp</Text>
             </TouchableOpacity>
           </>
         )}
 
-        {/* USER NOT FOUND */}
-        {userStatus === "notfound" && (
+        {/* ── USER NOT FOUND ── */}
+        {userStatus === 'notfound' && (
           <>
             <View style={styles.errorCard}>
-              <Ionicons name="close-circle" size={20} color="#FF4D4F" />
+              <Ionicons name="close-circle" size={22} color="#DC2626" />
               <Text style={styles.errorText}>  User Not Found</Text>
             </View>
 
             <Text style={styles.errorDesc}>
-              This number is not registered on ShareCards.
+              This number is not registered on DBC.{'\n\n'}
+              Invite them to join and share your digital card instantly.
             </Text>
 
-            <TouchableOpacity 
-              style={styles.inviteBtn} 
+            <TouchableOpacity
+              style={styles.inviteBtn}
               onPress={handleSendInvite}
+              activeOpacity={0.85}
             >
-              <Text style={styles.inviteText}>Send Invitation</Text>
+              <Ionicons name="chatbubble-ellipses-outline" size={20} color="#fff" />
+              <Text style={styles.shareBtnText}>  Send Invitation</Text>
             </TouchableOpacity>
           </>
         )}
 
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-
   safeArea: {
     flex: 1,
-    backgroundColor: '#F6F8FB',
-  },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
     backgroundColor: '#fff',
   },
 
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-  },
-
-  container: {
+  /* ── Scroll ── */
+  scroll: {
     paddingHorizontal: 20,
-    marginTop: 25,
+    paddingTop: 24,
+    paddingBottom: 40,
   },
 
+  /* ── Input ── */
   label: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#444',
     marginBottom: 10,
   },
-
   inputWrapper: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    marginBottom: 18,
-    elevation: 2,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: GOLD_LIGHT,
+    marginBottom: 16,
+    overflow: 'hidden',
   },
-
   countryBox: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: GOLD_BG,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 15,
+    borderRightWidth: 1,
+    borderRightColor: GOLD_LIGHT,
   },
-
   countryText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#111',
+    fontWeight: '700',
+    color: '#333',
   },
-
   input: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 15,
     fontSize: 16,
     color: '#111',
   },
 
+  /* ── Check User Button ── */
   checkBtn: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 16,
-    borderRadius: 14,
+    backgroundColor: GOLD,
+    height: 50,
+    borderRadius: 12,
     alignItems: 'center',
-    elevation: 4,
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: GOLD,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
-
   checkBtnText: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+    letterSpacing: 0.3,
   },
 
+  /* ── User Found Banner ── */
   successCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8FCEB',
-    padding: 14,
+    justifyContent: 'center',
+    backgroundColor: '#16A34A',
+    paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 24,
+    marginTop: 20,
   },
-
   successText: {
-    color: '#16A34A',
-    fontWeight: '600',
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
   },
 
+  /* ── User Card ── */
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 15,
-    elevation: 3,
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: GOLD_LIGHT,
+    shadowColor: GOLD,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
-
   profile: {
-    width: 55,
-    height: 55,
-    borderRadius: 30,
-    marginRight: 15,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginRight: 14,
   },
-
-  name: {
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111',
+    color: '#1A1A1A',
+    marginBottom: 2,
   },
-
-  designation: {
-    color: '#2563EB',
-    marginTop: 2,
+  userDesignation: {
+    fontSize: 13,
+    color: GOLD,
+    marginBottom: 2,
   },
-
-  company: {
+  userCompany: {
+    fontSize: 13,
     color: '#666',
-    marginTop: 2,
   },
 
-  shareTitle: {
-    textAlign: 'center',
-    marginTop: 18,
-    marginBottom: 12,
-    fontWeight: '600',
-    color: '#444',
-  },
-
-  shareInAppBtn: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 15,
-    borderRadius: 14,
+  /* ── Share Option Divider ── */
+  shareTitleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 14,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: GOLD_LIGHT,
+  },
+  shareTitle: {
+    marginHorizontal: 10,
+    fontWeight: '600',
+    color: '#555',
+    fontSize: 13,
+  },
+
+  /* ── Share Buttons ── */
+  shareInAppBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: GOLD,
+    height: 50,
+    borderRadius: 12,
     marginBottom: 12,
+    elevation: 3,
+    shadowColor: GOLD,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
-
-  shareInAppText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-
   whatsappBtn: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#25D366',
-    paddingVertical: 15,
-    borderRadius: 14,
+    height: 50,
+    borderRadius: 12,
+    elevation: 3,
   },
-
-  whatsappText: {
+  shareBtnText: {
     color: '#fff',
     fontWeight: '700',
+    fontSize: 15,
   },
 
+  /* ── User Not Found Banner ── */
   errorCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFEDEE',
-    padding: 14,
+    justifyContent: 'center',
+    backgroundColor: '#FFE5E5',
+    paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 24,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
   },
-
   errorText: {
-    color: '#FF4D4F',
-    fontWeight: '600',
+    color: '#DC2626',
+    fontWeight: '700',
+    fontSize: 15,
   },
 
+  /* ── Error Description ── */
   errorDesc: {
     textAlign: 'center',
-    marginTop: 14,
-    color: '#555',
-  },
-
-  inviteBtn: {
-    backgroundColor: '#FF8A00',
     marginTop: 18,
-    paddingVertical: 16,
-    borderRadius: 14,
+    marginBottom: 4,
+    color: '#555',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+
+  /* ── Invite (SMS) Button ── */
+  inviteBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: GOLD,
+    height: 50,
+    borderRadius: 12,
+    marginTop: 16,
+    elevation: 3,
+    shadowColor: GOLD,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
-
-  inviteText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-
 });

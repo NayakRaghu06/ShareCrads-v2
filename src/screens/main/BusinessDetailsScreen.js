@@ -20,6 +20,7 @@ import PrimaryButton from '../../components/buttons/PrimaryButton';
 import { businessDetailsStyles } from '../../styles/screens/businessDetailsStyles';
 import { layoutStyles } from '../../styles/screens/personalDetailsLayoutStyles';
 // import { getUser } from '../../utils/storage';
+import AppHeader from '../../components/common/AppHeader';
 
 import { getUser, updateBusinessDetails } from '../../database/userQueries';
 
@@ -221,6 +222,7 @@ export default function BusinessDetailsScreen({ route, navigation }) {
   return (
     <SafeAreaView style={businessDetailsStyles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <AppHeader />
       <KeyboardAvoidingView
         style={businessDetailsStyles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -229,22 +231,6 @@ export default function BusinessDetailsScreen({ route, navigation }) {
           contentContainerStyle={businessDetailsStyles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* ========== HEADER SECTION ========== */}
-          <View style={layoutStyles.headerSection}>
-            {/* Back Button */}
-            <TouchableOpacity
-              onPress={handleBack}
-              style={{ width: 24, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}
-            >
-              <Ionicons name="chevron-back" size={28} color="#D4AF37" />
-            </TouchableOpacity>
-
-            {/* App Title Centered */}
-            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 1 }}>
-              <Text style={layoutStyles.appTitle}>DIGITAL BUSINESS CARD</Text>
-            </View>
-          </View>
-
           {/* ========== TITLE SECTION ========== */}
           <View style={layoutStyles.titleSection}>
             {/* <Text style={layoutStyles.mainTitle}>
