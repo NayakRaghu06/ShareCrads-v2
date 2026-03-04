@@ -1,217 +1,223 @@
-import { StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import { View, StyleSheet, Image, TouchableOpacity, Linking, Alert } from "react-native";
+import * as Sharing from "expo-sharing";
+import { Ionicons } from "@expo/vector-icons";
+import ExpandableField from "../../components/common/ExpandableField";
+
+const ClassicTemplate = ({ userData, data }) => {
+
+  const d = data || userData || {};
+  const phone = d.phone || d.mobile || d.whatsapp || null;
+  const initial = d?.name ? d.name.trim().charAt(0).toUpperCase() : "Y";
+
+  const [expandedField, setExpandedField] = useState(null);
+
+  const handlePdf = async (pdf) => {
+    if (!pdf) return;
+
+    try {
+      let uri =
+        typeof pdf === "string"
+          ? pdf
+          : pdf.uri || pdf.fileUri || pdf.localUri || pdf.path || pdf.url;
+
+      if (uri) {
+        await Sharing.shareAsync(uri);
+      }
+    } catch {
+      Alert.alert("Error", "Failed to open PDF");
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+
+      {d?.companyLogo && (
+        <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
+      )}
+
+      <View style={styles.avatarOuter}>
+        <View style={styles.avatarInner}>
+          {d?.profileImage ? (
+            <Image source={{ uri: d.profileImage }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{initial}</Text>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.fieldsContainer}>
+
+        <ExpandableField
+          label="Name"
+          value={d?.name}
+          fieldKey="name"
+          expandedField={expandedField}
+          setExpandedField={setExpandedField}
+        />
+
+        {d?.designation && (
+          <ExpandableField
+            label="Designation"
+            value={d.designation}
+            fieldKey="designation"
+            expandedField={expandedField}
+            setExpandedField={setExpandedField}
+          />
+        )}
+
+        {d?.companyName && (
+          <ExpandableField
+            label="Company Name"
+            value={d.companyName}
+            fieldKey="company"
+            expandedField={expandedField}
+            setExpandedField={setExpandedField}
+          />
+        )}
+
+        {(d?.description || d?.businessDescription) && (
+          <ExpandableField
+            label="Business Description"
+            value={d.description || d.businessDescription}
+            fieldKey="description"
+            expandedField={expandedField}
+            setExpandedField={setExpandedField}
+          />
+        )}
+
+        {phone && (
+          <ExpandableField
+            label="Mobile"
+            value={phone}
+            fieldKey="mobile"
+            expandedField={expandedField}
+            setExpandedField={setExpandedField}
+          />
+        )}
+
+        {d?.email && (
+          <ExpandableField
+            label="Email"
+            value={d.email}
+            fieldKey="email"
+            expandedField={expandedField}
+            setExpandedField={setExpandedField}
+          />
+        )}
+
+        {d?.website && (
+          <ExpandableField
+            label="Website"
+            value={d.website}
+            fieldKey="website"
+            expandedField={expandedField}
+            setExpandedField={setExpandedField}
+          />
+        )}
+
+        {d?.address && (
+          <ExpandableField
+            label="Address"
+            value={d.address}
+            fieldKey="address"
+            expandedField={expandedField}
+            setExpandedField={setExpandedField}
+          />
+        )}
+
+      </View>
+
+      <View style={styles.socialRow}>
+
+        {phone && (
+          <TouchableOpacity onPress={() => Linking.openURL(`tel:${phone}`)}>
+            <Ionicons name="call" size={18} color="#D4AF37" />
+          </TouchableOpacity>
+        )}
+
+        {d?.website && (
+          <TouchableOpacity onPress={() => Linking.openURL(d.website)}>
+            <Ionicons name="globe" size={18} color="#D4AF37" />
+          </TouchableOpacity>
+        )}
+
+        {d?.descriptionPdf && (
+          <TouchableOpacity onPress={() => handlePdf(d.descriptionPdf)}>
+            <Ionicons name="document" size={18} color="#D4AF37" />
+          </TouchableOpacity>
+        )}
+
+      </View>
+
+    </View>
+  );
+};
+
+export default ClassicTemplate;
 
 const styles = StyleSheet.create({
-  // Template Selection Mode Styles
-  selectionContainer: {
-    width: 280,
-    height: 440,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    overflow: 'hidden',
-    marginHorizontal: 8,
-  },
-  selected: {
-    borderColor: '#2E7D32',
-    borderWidth: 3,
-    shadowColor: '#2E7D32',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  selectionHeader: {
-    backgroundColor: '#1565C0',
-    height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  badgeText: {
-    color: '#b71a1a',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  selectionContent: {
-    flex: 1,
-    padding: 16,
-  },
-  selectionName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    marginBottom: 4,
-  },
-  selectionTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1565C0',
-    marginBottom: 12,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 12,
-  },
-  selectionSection: {
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#757575',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  selectionValue: {
-    fontSize: 12,
-    color: '#424242',
-    lineHeight: 16,
-  },
-  footer: {
-    height: 8,
-    backgroundColor: '#1565C0',
+
+  card: {
+    margin: 16,
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: "#070912",
+    borderWidth: 1,
+    borderColor: "#0F1724",
+    alignItems: "center",
+    width: "92%",
   },
 
-  // Preview Mode Styles
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  headerBackground: {
-    height: 100,
-    backgroundColor: '#1565C0',
-  },
-  profileSection: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: -40,
-    paddingBottom: 20,
-    marginTop: -40,
-  },
-  profileImageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#E3F2FD',
-    alignItems: 'center',
-    justifyContent: 'center',
+  avatarOuter: {
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    marginBottom: 16,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  profileImagePlaceholder: {
-    fontSize: 40,
-    color: '#1565C0',
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1F1F1F',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  designation: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1565C0',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  company: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#666',
-    textAlign: 'center',
-  },
-  detailsSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  contactInfo: {
-    marginBottom: 20,
-  },
-  contactItem: {
-    flexDirection: 'column',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    marginBottom: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: '#1565C0',
-  },
-  contactValue: {
-    fontSize: 13,
-    color: '#333',
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  socialMediaSection: {
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingTop: 16,
-  },
-  socialLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1565C0',
+    borderColor: "#D4AF37",
+    borderRadius: 48,
+    padding: 4,
     marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
-  socialLinksContainer: {
+
+  avatarInner: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: "#0B1023",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  avatarText: {
+    fontSize: 34,
+    color: "#D4AF37",
+    fontWeight: "bold",
+  },
+
+  avatarImage: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+
+  companyLogo: {
+    position: "absolute",
+    left: 12,
+    top: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+
+  fieldsContainer: {
+    width: "100%",
     marginTop: 8,
   },
-  socialLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 6,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#1565C0',
-  },
-  socialIconLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#1565C0',
-    marginRight: 10,
-    minWidth: 20,
-    textAlign: 'center',
-  },
-  socialText: {
-    fontSize: 13,
-    color: '#333',
-    flex: 1,
-  },
-});
 
-export default styles;
+  socialRow: {
+    flexDirection: "row",
+    marginTop: 12,
+    justifyContent: "space-around",
+    width: "100%",
+  },
+
+});

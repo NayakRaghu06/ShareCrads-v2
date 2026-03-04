@@ -21,8 +21,8 @@ import shareCardAsVCard from '../../utils/shareVCard';
 
 import ClassicTemplate from "../../components/templates/ClassicTemplate";
 import ModernTemplate from "../../components/templates/ModernTemplate";
-import MinimalTemplate from "../../components/templates/MinimalTemplate";
 import DarkTemplate from "../../components/templates/DarkTemplate";
+import ExpandableField from '../../components/common/ExpandableField';
 
 import { layoutStyles } from "../../styles/screens/personalDetailsLayoutStyles";
 import { getUser } from "../../database/userQueries";
@@ -31,7 +31,6 @@ import { saveDashboard, getDashboard, addDashboardCard } from '../../utils/stora
 const TEMPLATE_COMPONENTS = {
   classic: ClassicTemplate,
   modern: ModernTemplate,
-  minimal: MinimalTemplate,
   dark: DarkTemplate,
 };
 
@@ -64,6 +63,7 @@ export default function FinalPreviewScreen({ route, navigation }) {
   const userInitial = effectiveCardData?.name ? effectiveCardData.name.trim().charAt(0).toUpperCase() : 'N';
 
   const previewOnly = route?.params?.previewOnly === true;
+  const [expandedField, setExpandedField] = useState(null);
 
   if (previewOnly) {
     return (
@@ -78,22 +78,20 @@ export default function FinalPreviewScreen({ route, navigation }) {
           {/* Key Info */}
           <View style={{ marginTop: 20, padding: 12, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB' }}>
             <Text style={{ fontWeight: '700', marginBottom: 8 }}>Key Info</Text>
-            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Designation:</Text><Text style={{ color: '#111' }}>{effectiveCardData.designation || effectiveCardData.role || ''}</Text></View>
-            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Company:</Text><Text style={{ color: '#111' }}>{effectiveCardData.companyName || effectiveCardData.company || ''}</Text></View>
-            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Description:</Text><Text style={{ color: '#111' }}>{effectiveCardData.businessDescription || effectiveCardData.description || ''}</Text></View>
-            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Mobile:</Text><Text style={{ color: '#111' }}>{effectiveCardData.phone || effectiveCardData.mobile || effectiveCardData.whatsapp || ''}</Text></View>
-            <View style={{ marginBottom: 6 }}><Text style={{ color: '#6B7280' }}>Email:</Text><Text style={{ color: '#111' }}>{effectiveCardData.email || ''}</Text></View>
-            <View><Text style={{ color: '#6B7280' }}>Address:</Text><Text style={{ color: '#111' }}>{effectiveCardData.address || effectiveCardData.location || ''}</Text></View>
+            <ExpandableField label="Designation" value={effectiveCardData.designation || effectiveCardData.role || ''} fieldKey="preview-designation" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
+            <ExpandableField label="Company Name" value={effectiveCardData.companyName || effectiveCardData.company || ''} fieldKey="preview-companyName" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
+            <ExpandableField label="Business Description" value={effectiveCardData.businessDescription || effectiveCardData.description || ''} fieldKey="preview-businessDescription" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
+            <ExpandableField label="Mobile" value={effectiveCardData.phone || effectiveCardData.mobile || effectiveCardData.whatsapp || ''} fieldKey="preview-mobile" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
+            <ExpandableField label="Email" value={effectiveCardData.email || ''} fieldKey="preview-email" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
+            <ExpandableField label="Website" value={effectiveCardData.website || ''} fieldKey="preview-website" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
+            <ExpandableField label="Address" value={effectiveCardData.address || effectiveCardData.location || ''} fieldKey="preview-address" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
           </View>
 
           {/* All Fields list shown in preview-only for verification */}
           <View style={{ marginTop: 14, padding: 12, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB' }}>
             <Text style={{ fontWeight: '700', marginBottom: 8 }}>All Fields</Text>
             {Object.entries(effectiveCardData || {}).map(([k, v]) => (
-              <View key={k} style={{ flexDirection: 'row', marginBottom: 6 }}>
-                <Text style={{ color: '#6B7280', width: 140 }}>{k}:</Text>
-                <Text style={{ flex: 1, color: '#111' }}>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</Text>
-              </View>
+              <ExpandableField key={k} label={`${k}:`} value={typeof v === 'object' ? JSON.stringify(v) : String(v)} fieldKey={`all-${k}`} expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} labelStyle={{ color: '#6B7280', width: '40%' }} valueStyle={{ color: '#111', width: '100%' }} />
             ))}
           </View>
         </ScrollView>

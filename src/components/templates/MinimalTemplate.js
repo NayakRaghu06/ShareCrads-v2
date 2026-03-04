@@ -1,289 +1,25 @@
-// import React from "react";
-// import { View, Text, Image, TouchableOpacity, Linking, StyleSheet } from "react-native";
-// import * as Sharing from 'expo-sharing';
-// import { Ionicons } from '@expo/vector-icons';
-
-// const MinimalTemplate = ({ userData, data }) => {
-//   const d = data || userData || {};
-//   const phone = d.phone || d.mobile || d.whatsapp || null;
-//   const initial = d?.name ? d.name.trim().charAt(0).toUpperCase() : 'Y';
-
-//   const handlePdf = async (pdf) => {
-//     if (!pdf) return;
-//     const uri = typeof pdf === 'string' ? pdf : pdf.uri || pdf;
-//     try {
-//       const available = await Sharing.isAvailableAsync();
-//       if (available) await Sharing.shareAsync(uri);
-//       else Linking.canOpenURL(uri).then(supported => supported && Linking.openURL(uri)).catch(e => Alert.alert('Error', e.message));
-//     } catch (e) { Alert.alert('Error opening PDF', e.message); }
-//   };
-
-// import { View, Text, Image, TouchableOpacity, Linking, StyleSheet } from "react-native";
-// import { Ionicons } from '@expo/vector-icons';
-
-// const MinimalTemplate = ({ data, landscape }) => {
-//   const userData = data || {};
-//   const initial = userData?.name ? userData.name.trim().charAt(0).toUpperCase() : 'Y';
- 
-
-//   if (landscape) {
-//     return (
-//       <View style={styles.cardContainer}>
-//         <View style={styles.leftSection}>
-//           <View style={styles.avatar}>
-//             {userData?.profileImage ? (
-//               <Image source={{ uri: userData.profileImage }} style={styles.avatarImage} />
-//             ) : (
-//               <Text style={styles.avatarText}>{initial}</Text>
-//             )}
-//           </View>
-//           <Text style={styles.name}>{userData?.name || 'Your Name'}</Text>
-//           <Text style={styles.role}>{userData?.designation || 'Your Role'}</Text>
-//           {userData?.companyName ? (
-//             <Text style={styles.company}>{userData.companyName}</Text>
-//           ) : null}
-//         </View>
-//         <View style={styles.rightSection}>
-//           <Text style={styles.info}>📞 {userData?.phone || ''}</Text>
-//           <Text style={styles.info}>✉ {userData?.email || ''}</Text>
-//           <Text style={styles.info}>🌐 {userData?.website || ''}</Text>
-//           <Text style={styles.info}>📍 {userData?.address || ''}</Text>
-//           <View style={styles.socialRow}>
-//             {userData?.whatsapp ? (<TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${userData.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//             {userData?.linkedin ? (<TouchableOpacity onPress={() => Linking.openURL(userData.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//             {userData?.instagram ? (<TouchableOpacity onPress={() => Linking.openURL(`https://instagram.com/${userData.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//             {userData?.twitter ? (<TouchableOpacity onPress={() => Linking.openURL(userData.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//             {userData?.facebook ? (<TouchableOpacity onPress={() => Linking.openURL(userData.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//             {userData?.youtube ? (<TouchableOpacity onPress={() => Linking.openURL(userData.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//             {userData?.website ? (<TouchableOpacity onPress={() => Linking.openURL(userData.website)} style={styles.iconBtn}><Ionicons name="globe" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//           </View>
-//         </View>
-//       </View>
-//     );
-//   }
-//   // ...existing code...
-//   return (
-//     <View style={styles.container}>
-
-//       {d?.companyLogo ? (
-//         <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
-//       ) : null}
-
-//       <View style={styles.avatar}>
-//         {d?.profileImage ? (
-//           <Image source={{ uri: d.profileImage }} style={styles.avatarImage} />
-//         ) : (
-//           <Text style={styles.avatarText}>{initial}</Text>
-//         )}
-//       </View>
-
-//       {/* Title block removed to avoid duplication; labeled fields shown below */}
-//       {/* Labeled fields: Name / Designation / Company / Business Description */}
-//       <View style={{ width: '85%', alignSelf: 'center', marginTop: 12, alignItems: 'flex-start' }}>
-//         <Text style={styles.info}><Text style={{fontWeight:'700'}}>Name:</Text>  {d?.name || '—'}</Text>
-//         {d?.designation ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Designation:</Text>  {d.designation}</Text> : null}
-//         {d?.companyName ? <Text style={styles.info}><Text style={{fontWeight:'700'}}>Company Name:</Text>  {d.companyName}</Text> : null}
-//         {d?.description || d?.businessDescription ? (
-//           <Text style={styles.info}><Text style={{fontWeight:'700'}}>Business Description:</Text>  {d.description || d.businessDescription}</Text>
-//         ) : null}
-//       </View>
-
-//       {phone ? (
-//         <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(`tel:${phone}`)}>
-//           <Text style={styles.info}><Text style={{fontWeight:'700'}}>Mobile:</Text>  {phone}</Text>
-//         </TouchableOpacity>
-//       ) : null}
-//       {d?.email ? (
-//         <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(`mailto:${d.email}`)}>
-//           <Text style={styles.info}><Text style={{fontWeight:'700'}}>Email:</Text>  {d.email}</Text>
-//         </TouchableOpacity>
-//       ) : null}
-//       {d?.website ? (
-//         <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(d.website)}>
-//           <Text style={styles.info}>🌐 {d.website}</Text>
-//         </TouchableOpacity>
-//       ) : null}
-//       {d?.address ? (
-//         <TouchableOpacity activeOpacity={0.8} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}>
-//           <Text style={styles.info}><Text style={{fontWeight:'700'}}>Address:</Text>  {d.address}</Text>
-//         </TouchableOpacity>
-//       ) : null}
-
-//       {d?.qrCodeImage ? (
-//         <View style={styles.qrContainer}>
-//           <Image source={{ uri: d.qrCodeImage }} style={styles.qrImageCentered} />
-//         </View>
-//       ) : null}
-
-//       <View style={styles.socialRow}>
-//         {phone ? (<TouchableOpacity onPress={() => Linking.openURL(`tel:${phone}`)} style={styles.iconBtn}><Ionicons name="call" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.whatsapp ? (<TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${d.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.linkedin ? (<TouchableOpacity onPress={() => Linking.openURL(d.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.instagram ? (<TouchableOpacity onPress={() => Linking.openURL(`https://instagram.com/${d.instagram.replace(/^@/,'')}`)} style={styles.iconBtn}><Ionicons name="logo-instagram" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.twitter ? (<TouchableOpacity onPress={() => Linking.openURL(d.twitter)} style={styles.iconBtn}><Ionicons name="logo-twitter" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.facebook ? (<TouchableOpacity onPress={() => Linking.openURL(d.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.youtube ? (<TouchableOpacity onPress={() => Linking.openURL(d.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.website ? (<TouchableOpacity onPress={() => Linking.openURL(d.website)} style={styles.iconBtn}><Ionicons name="globe" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.descriptionPdf ? (<TouchableOpacity onPress={() => handlePdf(d.descriptionPdf)} style={styles.iconBtn}><Ionicons name="document" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//         {d?.address ? (<TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} style={styles.iconBtn}><Ionicons name="location" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
-//       </View>
-//       {/* visiting card removed */}
-
-//       {/* ...existing code... */}
- 
-//     </View>
-//   );
-// };
-
-// export default MinimalTemplate;
-
-// const styles = StyleSheet.create({
-//   cardContainer: {
-//     width: '100%',
-//     height: 200,
-//     borderRadius: 20,
-//     flexDirection: 'row',
-//     padding: 15,
-//     alignItems: 'center',
-//     backgroundColor: '#0F0F0F',
-//     borderWidth: 1.5,
-//     borderColor: '#D4AF37',
-//     marginBottom: 18,
-//   },
-//   leftSection: {
-//     flex: 1,
-//     justifyContent: 'flex-start',
-//     paddingRight: 12,
-//   },
-//   rightSection: {
-//     flex: 1,
-//     justifyContent: 'flex-start',
-//     paddingLeft: 12,
-//   },
-//   container: {
-//     margin: 16,
-//     padding: 26,
-//     borderRadius: 24,
-//     backgroundColor: "#0F0F0F",
-//     borderWidth: 1.5,
-//     borderColor: "#D4AF37",
-//   },
-//   avatar: {
-//     width: 110,
-//     height: 110,
-//     borderRadius: 55,
-//     borderWidth: 2,
-//     borderColor: "#D4AF37",
-//     justifyContent: "center",
-//     alignItems: "center",
-//     marginBottom: 14,
-//   },
-//   avatarText: {
-//     fontSize: 34,
-//     color: "#D4AF37",
-//     fontWeight: "bold",
-//   },
-//   avatarImage: {
-//     width: 104,
-//     height: 104,
-//     borderRadius: 52,
-//   },
-//   companyLogo: {
-//     position: 'absolute',
-//     right: 12,
-//     top: 12,
-//     width: 80,
-//     height: 48,
-//     resizeMode: 'contain',
-//   },
-//   qrImage: {
-//     width: 80,
-//     height: 80,
-//     marginTop: 12,
-//     alignSelf: 'center',
-//   },
-//   qrContainer: {
-//     width: '100%',
-//     alignItems: 'center',
-//     marginTop: 8,
-//     marginBottom: 6,
-//   },
-//   qrImageCentered: {
-//     width: 90,
-//     height: 90,
-//     resizeMode: 'contain',
-//   },
-//   name: {
-//     fontSize: 26,
-//     color: "#D4AF37",
-//     fontWeight: "bold",
-//   },
-//   role: {
-//     fontSize: 16,
-//     color: "#E5E5E5",
-//     marginBottom: 16,
-//   },
-//   company: {
-//     fontSize: 14,
-//     color: '#F8EFD0',
-//     marginBottom: 6,
-//   },
-//   description: {
-//     fontSize: 12,
-//     color: '#D1C7B7',
-//     textAlign: 'center',
-//     marginBottom: 10,
-//   },
-//   info: {
-//     fontSize: 16,
-//     color: "#E5E5E5",
-//     marginVertical: 4,
-//     textAlign: 'left',
-//   },
-//   socialRow: {
-//     flexDirection: 'row',
-//     marginTop: 12,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-//   iconBtn: {
-//     marginHorizontal: 6,
-//     padding: 6,
-//     borderRadius: 8,
-//     backgroundColor: 'rgba(0,0,0,0.08)'
-//   }
-//   ,
-//   scannedCard: {
-//     width: '100%',
-//     height: 90,
-//     marginTop: 12,
-//     borderRadius: 8,
-//     overflow: 'hidden',
-//     backgroundColor: '#fff',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-//   scannedCardImage: {
-//     width: '100%',
-//     height: '100%',
-//     resizeMode: 'contain',
-//   },
-// });
-
-
-import React from "react";
-<<<<<<< HEAD
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert } from "react-native";
-=======
-import { View, Text, Image, TouchableOpacity, Linking, StyleSheet, Alert } from "react-native";
->>>>>>> 58205c414969b1c13a50d00a4af8768a100b6e06
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert, LayoutAnimation, Platform, UIManager } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
+import ExpandableField from '../common/ExpandableField';
 
-<<<<<<< HEAD
 const MinimalTemplate = ({ data, userData, landscape }) => {
   const d = data || userData || {};
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+  const [expanded, setExpanded] = useState(false);
+  const toggleExpanded = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((s) => {
+      const next = !s;
+      if (!next) setExpandedField(null);
+      return next;
+    });
+  };
+  const [expandedField, setExpandedField] = useState(null);
   const phone = d.phone || d.mobile || d.whatsapp || null;
   const initial = d?.name ? d.name.trim().charAt(0).toUpperCase() : 'Y';
 
@@ -292,14 +28,14 @@ const MinimalTemplate = ({ data, userData, landscape }) => {
     try {
       let uri = typeof pdf === 'string' ? pdf : (pdf.uri || pdf.fileUri || pdf.localUri || pdf.path || pdf.url || null);
 
-      if (uri && uri.startsWith('data:')) {
-        const base64 = uri.split(',')[1];
+      if (uri && String(uri).startsWith('data:')) {
+        const base64 = uri.split(',')[1] || '';
         const file = new File(Paths.cache, `temp_${Date.now()}.pdf`);
         try {
-          file.write(base64, { encoding: 'base64' });
+          await file.write(base64, { encoding: 'base64' });
         } catch (e) {
-          file.create({ intermediates: true, overwrite: true });
-          file.write(base64, { encoding: 'base64' });
+          await file.create({ intermediates: true, overwrite: true });
+          await file.write(base64, { encoding: 'base64' });
         }
         uri = file.uri;
       }
@@ -313,34 +49,12 @@ const MinimalTemplate = ({ data, userData, landscape }) => {
       const supported = uri && await Linking.canOpenURL(uri);
       if (supported) await Linking.openURL(uri);
       else Alert.alert('Cannot open PDF', 'No handler available for this PDF.');
-    } catch (e) { Alert.alert('Error opening PDF', e.message || String(e)); }
-  };
-=======
-const MinimalTemplate = ({ data, landscape }) => {
-  const userData = data || {};
-  const initial = userData?.name
-    ? userData.name.trim().charAt(0).toUpperCase()
-    : 'Y';
->>>>>>> 58205c414969b1c13a50d00a4af8768a100b6e06
-
-  const handlePdf = async (pdf) => {
-    if (!pdf) return;
-    const uri = typeof pdf === 'string' ? pdf : pdf.uri || pdf;
-
-    try {
-      const available = await Sharing.isAvailableAsync();
-      if (available) {
-        await Sharing.shareAsync(uri);
-      } else {
-        const supported = await Linking.canOpenURL(uri);
-        if (supported) await Linking.openURL(uri);
-      }
     } catch (e) {
-      Alert.alert('Error opening PDF', e.message);
+      Alert.alert('Error opening PDF', e?.message || String(e));
     }
   };
 
-  // ================= LANDSCAPE VIEW =================
+  // LANDSCAPE VIEW
   if (landscape) {
     return (
       <View style={styles.cardContainer}>
@@ -352,19 +66,29 @@ const MinimalTemplate = ({ data, landscape }) => {
               <Text style={styles.avatarText}>{initial}</Text>
             )}
           </View>
-          <Text style={styles.name}>{d?.name || 'Your Name'}</Text>
-          <Text style={styles.role}>{d?.designation || 'Your Role'}</Text>
+
+          <ExpandableField label="Name" value={d?.name || 'Your Name'} fieldKey="name" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} valueStyle={styles.name} />
+          <ExpandableField label="Designation" value={d?.designation || 'Your Role'} fieldKey="designation" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} valueStyle={styles.role} />
           {d?.companyName ? (
-            <Text style={styles.company}>{d.companyName}</Text>
+            <ExpandableField label="Company Name" value={d.companyName} fieldKey="companyName" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} valueStyle={styles.company} />
+          ) : null}
+          {d?.businessCategory || d?.category ? (
+            <ExpandableField label="Business Category" value={d.businessCategory || d.category} fieldKey="businessCategory" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={{ marginBottom: 6 }} valueStyle={styles.company} />
           ) : null}
         </View>
 
         <View style={styles.rightSection}>
-<<<<<<< HEAD
-          <View style={styles.fieldBox}><Text style={styles.label}>Mobile</Text><Text style={styles.value}>{d?.phone || ''}</Text></View>
-          <View style={styles.fieldBox}><Text style={styles.label}>Email</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d?.email || ''}</Text></View>
-          <View style={styles.fieldBox}><Text style={styles.label}>Website</Text><Text style={styles.value}>{d?.website || ''}</Text></View>
-          <View style={styles.fieldBox}><Text style={styles.label}>Address</Text><Text style={styles.value}>{d?.address || ''}</Text></View>
+          {/* hidden fields shown when expanded */}
+          {expanded ? (
+            <>
+              <ExpandableField label="Business Description" value={d?.description || d?.businessDescription || ''} fieldKey="businessDescription" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+              <ExpandableField label="Mobile" value={d?.phone || ''} fieldKey="mobile" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => d?.phone && Linking.openURL(`tel:${d.phone}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+              <ExpandableField label="Email" value={d?.email || ''} fieldKey="email" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => d?.email && Linking.openURL(`mailto:${d.email}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+              <ExpandableField label="Website" value={d?.website || ''} fieldKey="website" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => d?.website && Linking.openURL(d.website)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+              <ExpandableField label="Address" value={d?.address || ''} fieldKey="address" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => d?.address && Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+            </>
+          ) : null}
+
           <View style={styles.socialRow}>
             {d?.whatsapp ? (<TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${d.whatsapp.replace(/\D/g,'')}`)} style={styles.iconBtn}><Ionicons name="logo-whatsapp" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
             {d?.linkedin ? (<TouchableOpacity onPress={() => Linking.openURL(d.linkedin)} style={styles.iconBtn}><Ionicons name="logo-linkedin" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
@@ -374,22 +98,16 @@ const MinimalTemplate = ({ data, landscape }) => {
             {d?.youtube ? (<TouchableOpacity onPress={() => Linking.openURL(d.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
             {d?.website ? (<TouchableOpacity onPress={() => Linking.openURL(d.website)} style={styles.iconBtn}><Ionicons name="globe" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
           </View>
-=======
-          <Text style={styles.info}>📞 {userData?.phone || ''}</Text>
-          <Text style={styles.info}>✉ {userData?.email || ''}</Text>
-          <Text style={styles.info}>🌐 {userData?.website || ''}</Text>
-          <Text style={styles.info}>📍 {userData?.address || ''}</Text>
->>>>>>> 58205c414969b1c13a50d00a4af8768a100b6e06
         </View>
       </View>
     );
   }
 
-<<<<<<< HEAD
+  // NORMAL VIEW
   return (
     <View style={styles.container}>
-      {/* top decorative oval and positioned avatar/logo */}
       <View style={styles.topOval} />
+
       {d?.companyLogo ? (
         <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
       ) : null}
@@ -405,35 +123,32 @@ const MinimalTemplate = ({ data, landscape }) => {
       </View>
 
       <View style={styles.fieldsContainer}>
-        <View style={styles.fieldBox}><Text style={styles.label}>Name</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d?.name || '—'}</Text></View>
-        {d?.designation ? <View style={styles.fieldBox}><Text style={styles.label}>Designation</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.designation}</Text></View> : null}
-        {d?.companyName ? <View style={styles.fieldBox}><Text style={styles.label}>Company Name</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.companyName}</Text></View> : null}
+        <ExpandableField label="Name" value={d?.name || '-'} fieldKey="name" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+        {d?.designation ? <ExpandableField label="Designation" value={d.designation} fieldKey="designation" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} /> : null}
+        {d?.companyName ? (
+          <ExpandableField label="Company Name" value={d.companyName} fieldKey="companyName" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+        ) : null}
+        {d?.businessCategory || d?.category ? (
+          <ExpandableField label="Business Category" value={d.businessCategory || d.category} fieldKey="businessCategory" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+        ) : null}
         {d?.description || d?.businessDescription ? (
-          <View style={styles.fieldBox}><Text style={styles.label}>Business Description</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.description || d.businessDescription}</Text></View>
+          <ExpandableField label="Business Description" value={d.description || d.businessDescription} fieldKey="businessDescription" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
         ) : null}
 
         {phone ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`tel:${phone}`)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Mobile</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{phone}</Text></View>
-          </TouchableOpacity>
+          <ExpandableField label="Mobile" value={phone} fieldKey="mobile" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(`tel:${phone}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
         ) : null}
 
         {d?.email ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`mailto:${d.email}`)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Email</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.email}</Text></View>
-          </TouchableOpacity>
+          <ExpandableField label="Email" value={d.email} fieldKey="email" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(`mailto:${d.email}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
         ) : null}
 
         {d?.website ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(d.website)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Website</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.website}</Text></View>
-          </TouchableOpacity>
+          <ExpandableField label="Website" value={d.website} fieldKey="website" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(d.website)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
         ) : null}
 
         {d?.address ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Address</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.address}</Text></View>
-          </TouchableOpacity>
+          <ExpandableField label="Address" value={d.address} fieldKey="address" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
         ) : null}
       </View>
 
@@ -455,58 +170,9 @@ const MinimalTemplate = ({ data, landscape }) => {
         {d?.descriptionPdf ? (<TouchableOpacity onPress={() => handlePdf(d.descriptionPdf)} style={styles.iconBtn}><Ionicons name="document" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
         {d?.address ? (<TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} style={styles.iconBtn}><Ionicons name="location" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
       </View>
-=======
-  // ================= NORMAL VIEW =================
-  return (
-    <View style={styles.container}>
-
-      {userData?.companyLogo && (
-        <Image source={{ uri: userData.companyLogo }} style={styles.companyLogo} />
-      )}
-
-      <View style={styles.avatar}>
-        {userData?.profileImage ? (
-          <Image source={{ uri: userData.profileImage }} style={styles.avatarImage} />
-        ) : (
-          <Text style={styles.avatarText}>{initial}</Text>
-        )}
-      </View>
-
-      <Text style={styles.name}>{userData?.name || 'Your Name'}</Text>
-      <Text style={styles.role}>{userData?.designation || ''}</Text>
-      {userData?.companyName && (
-        <Text style={styles.company}>{userData.companyName}</Text>
-      )}
-
-      {userData?.phone && (
-        <TouchableOpacity onPress={() => Linking.openURL(`tel:${userData.phone}`)}>
-          <Text style={styles.info}>📞 {userData.phone}</Text>
-        </TouchableOpacity>
-      )}
-
-      {userData?.email && (
-        <TouchableOpacity onPress={() => Linking.openURL(`mailto:${userData.email}`)}>
-          <Text style={styles.info}>✉ {userData.email}</Text>
-        </TouchableOpacity>
-      )}
-
-      {userData?.website && (
-        <TouchableOpacity onPress={() => Linking.openURL(userData.website)}>
-          <Text style={styles.info}>🌐 {userData.website}</Text>
-        </TouchableOpacity>
-      )}
-
-      {userData?.address && (
-        <TouchableOpacity onPress={() =>
-          Linking.openURL(
-            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(userData.address)}`
-          )
-        }>
-          <Text style={styles.info}>📍 {userData.address}</Text>
-        </TouchableOpacity>
-      )}
-
->>>>>>> 58205c414969b1c13a50d00a4af8768a100b6e06
+      <TouchableOpacity onPress={toggleExpanded} activeOpacity={0.85} style={{ marginTop: 12, alignSelf: 'stretch', paddingVertical: 10, alignItems: 'center' }}>
+        <Text style={{ color: '#D4AF37', fontWeight: '700' }}>{expanded ? 'Show Less' : 'More'}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -560,90 +226,7 @@ const styles = StyleSheet.create({
     height: 104,
     borderRadius: 52,
   },
-<<<<<<< HEAD
-  /* legacy companyLogo removed (replaced below) */
-  qrImage: {
-    width: 80,
-    height: 80,
-    marginTop: 12,
-    alignSelf: 'center',
-  },
-  qrContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 6,
-  },
-  qrImageCentered: {
-    width: 90,
-    height: 90,
-    resizeMode: 'contain',
-  },
-=======
 
-  companyLogo: {
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    width: 80,
-    height: 48,
-    resizeMode: 'contain',
-  },
-
->>>>>>> 58205c414969b1c13a50d00a4af8768a100b6e06
-  name: {
-    fontSize: 26,
-    color: "#D4AF37",
-    fontWeight: "bold",
-  },
-  role: {
-    fontSize: 16,
-    color: "#E5E5E5",
-    marginBottom: 6,
-  },
-  company: {
-    fontSize: 14,
-    color: '#F8EFD0',
-    marginBottom: 6,
-  },
-  info: {
-    fontSize: 16,
-    color: "#E5E5E5",
-    marginVertical: 4,
-<<<<<<< HEAD
-    textAlign: 'left',
-  },
-  socialRow: {
-    flexDirection: 'row',
-    marginTop: 12,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-  },
-  iconBtn: {
-    marginHorizontal: 6,
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.08)'
-  }
-  ,
-  scannedCard: {
-    width: '100%',
-    height: 90,
-    marginTop: 12,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scannedCardImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-=======
->>>>>>> 58205c414969b1c13a50d00a4af8768a100b6e06
-  },
-  /* new unified styles */
   companyLogo: {
     position: 'absolute',
     left: 16,
@@ -700,7 +283,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
     marginTop: 8,
-    paddingHorizontal: 6,
+    paddingHorizontal: 0,
   },
   fieldBox: {
     width: '100%',
@@ -713,16 +296,44 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   label: {
-    width: 120,
+    width: '40%',
     color: '#EDEDED',
     fontWeight: '800',
     fontSize: 14,
     marginRight: 8,
   },
   value: {
-    flex: 1,
+    width: '100%',
     color: '#D1D5DB',
     fontSize: 15,
     lineHeight: 20,
   },
+  qrImage: {
+    width: 80,
+    height: 80,
+    marginTop: 12,
+    alignSelf: 'center',
+  },
+  qrContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  qrImageCentered: {
+    width: 90,
+    height: 90,
+    resizeMode: 'contain',
+  },
+  name: {
+    fontSize: 26,
+    color: "#D4AF37",
+    fontWeight: "bold",
+  },
+  iconBtn: {
+    marginHorizontal: 6,
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.08)'
+  }
 });

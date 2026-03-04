@@ -1,11 +1,25 @@
-import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, Alert, LayoutAnimation, Platform, UIManager } from "react-native";
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
+import ExpandableField from '../common/ExpandableField';
 
 const DarkTemplate = ({ userData, data }) => {
   const d = data || userData || {};
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+  const [expanded, setExpanded] = useState(false);
+  const toggleExpanded = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((s) => {
+      const next = !s;
+      if (!next) setExpandedField(null);
+      return next;
+    });
+  };
+  const [expandedField, setExpandedField] = useState(null);
   const phone = d.phone || d.mobile || d.whatsapp || null;
   const initial = d?.name ? d.name.trim().charAt(0).toUpperCase() : 'Y';
 
@@ -55,36 +69,39 @@ const DarkTemplate = ({ userData, data }) => {
       </View>
 
       <View style={styles.fieldsContainer}>
-        <View style={styles.fieldBox}><Text style={styles.label}>Name</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d?.name || '—'}</Text></View>
-        {d?.designation ? <View style={styles.fieldBox}><Text style={styles.label}>Designation</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.designation}</Text></View> : null}
-        {d?.companyName ? <View style={styles.fieldBox}><Text style={styles.label}>Company Name</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.companyName}</Text></View> : null}
-        {d?.description || d?.businessDescription ? (
-          <View style={styles.fieldBox}><Text style={styles.label}>Business Description</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.description || d.businessDescription}</Text></View>
+        <ExpandableField label="Name" value={d?.name || '-'} fieldKey="name" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+        {d?.designation ? (
+          <ExpandableField label="Designation" value={d.designation} fieldKey="designation" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
         ) : null}
+        {d?.companyName ? (
+          <ExpandableField label="Company Name" value={d.companyName} fieldKey="companyName" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+        ) : null}
+        {d?.businessCategory || d?.category ? (
+          <ExpandableField label="Business Category" value={d.businessCategory || d.category} fieldKey="businessCategory" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+        ) : null}
+        {expanded && (
+          <>
+            {d?.description || d?.businessDescription ? (
+              <ExpandableField label="Business Description" value={d.description || d.businessDescription} fieldKey="businessDescription" expandedField={expandedField} setExpandedField={setExpandedField} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+            ) : null}
 
-        {phone ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`tel:${phone}`)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Mobile</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{phone}</Text></View>
-          </TouchableOpacity>
-        ) : null}
+            {phone ? (
+              <ExpandableField label="Mobile" value={phone} fieldKey="mobile" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(`tel:${phone}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+            ) : null}
 
-        {d?.email ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`mailto:${d.email}`)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Email</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.email}</Text></View>
-          </TouchableOpacity>
-        ) : null}
+            {d?.email ? (
+              <ExpandableField label="Email" value={d.email} fieldKey="email" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(`mailto:${d.email}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+            ) : null}
 
-        {d?.website ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(d.website)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Website</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.website}</Text></View>
-          </TouchableOpacity>
-        ) : null}
+            {d?.website ? (
+              <ExpandableField label="Website" value={d.website} fieldKey="website" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(d.website)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+            ) : null}
 
-        {d?.address ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)}>
-            <View style={styles.fieldBox}><Text style={styles.label}>Address</Text><Text style={styles.value} numberOfLines={1} ellipsizeMode='tail'>{d.address}</Text></View>
-          </TouchableOpacity>
-        ) : null}
+            {d?.address ? (
+              <ExpandableField label="Address" value={d.address} fieldKey="address" expandedField={expandedField} setExpandedField={setExpandedField} onPressAction={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} containerStyle={styles.fieldBox} labelStyle={styles.label} valueStyle={styles.value} />
+            ) : null}
+          </>
+        )}
       </View>
 
       {d?.qrCodeImage ? (
@@ -105,6 +122,9 @@ const DarkTemplate = ({ userData, data }) => {
         {d?.descriptionPdf ? (<TouchableOpacity onPress={() => handlePdf(d.descriptionPdf)} style={styles.iconBtn}><Ionicons name="document" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
         {d?.address ? (<TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`)} style={styles.iconBtn}><Ionicons name="location" size={18} color="#D4AF37" /></TouchableOpacity>) : null}
       </View>
+      <TouchableOpacity onPress={toggleExpanded} activeOpacity={0.85} style={{ marginTop: 12, alignSelf: 'stretch', paddingVertical: 10, alignItems: 'center' }}>
+        <Text style={{ color: '#D4AF37', fontWeight: '700' }}>{expanded ? 'Show Less' : 'More'}</Text>
+      </TouchableOpacity>
       {/* visiting card removed */}
     </View>
   );
@@ -231,7 +251,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
     marginTop: 8,
-    paddingHorizontal: 6,
+    paddingHorizontal: 0,
   },
   fieldBox: {
     width: '100%',
@@ -244,14 +264,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   label: {
-    width: 120,
+    width: '40%',
     color: '#EDEDED',
     fontWeight: '800',
     fontSize: 14,
     marginRight: 8,
   },
   value: {
-    flex: 1,
+    width: '100%',
     color: '#D1D5DB',
     fontSize: 15,
     lineHeight: 20,

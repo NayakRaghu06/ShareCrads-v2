@@ -1,7 +1,6 @@
 // Template exports for easy importing
 export { default as ClassicTemplate } from './ClassicTemplate';
 export { default as ModernTemplate } from './ModernTemplate';
-export { default as MinimalTemplate } from './MinimalTemplate';
 export { default as DarkTemplate } from './DarkTemplate';
 
 export const TEMPLATES = [
@@ -16,12 +15,6 @@ export const TEMPLATES = [
     name: 'Modern',
     description: 'Contemporary design with vibrant gradient background',
     colorScheme: 'purple-gradient',
-  },
-  {
-    id: 'minimal',
-    name: 'Minimal',
-    description: 'Clean and minimalist design with plenty of whitespace',
-    colorScheme: 'neutral',
   },
   {
     id: 'dark',

@@ -63,11 +63,34 @@ const shareCardAsVCard = async (cardData = {}) => {
     const photoB64 = await tryEmbed(v.profileImage || v.photo || v.avatar);
     const logoB64 = await tryEmbed(v.companyLogo || v.logo);
 
-    if (photoB64) vcard += `PHOTO;ENCODING=b;TYPE=JPEG:${photoB64}\r\n`;
-    if (logoB64) vcard += `LOGO;ENCODING=b;TYPE=JPEG:${logoB64}\r\n`;
+    const foldBase64 = (b64) => {
+      if (!b64) return '';
+      const width = 76;
+      const parts = [];
+      for (let i = 0; i < b64.length; i += width) parts.push(b64.slice(i, i + width));
+      return parts.join('\r\n');
+    };
+
+    if (photoB64) {
+      vcard += `PHOTO;ENCODING=BASE64;TYPE=JPEG:\r\n`;
+      vcard += foldBase64(photoB64) + '\r\n';
+    } else if (v.profileImage && String(v.profileImage).startsWith('http')) {
+      vcard += `PHOTO;VALUE=URI:${v.profileImage}\r\n`;
+    }
+    if (logoB64) {
+      vcard += `LOGO;ENCODING=BASE64;TYPE=JPEG:\r\n`;
+      vcard += foldBase64(logoB64) + '\r\n';
+    } else if (v.companyLogo && String(v.companyLogo).startsWith('http')) {
+      vcard += `LOGO;VALUE=URI:${v.companyLogo}\r\n`;
+    }
+
+    // Add business category if present (standard vCard field)
+    if (v.businessCategory || v.category) {
+      vcard += `CATEGORIES:${v.businessCategory || v.category}\r\n`;
+    }
 
     // Add any remaining fields as X- properties so nothing is lost
-    const reserved = new Set(['name','profileImage','photo','avatar','companyName','company','companyLogo','logo','designation','role','phone','whatsapp','email','website','address']);
+    const reserved = new Set(['name','profileImage','photo','avatar','companyName','company','companyLogo','logo','designation','role','phone','whatsapp','email','website','address','businessCategory','category']);
     for (const [k, val] of Object.entries(v)) {
       if (!val) continue;
       if (reserved.has(k)) continue;
