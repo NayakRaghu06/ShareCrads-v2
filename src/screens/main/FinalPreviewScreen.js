@@ -17,6 +17,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
 import shareCardAsVCard from '../../utils/shareVCard';
+import AppHeader from '../../components/common/AppHeader';
 // QRCode is optional native dependency; load dynamically and fallback to external image if unavailable
 
 import ClassicTemplate from "../../components/templates/ClassicTemplate";
@@ -24,7 +25,6 @@ import ModernTemplate from "../../components/templates/ModernTemplate";
 import DarkTemplate from "../../components/templates/DarkTemplate";
 import ExpandableField from '../../components/common/ExpandableField';
 
-import { layoutStyles } from "../../styles/screens/personalDetailsLayoutStyles";
 import { getUser } from "../../database/userQueries";
 import { saveDashboard, getDashboard, addDashboardCard } from '../../utils/storage';
 
@@ -59,8 +59,6 @@ export default function FinalPreviewScreen({ route, navigation }) {
 
   const SelectedComponent =
     TEMPLATE_COMPONENTS[selectedTemplate] || ClassicTemplate;
-
-  const userInitial = effectiveCardData?.name ? effectiveCardData.name.trim().charAt(0).toUpperCase() : 'N';
 
   const previewOnly = route?.params?.previewOnly === true;
   const [expandedField, setExpandedField] = useState(null);
@@ -147,22 +145,7 @@ export default function FinalPreviewScreen({ route, navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <StatusBar barStyle="dark-content" />
 
-      {/* HEADER */}
-      <View style={layoutStyles.headerSection}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#D4AF37" />
-        </TouchableOpacity>
-
-        <Text style={layoutStyles.appTitle}>
-          DIGITAL BUSINESS CARD
-        </Text>
-
-        <View style={layoutStyles.profileIcon}>
-          <Text style={layoutStyles.profileIconText}>
-            {userInitial}
-          </Text>
-        </View>
-      </View>
+      <AppHeader />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* CARD CAPTURE */}

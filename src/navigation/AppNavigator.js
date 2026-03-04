@@ -23,6 +23,7 @@ import MyCardsScreen from '../screens/main/MyCardsScreen';
 import EditCardScreen from '../screens/main/EditCardScreen';
 import ContactsScreen from '../screens/main/ContactsScreen';
 import UploadScreen from '../screens/main/UploadScreen';
+import AppShareScreen from '../screens/main/AppShareScreen';
 // onboarding screens removed
 
 const Stack = createNativeStackNavigator();
@@ -115,6 +116,8 @@ export default function AppNavigator() {
       <Stack.Screen name="InboxScreen" component={InboxScreen} options={{ headerShown: false }} />
       <Stack.Screen name="EditCardScreen" component={EditCardScreen} options={{ headerShown: false }} />
       <Stack.Screen name="CardDetailsScreen" component={CardDetailsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ShareCardScreen" component={require('../screens/main/ShareCardScreen').default} />
+      <Stack.Screen name="AppShareScreen" component={AppShareScreen} />
       <Stack.Screen name="Dashboard" component={DashboardTabs} />
     </Stack.Navigator>
   );

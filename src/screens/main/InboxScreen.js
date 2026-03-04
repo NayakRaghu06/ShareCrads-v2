@@ -1,140 +1,138 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { StatusBar as RNStatusBar } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AppHeader from '../../components/common/AppHeader';
 
+const GOLD = '#C9A227';
 
 const mockInbox = [
   { id: '1', sender: 'John Doe', company: 'Acme Corp', time: '2 min ago' },
   { id: '2', sender: 'Jane Smith', company: 'Beta Ltd', time: '10 min ago' },
 ];
 
-function InboxScreen({ navigation }) {
-  const statusBarPad = Platform.OS === 'ios' ? 50 : 35;
+function InboxScreen() {
   return (
-    <View style={styles.container}>
-      {/* Custom Header */}
-      <View style={[styles.header, { paddingTop: statusBarPad }]}> 
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#D4AF37" />
-        </TouchableOpacity>
-        <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitleTop}>DIGITAL</Text>
-          <Text style={styles.headerTitleBottom}>BUSINESS CARD</Text>
-        </View>
-        {/* Gold divider */}
-        <View style={styles.goldDivider} />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <AppHeader />
+
+      {/* ── Section Label ── */}
+      <Text style={styles.sectionTitle}>Inbox</Text>
+
+      {/* ── List ── */}
       <FlatList
         data={mockInbox}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ padding: 16, paddingTop: 0 }}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View style={styles.cardRow}>
-              <Ionicons name="person-circle" size={32} color="#D4AF37" style={{ marginRight: 10 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.sender}>{item.sender}</Text>
-                <Text style={styles.company}>{item.company}</Text>
+
+              {/* Left: Avatar icon */}
+              <View style={styles.avatarWrap}>
+                <Ionicons name="person-circle" size={48} color={GOLD} />
               </View>
+
+              {/* Middle: Name + Company */}
+              <View style={styles.info}>
+                <Text style={styles.sender} numberOfLines={1}>{item.sender}</Text>
+                <Text style={styles.company} numberOfLines={1}>{item.company}</Text>
+              </View>
+
+              {/* Right: Time */}
               <Text style={styles.time}>{item.time}</Text>
+
             </View>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No cards received yet.</Text>}
+        ListEmptyComponent={
+          <Text style={styles.empty}>No cards received yet.</Text>
+        }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 export default InboxScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    position: 'relative',
-    backgroundColor: '#fff',
-    height: 95,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 8,
-    marginBottom: 0,
+
+  /* ── Section Label ── */
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: GOLD,
+    letterSpacing: 0.4,
+    textAlign: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F3E9D2',
   },
-  backButton: {
-    position: 'absolute',
-    left: 10,
-    top: 38,
-    zIndex: 2,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 2,
-    elevation: 2,
+
+  /* ── List ── */
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 30,
   },
-  headerTitleWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  headerTitleTop: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#222',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: 0,
-    lineHeight: 22,
-  },
-  headerTitleBottom: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#222',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    lineHeight: 22,
-  },
-  goldDivider: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 2,
-    backgroundColor: '#D4AF37',
-  },
+
+  /* ── Card ── */
   card: {
     backgroundColor: '#fff',
     borderRadius: 14,
-    padding: 16,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#F3E9D2',
+    shadowColor: GOLD,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   cardRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
+  /* Avatar */
+  avatarWrap: {
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  /* Info */
+  info: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   sender: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#222',
+    color: '#1A1A1A',
+    marginBottom: 3,
   },
   company: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#888',
-    marginTop: 2,
   },
+
+  /* Time */
   time: {
     fontSize: 12,
-    color: '#D4AF37',
+    color: GOLD,
+    fontWeight: '600',
     marginLeft: 10,
-    fontWeight: '500',
+    flexShrink: 0,
   },
+
+  /* Empty */
   empty: {
     color: '#888',
     textAlign: 'center',
