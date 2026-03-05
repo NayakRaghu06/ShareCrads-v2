@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ViewShot from "react-native-view-shot";
 import * as MediaLibrary from "expo-media-library";
@@ -32,6 +33,12 @@ const TEMPLATE_COMPONENTS = {
   classic: ClassicTemplate,
   modern: ModernTemplate,
   dark: DarkTemplate,
+};
+
+const TEMPLATE_ID_MAP = {
+  classic: 1,
+  modern: 2,
+  dark: 3,
 };
 
 export default function FinalPreviewScreen({ route, navigation }) {
@@ -62,6 +69,18 @@ export default function FinalPreviewScreen({ route, navigation }) {
 
   const previewOnly = route?.params?.previewOnly === true;
   const [expandedField, setExpandedField] = useState(null);
+
+  const getOrHydrateUserId = async () => {
+    const storedUserId = await AsyncStorage.getItem('loggedInUserId');
+    if (storedUserId) return storedUserId;
+
+    const { res, data } = await apiFetch('/user/profile');
+    if (!res.ok || !data?.data?.userId) return null;
+
+    const fetchedUserId = String(data.data.userId);
+    await AsyncStorage.setItem('loggedInUserId', fetchedUserId);
+    return fetchedUserId;
+  };
 
   if (previewOnly) {
     return (
@@ -164,9 +183,23 @@ export default function FinalPreviewScreen({ route, navigation }) {
             style={styles.premiumButton}
             onPress={async () => {
               try {
+                const userId = await getOrHydrateUserId();
+                if (!userId) {
+                  Alert.alert('Session Expired', 'Please login again.');
+                  navigation.replace('Login');
+                  return;
+                }
+
                 const d = effectiveCardData;
+                const slug = selectedTemplate || d.templateSlug || 'classic';
+                const resolvedTemplateId =
+                  Number(d.templateId) ||
+                  Number(route?.params?.templateId) ||
+                  TEMPLATE_ID_MAP[slug] ||
+                  TEMPLATE_ID_MAP.classic;
                 // POST /api/cards/business-card
                 const payload = {
+                 // userId: Number(userId),
                   name: d.name || '',
                   designation: d.designation || d.role || '',
                   companyName: d.companyName || d.company || '',
@@ -184,15 +217,15 @@ export default function FinalPreviewScreen({ route, navigation }) {
                   instagram: d.instagram || '',
                   twitter: d.twitter || '',
                   whatsappUrl: d.whatsapp || d.whatsappUrl || '',
-                  templateSlug: selectedTemplate || 'classic',
-                  templateId: null,
+                  templateSlug: slug,
+                  templateId: resolvedTemplateId,
                 };
                 const { res, data } = await apiFetch('/api/cards/business-card', {
                   method: 'POST',
                   body: JSON.stringify(payload),
                 });
                 if (res.status === 401) { navigation.replace('Login'); return; }
-                if (res.ok && data?.status === 1) {
+                if (res.ok) {
                   Alert.alert('Success', 'Card saved successfully!', [
                     {
                       text: 'OK',

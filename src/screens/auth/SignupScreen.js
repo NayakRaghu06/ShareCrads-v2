@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,619 +8,504 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiFetch } from '../../utils/api';
 import Header from '../../components/common/Header';
 import InputField from '../../components/form/InputField';
-import OtpInput from '../../components/form/OtpInput';
 import PrimaryButton from '../../components/buttons/PrimaryButton';
+import { loginStyles } from '../../styles/screens/loginStyles';
 import { COLORS } from '../../styles/colors';
-import { signupStyles } from '../../styles/screens/signupStyles';
-//import { saveUser } from "../../utils/storage";
-import { apiFetch } from "../../utils/api";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function SignupScreen({ navigation }) {
-  const [otpVisiblePhone, setOtpVisiblePhone] = useState(false);
-  const [otpVisibleEmail, setOtpVisibleEmail] = useState(false);
-  const [timerPhone, setTimerPhone] = useState(30);
-  const [timerEmail, setTimerEmail] = useState(30);
-  // frontend OTP generation removed; backend will send/verify OTPs
-  const [otpPhoneVerified, setOtpPhoneVerified] = useState(false);
-  const [otpEmailVerified, setOtpEmailVerified] = useState(false);
-  const [wrongOtpPhoneCooldown, setWrongOtpPhoneCooldown] = useState(0);
-  const [wrongOtpEmailCooldown, setWrongOtpEmailCooldown] = useState(0);
+const GREEN = '#16A34A';
 
-  const [form, setForm] = useState({
-    first: '',
-    middle: '',
-    last: '',
-    phone: '',
-    email: '',
-    otpPhone: '',
-    otpEmail: '',
-  });
+// ─── Inline OTP Input (6 boxes with auto-focus) ───────────────────────────────
+const OtpBoxInput = React.forwardRef(({ value = '', onChangeText, disabled }, ref) => {
+  const inputs = useRef([]);
+  const LENGTH = 6;
 
-  const [errors, setErrors] = useState({});
+  React.useImperativeHandle(ref, () => ({
+    focus: () => inputs.current[0]?.focus(),
+  }));
 
-  const validPhone = (v) => /^[1-9]\d{9}$/.test(v);
-  const validEmail = (v) => /^\S+@\S+\.\S+$/.test(v);
-
-  useEffect(() => {
-    let i;
-    if (otpVisiblePhone && timerPhone > 0) {
-      i = setInterval(() => setTimerPhone((t) => t - 1), 1000);
+  const handleChange = (text, index) => {
+    const chars = value.split('');
+    chars[index] = text.replace(/\D/g, '');
+    const next = chars.join('');
+    onChangeText(next);
+    if (text && index < LENGTH - 1) {
+      inputs.current[index + 1]?.focus();
     }
-    return () => clearInterval(i);
-  }, [otpVisiblePhone, timerPhone]);
-
-  useEffect(() => {
-    let i;
-    if (otpVisibleEmail && timerEmail > 0) {
-      i = setInterval(() => setTimerEmail((t) => t - 1), 1000);
-    }
-    return () => clearInterval(i);
-  }, [otpVisibleEmail, timerEmail]);
-
-  useEffect(() => {
-    let cooldownInterval;
-    if (wrongOtpPhoneCooldown > 0) {
-      cooldownInterval = setInterval(() => setWrongOtpPhoneCooldown((t) => t - 1), 1000);
-    }
-    return () => clearInterval(cooldownInterval);
-  }, [wrongOtpPhoneCooldown]);
-
-  useEffect(() => {
-    let cooldownInterval;
-    if (wrongOtpEmailCooldown > 0) {
-      cooldownInterval = setInterval(() => setWrongOtpEmailCooldown((t) => t - 1), 1000);
-    }
-    return () => clearInterval(cooldownInterval);
-  }, [wrongOtpEmailCooldown]);
-
-  const validate = (name, value) => {
-    let msg = '';
-
-    if (name === 'first' && value.length < 2) msg = 'Enter valid first name';
-    if (name === 'middle' && value && value.length < 2) msg = 'Only letters allowed';
-    if (name === 'last' && value.length < 2) msg = 'Enter valid last name';
-    if (name === 'phone' && !validPhone(value)) msg = 'Enter valid 10 digit number';
-    if (name === 'email' && value && !validEmail(value)) msg = 'Enter valid email';
-    if (name === 'otpPhone' && value.length !== 6) msg = 'Enter 6 digit OTP';
-    if (name === 'otpEmail' && value.length !== 6) msg = 'Enter 6 digit OTP';
-
-    setErrors((p) => ({ ...p, [name]: msg }));
   };
 
-  const handleChange = (name, value) => {
-    let clean = value;
-
-    if (name === 'first' || name === 'middle')
-      clean = value.replace(/[^A-Za-z]/g, '').slice(0, 15);
-
-    if (name === 'last') {
-      clean = value.replace(/[^A-Za-z ]/g, '');
-      if ((clean.match(/ /g) || []).length > 1) return;
-      clean = clean.slice(0, 10);
-    }
-
-    if (name === 'phone')
-      clean = value.replace(/\D/g, '').slice(0, 10);
-
-    if (name === 'otpPhone' || name === 'otpEmail')
-      clean = value.replace(/\D/g, '').slice(0, 6);
-
-    setForm((p) => ({ ...p, [name]: clean }));
-    validate(name, clean);
-    if (name === 'otpPhone') setOtpPhoneVerified(false);
-    if (name === 'otpEmail') setOtpEmailVerified(false);
-  };
-
-  const formValid =
-    form.first.length >= 2 &&
-    form.last.length >= 2 &&
-    validPhone(form.phone) &&
-    (!form.email || validEmail(form.email)) &&
-    !errors.first &&
-    !errors.last &&
-    !errors.phone &&
-    !errors.email;
-
-  const phoneValid = validPhone(form.phone) && !errors.phone;
-  const emailValid = !form.email || (validEmail(form.email) && !errors.email);
-
-  const canSubmit =
-    form.first.length >= 2 &&
-    form.last.length >= 2 &&
-    phoneValid &&
-    emailValid &&
-    form.otpPhone.length === 6 &&
-    (!form.email || form.otpEmail.length === 6) &&
-    !errors.first &&
-    !errors.last &&
-    !errors.phone &&
-    !errors.email &&
-    otpPhoneVerified &&
-    (!form.email || otpEmailVerified);
-
-//  const handleValidateOtpPhone = () => {
-//    if (wrongOtpPhoneCooldown > 0) {
-//      Alert.alert('Please Wait', `You can request OTP again in ${wrongOtpPhoneCooldown} seconds`);
-//      return;
-//    }
-//    if (!phoneValid) {
-//      Alert.alert('Error', 'Enter a valid phone number');
-//      return;
-//    }
-//    setOtpPhoneVerified(false);
-//    const randomOtp = generateOTP(6).toString();
-//    setGeneratedOtpPhone(randomOtp);
-//    Alert.alert('Phone OTP', `Your phone OTP is ${randomOtp}`);
-//    setOtpVisiblePhone(true);
-//    setTimerPhone(30);
-//    setWrongOtpPhoneCooldown(0);
-//  };
-
-  const handleValidateOtpPhone = async () => {
-
-    if (wrongOtpPhoneCooldown > 0) {
-      Alert.alert('Please Wait', `You can request OTP again in ${wrongOtpPhoneCooldown} seconds`);
-      return;
-    }
-
-    if (!phoneValid) {
-      Alert.alert('Error', 'Enter a valid phone number');
-      return;
-    }
-
-    try {
-
-      setOtpPhoneVerified(false);
-
-      const { res, data } = await apiFetch('/auth/mobile-signup', {
-        method: 'POST',
-        body: JSON.stringify({ mobileNumber: Number(form.phone) }),
-      });
-      if (res && res.ok && data && data.status === 1) {
-        setOtpVisiblePhone(true);
-        setTimerPhone(30);
-        setWrongOtpPhoneCooldown(0);
-        Alert.alert('Success', 'OTP sent to mobile');
-      } else {
-        console.log('mobile-signup failed', { resStatus: res?.status, data });
-        Alert.alert('Error', data?.message || `Unable to send mobile OTP (status ${res?.status || 'unknown'})`);
+  const handleKeyPress = (e, index) => {
+    if (e.nativeEvent.key === 'Backspace') {
+      const chars = value.split('');
+      if (!chars[index] && index > 0) {
+        inputs.current[index - 1]?.focus();
       }
-
-    } catch (error) {
-      Alert.alert('Network Error', error.message || 'Unable to send OTP');
-    }
-  };
-  const handleValidateOtpEmail = async () => {
-    if (wrongOtpEmailCooldown > 0) {
-      Alert.alert('Please Wait', `You can request OTP again in ${wrongOtpEmailCooldown} seconds`);
-      return;
-    }
-    if (!form.email) {
-      // If no email provided, skip OTP verification
-      setOtpEmailVerified(true);
-      return;
-    }
-    if (!emailValid) {
-      Alert.alert('Error', 'Enter a valid email');
-      return;
-    }
-
-    try {
-      // Request backend to send email OTP
-      const payload = { email: form.email.trim() };
-
-      const { res, data } = await apiFetch('/auth/send-email-otp', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-
-      if (res && res.ok && data && data.status === 1) {
-        setOtpVisibleEmail(true);
-        setTimerEmail(30);
-        setWrongOtpEmailCooldown(0);
-        Alert.alert('Success', 'OTP sent to email');
-      } else {
-        console.log('email-otp failed', { resStatus: res?.status, data });
-        Alert.alert('Error', data?.message || `Unable to send email OTP (status ${res?.status || 'unknown'})`);
-      }
-    } catch (e) {
-      Alert.alert('Network Error', e.message || 'Unable to send email OTP');
-    }
-  };
-
-  const handleResendPhoneOtp = () => {
-    if (wrongOtpPhoneCooldown > 0) {
-      Alert.alert('Please Wait', `You can resend OTP again in ${wrongOtpPhoneCooldown} seconds`);
-      return;
-    }
-    if (otpPhoneVerified) return;
-    if (!phoneValid) {
-      Alert.alert('Error', 'Enter a valid phone number');
-      return;
-    }
-    // Request resend from backend
-    (async () => {
-      try {
-        setOtpPhoneVerified(false);
-        const { res, data } = await apiFetch('/auth/mobile-signup', {
-          method: 'POST',
-          body: JSON.stringify({ mobileNumber: Number(form.phone) }),
-        });
-
-        if (res && res.ok && data && data.status === 1) {
-          setOtpVisiblePhone(true);
-          setTimerPhone(30);
-            Alert.alert('Success', 'OTP resent to mobile');
-        } else {
-          console.log('mobile-signup resend failed', { resStatus: res?.status, data });
-          Alert.alert('Error', data?.message || `Unable to resend OTP (status ${res?.status || 'unknown'})`);
-        }
-      } catch (e) {
-          Alert.alert('Network Error', e.message || 'Unable to resend OTP');
-      }
-    })();
-  };
-
-  const handleResendEmailOtp = () => {
-    if (wrongOtpEmailCooldown > 0) {
-      Alert.alert('Please Wait', `You can resend OTP again in ${wrongOtpEmailCooldown} seconds`);
-      return;
-    }
-    if (otpEmailVerified) return;
-    if (!form.email) {
-      // If no email provided, just mark as verified
-      setOtpEmailVerified(true);
-      return;
-    }
-    if (!emailValid) {
-      Alert.alert('Error', 'Enter a valid email');
-      return;
-    }
-    // Trigger backend resend for email OTP
-    (async () => {
-      try {
-        setOtpEmailVerified(false);
-        const payload = { email: form.email.trim() };
-
-        const { res, data } = await apiFetch('/auth/send-email-otp', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
-
-        if (res && res.ok && data && data.status === 1) {
-          setOtpVisibleEmail(true);
-          setTimerEmail(30);
-          setWrongOtpEmailCooldown(0);
-          Alert.alert('Success', 'OTP resent to email');
-        } else {
-          console.log('email-otp resend failed', { resStatus: res?.status, data });
-          Alert.alert('Error', data?.message || `Unable to resend email OTP (status ${res?.status || 'unknown'})`);
-        }
-      } catch (e) {
-          Alert.alert('Network Error', e.message || 'Unable to resend email OTP');
-      }
-    })();
-  };
-
-//  const handleVerifyPhoneOtp = () => {
-//    if (form.otpPhone === generatedOtpPhone) {
-//      setOtpPhoneVerified(true);
-//      Alert.alert('Verified', 'Phone OTP verified');
-//    } else {
-//      setOtpPhoneVerified(false);
-//      setForm((p) => ({ ...p, otpPhone: '' }));
-//      setWrongOtpPhoneCooldown(30);
-//      Alert.alert('Invalid', 'Phone OTP is incorrect. Try again after 30 seconds');
-//    }
-//  };
-
-  const handleVerifyPhoneOtp = async () => {
-
-    try {
-
-      // POST /auth/verify-phone-otp
-      const { res, data } = await apiFetch('/auth/verify-phone-otp', {
-        method: 'POST',
-        body: JSON.stringify({ mobileNumber: Number(form.phone), otp: form.otpPhone }),
-      });
-
-      if (res && res.ok && data && data.status === 1) {
-        // Mark phone OTP as verified. Do NOT create account or navigate here.
-        setOtpPhoneVerified(true);
-        try {
-          await AsyncStorage.setItem('userPhone', form.phone);
-        } catch (e) {
-          console.warn('Failed to save userPhone', e);
-        }
-        Alert.alert('Success', 'Phone OTP Verified');
-      } else {
-        console.log('verify-phone-otp failed', { resStatus: res?.status, data });
-        setWrongOtpPhoneCooldown(30);
-        Alert.alert('Error', data?.message || `Phone OTP verification failed (status ${res?.status || 'unknown'})`);
-      }
-
-    } catch (error) {
-      Alert.alert('Verification Failed');
-    }
-  };
-  const handleVerifyEmailOtp = async () => {
-    try {
-      const payload = { email: form.email.trim(), otp: form.otpEmail };
-
-      const { res, data } = await apiFetch('/auth/verify-email-otp', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-
-      if (res && res.ok && data && data.status === 1) {
-        setOtpEmailVerified(true);
-        Alert.alert('Success', 'Email OTP Verified');
-      } else {
-        console.log('verify-email-otp failed', { resStatus: res?.status, data });
-        setOtpEmailVerified(false);
-        setForm((p) => ({ ...p, otpEmail: '' }));
-        setWrongOtpEmailCooldown(30);
-        Alert.alert('Error', data?.message || `Email OTP invalid. Try again after 30 seconds (status ${res?.status || 'unknown'})`);
-      }
-    } catch (e) {
-      Alert.alert('Verification Failed');
-    }
-  };
-
-  // ✅ SAVE USER DATA ON SIGNUP
-  const handleSubmit = async () => {
-    // Ensure OTP verifications are done before attempting to register
-    if (!otpPhoneVerified) {
-      Alert.alert('OTP Required', 'Please verify your phone OTP before creating an account');
-      return;
-    }
-
-    if (form.email && !otpEmailVerified) {
-      Alert.alert('OTP Required', 'Please verify your email OTP before creating an account');
-      return;
-    }
-
-    try {
-      const payload = {
-        firstName: form.first,
-        middleName: form.middle,
-        lastName: form.last,
-        mobileNumber: Number(form.phone),
-        email: form.email?.trim() || null,
-      };
-      // POST /auth/final-submit
-      const { res, data } = await apiFetch('/auth/final-submit', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-
-      if (res && res.ok && data && data.status === 1) {
-        try {
-          await AsyncStorage.setItem('userPhone', form.phone);
-          if (data.userId) {
-            await AsyncStorage.setItem('loggedInUserId', String(data.userId));
-          }
-        } catch (e) {
-          console.warn('Failed to save session after signup', e);
-        }
-        Alert.alert('Success', 'Account Created', [
-          {
-            text: 'OK',
-            onPress: () => navigation.replace('Login'),
-          },
-        ]);
-      } else {
-        console.log('final-submit failed', { resStatus: res?.status, data });
-        Alert.alert('Error', data?.message || `Registration failed (status ${res?.status || 'unknown'})`);
-      }
-    } catch (error) {
-      console.log('register exception', error);
-      Alert.alert('Network Error', error.message || 'Failed to create account');
+      chars[index] = '';
+      onChangeText(chars.join(''));
     }
   };
 
   return (
-    <SafeAreaView style={signupStyles.safe}>
+    <View style={loginStyles.otpRow}>
+      {Array(LENGTH).fill('').map((_, i) => (
+        <TextInput
+          key={i}
+          ref={r => (inputs.current[i] = r)}
+          style={[loginStyles.otpBox, disabled && { opacity: 0.6 }]}
+          keyboardType="number-pad"
+          maxLength={1}
+          value={value[i] || ''}
+          onChangeText={t => handleChange(t, i)}
+          onKeyPress={e => handleKeyPress(e, i)}
+          editable={!disabled}
+          selectTextOnFocus
+        />
+      ))}
+    </View>
+  );
+});
+
+// ─── Main SignupScreen ─────────────────────────────────────────────────────────
+export default function SignupScreen({ navigation }) {
+  const phoneOtpRef = useRef(null);
+  const emailOtpRef = useRef(null);
+
+  // Form fields
+  const [form, setForm] = useState({
+    first: '', middle: '', last: '',
+    phone: '', email: '',
+    otpPhone: '', otpEmail: '',
+  });
+  const [errors, setErrors] = useState({});
+
+  // OTP flow per channel: 'idle' | 'sent' | 'verified'
+  const [phoneState, setPhoneState] = useState('idle');
+  const [emailState, setEmailState] = useState('idle');
+
+  // Countdown timers (seconds remaining)
+  const [timerPhone, setTimerPhone] = useState(0);
+  const [timerEmail, setTimerEmail] = useState(0);
+
+  // Loading flags
+  const [loadingPhone, setLoadingPhone]   = useState(false);
+  const [loadingEmail, setLoadingEmail]   = useState(false);
+  const [verifyPhone, setVerifyPhone]     = useState(false);
+  const [verifyEmail, setVerifyEmail]     = useState(false);
+  const [submitting, setSubmitting]       = useState(false);
+
+  // ── Timers ──────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (timerPhone <= 0) return;
+    const id = setInterval(() => setTimerPhone(t => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [timerPhone]);
+
+  useEffect(() => {
+    if (timerEmail <= 0) return;
+    const id = setInterval(() => setTimerEmail(t => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [timerEmail]);
+
+  // ── Auto-focus OTP boxes when they appear ───────────────────────────────────
+  useEffect(() => {
+    if (phoneState === 'sent') {
+      const t = setTimeout(() => phoneOtpRef.current?.focus(), 150);
+      return () => clearTimeout(t);
+    }
+  }, [phoneState]);
+
+  useEffect(() => {
+    if (emailState === 'sent') {
+      const t = setTimeout(() => emailOtpRef.current?.focus(), 150);
+      return () => clearTimeout(t);
+    }
+  }, [emailState]);
+
+  // ── Validation ───────────────────────────────────────────────────────────────
+  const validPhone = v => /^[1-9]\d{9}$/.test(v);
+  const validEmail = v => /^\S+@\S+\.\S+$/.test(v);
+
+  const handleChange = (name, value) => {
+    let clean = value;
+    if (name === 'first' || name === 'middle') clean = value.replace(/[^A-Za-z]/g, '').slice(0, 15);
+    if (name === 'last') clean = value.replace(/[^A-Za-z ]/g, '').slice(0, 10);
+    if (name === 'phone') clean = value.replace(/\D/g, '').slice(0, 10);
+    if (name === 'otpPhone' || name === 'otpEmail') clean = value.replace(/\D/g, '').slice(0, 6);
+    setForm(p => ({ ...p, [name]: clean }));
+    if (errors[name]) setErrors(p => ({ ...p, [name]: '' }));
+  };
+
+  // ── Send Phone OTP ───────────────────────────────────────────────────────────
+  const sendPhoneOtp = async () => {
+    if (!validPhone(form.phone)) {
+      setErrors(p => ({ ...p, phone: 'Enter valid 10 digit number' }));
+      return;
+    }
+    setLoadingPhone(true);
+    try {
+      const { res, data } = await apiFetch('/auth/mobile-signup', {
+        method: 'POST',
+        body: JSON.stringify({ mobileNumber: Number(form.phone) }),
+      });
+      if (res.ok && data?.status === 1) {
+        setPhoneState('sent');
+        setTimerPhone(30);
+        setForm(p => ({ ...p, otpPhone: '' }));
+      } else {
+        Alert.alert('Error', data?.message || 'Unable to send OTP');
+      }
+    } catch (e) {
+      Alert.alert('Network Error', e.message || 'Unable to send OTP');
+    } finally {
+      setLoadingPhone(false);
+    }
+  };
+
+  // ── Send Email OTP ───────────────────────────────────────────────────────────
+  const sendEmailOtp = async () => {
+    if (!validEmail(form.email)) {
+      setErrors(p => ({ ...p, email: 'Enter valid email address' }));
+      return;
+    }
+    setLoadingEmail(true);
+    try {
+      const { res, data } = await apiFetch('/auth/send-email-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email: form.email.trim() }),
+      });
+      if (res.ok && data?.status === 1) {
+        setEmailState('sent');
+        setTimerEmail(30);
+        setForm(p => ({ ...p, otpEmail: '' }));
+      } else {
+        Alert.alert('Error', data?.message || 'Unable to send OTP');
+      }
+    } catch (e) {
+      Alert.alert('Network Error', e.message || 'Unable to send OTP');
+    } finally {
+      setLoadingEmail(false);
+    }
+  };
+
+  // ── Edit (reset) Phone / Email ───────────────────────────────────────────────
+  const editPhone = () => {
+    setPhoneState('idle');
+    setTimerPhone(0);
+    setForm(p => ({ ...p, otpPhone: '' }));
+    setErrors(p => ({ ...p, phone: '' }));
+  };
+
+  const editEmail = () => {
+    setEmailState('idle');
+    setTimerEmail(0);
+    setForm(p => ({ ...p, otpEmail: '' }));
+    setErrors(p => ({ ...p, email: '' }));
+  };
+
+  // ── Verify Phone OTP ─────────────────────────────────────────────────────────
+  const verifyPhoneOtp = async () => {
+    if (form.otpPhone.length !== 6) return;
+    setVerifyPhone(true);
+    try {
+      const { res, data } = await apiFetch('/auth/verify-phone-otp', {
+        method: 'POST',
+        body: JSON.stringify({ mobileNumber: Number(form.phone), otp: form.otpPhone }),
+      });
+      if (res.ok && data?.status === 1) {
+        setPhoneState('verified');
+        await AsyncStorage.setItem('userPhone', form.phone).catch(() => {});
+      } else {
+        Alert.alert('Invalid OTP', data?.message || 'OTP is incorrect. Please try again.');
+        setForm(p => ({ ...p, otpPhone: '' }));
+        setTimeout(() => phoneOtpRef.current?.focus(), 100);
+      }
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Verification failed');
+    } finally {
+      setVerifyPhone(false);
+    }
+  };
+
+  // ── Verify Email OTP ─────────────────────────────────────────────────────────
+  const verifyEmailOtp = async () => {
+    if (form.otpEmail.length !== 6) return;
+    setVerifyEmail(true);
+    try {
+      const { res, data } = await apiFetch('/auth/verify-email-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email: form.email.trim(), otp: form.otpEmail }),
+      });
+      if (res.ok && data?.status === 1) {
+        setEmailState('verified');
+      } else {
+        Alert.alert('Invalid OTP', data?.message || 'OTP is incorrect. Please try again.');
+        setForm(p => ({ ...p, otpEmail: '' }));
+        setTimeout(() => emailOtpRef.current?.focus(), 100);
+      }
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Verification failed');
+    } finally {
+      setVerifyEmail(false);
+    }
+  };
+
+  // ── Submit ───────────────────────────────────────────────────────────────────
+  const canSubmit =
+    form.first.length >= 2 &&
+    form.last.length >= 2 &&
+    phoneState === 'verified' &&
+    (!form.email || emailState === 'verified');
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    try {
+      const { res, data } = await apiFetch('/auth/final-submit', {
+        method: 'POST',
+        body: JSON.stringify({
+          firstName: form.first,
+          middleName: form.middle || null,
+          lastName: form.last,
+          mobileNumber: Number(form.phone),
+          email: form.email?.trim() || null,
+        }),
+      });
+      if (res.ok && data?.status === 1) {
+        if (data.userId) await AsyncStorage.setItem('loggedInUserId', String(data.userId)).catch(() => {});
+        Alert.alert('Account Created!', 'You can now log in.', [
+          { text: 'Login', onPress: () => navigation.replace('Login') },
+        ]);
+      } else {
+        Alert.alert('Error', data?.message || 'Registration failed. Please try again.');
+      }
+    } catch (e) {
+      Alert.alert('Network Error', e.message || 'Failed to create account');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Right button config helpers ──────────────────────────────────────────────
+  const phoneRightButton = () => {
+    if (phoneState === 'verified') return { label: '✔ Verified', disabled: true };
+    if (phoneState === 'sent')     return { label: 'Edit', onPress: editPhone };
+    return {
+      label: loadingPhone ? 'Sending...' : 'Send OTP',
+      onPress: sendPhoneOtp,
+      disabled: !validPhone(form.phone) || loadingPhone,
+    };
+  };
+
+  const emailRightButton = () => {
+    if (emailState === 'verified') return { label: '✔ Verified', disabled: true };
+    if (emailState === 'sent')     return { label: 'Edit', onPress: editEmail };
+    if (form.email.length > 0) {
+      return {
+        label: loadingEmail ? 'Sending...' : 'Send OTP',
+        onPress: sendEmailOtp,
+        disabled: !validEmail(form.email) || loadingEmail,
+      };
+    }
+    return null;
+  };
+
+  // ── UI ───────────────────────────────────────────────────────────────────────
+  return (
+    <SafeAreaView style={loginStyles.safe}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={[{ flexGrow: 1 }, signupStyles.scroll]}
+          contentContainerStyle={loginStyles.container}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
         >
-          <Header style={signupStyles.header}>
-            <TouchableOpacity
-              style={signupStyles.backBtn}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="arrow-back" size={20} color="#fff" />
-            </TouchableOpacity>
+          <View style={{ flex: 1 }}>
 
-            <Text style={signupStyles.title}>Create Account</Text>
-            <Text style={signupStyles.subtitle}>Join us today</Text>
-          </Header>
+            {/* ── Header (same as Login Screen) ── */}
+            <Header style={loginStyles.header}>
+              <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={22} color="#fff" />
+              </TouchableOpacity>
+              <View style={loginStyles.iconWrap}>
+                <Text style={loginStyles.icon}>💼</Text>
+              </View>
+              <Text style={loginStyles.appTitle}>Digital Business Card</Text>
+              <Text style={loginStyles.subtitle}>Create your account</Text>
+            </Header>
 
-          <View style={signupStyles.card}>
-            {/* Inputs unchanged */}
-            <InputField label="First Name" required icon="person-outline" placeholder="Enter first name"
-              value={form.first} onChangeText={(v) => handleChange('first', v)} error={errors.first} />
+            {/* ── Card (same as Login Screen) ── */}
+            <View style={loginStyles.card}>
 
-            <InputField label="Middle Name (optional)" icon="person-outline" placeholder="Enter middle name"
-              value={form.middle} onChangeText={(v) => handleChange('middle', v)} error={errors.middle} />
+              {/* Personal Info */}
+              <InputField
+                label="First Name"
+                required
+                icon="person-outline"
+                placeholder="Enter first name"
+                value={form.first}
+                onChangeText={v => handleChange('first', v)}
+                error={errors.first}
+              />
 
-            <InputField label="Last Name" required icon="person-outline" placeholder="Enter last name"
-              value={form.last} onChangeText={(v) => handleChange('last', v)} error={errors.last} />
+              <InputField
+                label="Middle Name"
+                icon="person-outline"
+                placeholder="Enter middle name (optional)"
+                value={form.middle}
+                onChangeText={v => handleChange('middle', v)}
+              />
 
-            <InputField
-              label="Mobile Number"
-              required
-              icon="call-outline"
-              showCountry
-              countryCode="+91"
-              placeholder="Enter mobile number"
-              value={form.phone}
-              onChangeText={(v) => handleChange('phone', v)}
-              error={errors.phone}
-              keyboardType="number-pad"
-              rightButton={
-                otpPhoneVerified
-                  ? { label: '✔ Verified', disabled: true }
-                  : {
-                    label: 'Send OTP',
-                    onPress: handleValidateOtpPhone,
-                    disabled: !phoneValid,
-                  }
-              }
-            />
+              <InputField
+                label="Last Name"
+                required
+                icon="person-outline"
+                placeholder="Enter last name"
+                value={form.last}
+                onChangeText={v => handleChange('last', v)}
+                error={errors.last}
+              />
 
-            {/* {otpVisiblePhone && (
-              <>
-                <OtpInput
-                  length={6}
-                  value={form.otpPhone}
-                  onChangeText={(v) => handleChange('otpPhone', v)}
-                  rightButton={{
-                    label: otpPhoneVerified ? 'Verified' : 'Verify',
-                    onPress: handleVerifyPhoneOtp,
-                    disabled: form.otpPhone.length !== 6 || otpPhoneVerified,
-                  }}
-                />
+              {/* Phone */}
+              <InputField
+                label="Mobile Number"
+                required
+                icon="call-outline"
+                placeholder="10 digit number"
+                keyboardType="number-pad"
+                showCountry
+                countryCode="+91"
+                value={form.phone}
+                onChangeText={v => handleChange('phone', v)}
+                editable={phoneState === 'idle'}
+                error={errors.phone}
+                rightButton={phoneRightButton()}
+              />
 
-                {!otpPhoneVerified && (
-                  <TouchableOpacity onPress={handleResendPhoneOtp} disabled={timerPhone > 0}>
-                    <Text style={signupStyles.resend}>
-                      {timerPhone > 0 ? `Resend OTP in ${timerPhone}s` : 'Resend OTP'}
+              {/* Phone OTP section */}
+              {phoneState === 'sent' && (
+                <View style={s.otpSection}>
+                  <Text style={s.otpHint}>
+                    Enter OTP sent to <Text style={s.otpHintBold}>+91 {form.phone}</Text>
+                  </Text>
+
+                  <OtpBoxInput
+                    ref={phoneOtpRef}
+                    value={form.otpPhone}
+                    onChangeText={v => handleChange('otpPhone', v)}
+                  />
+
+                  <PrimaryButton
+                    title={verifyPhone ? 'Verifying...' : 'Verify Phone OTP'}
+                    onPress={verifyPhoneOtp}
+                    disabled={form.otpPhone.length !== 6 || verifyPhone}
+                  />
+
+                  <TouchableOpacity
+                    onPress={sendPhoneOtp}
+                    disabled={timerPhone > 0 || loadingPhone}
+                    style={loginStyles.resendWrap}
+                  >
+                    <Text style={loginStyles.resendText}>
+                      {timerPhone > 0
+                        ? `Resend OTP in ${timerPhone}s`
+                        : loadingPhone ? 'Sending...' : 'Resend OTP'}
                     </Text>
                   </TouchableOpacity>
-                )}
-              </>
-            )} */}
-            {/* {otpVisiblePhone && (
-  <>
-    <OtpInput
-      length={6}
-      value={form.otpPhone}
-      onChangeText={(v) => handleChange('otpPhone', v)}
-    />
+                </View>
+              )}
 
-    {!otpPhoneVerified && (
-      <PrimaryButton
-        title="Verify Phone OTP"
-        onPress={handleVerifyPhoneOtp}
-        disabled={form.otpPhone.length !== 6}
-        style={{ marginTop: 10 }}
-      />
-    )}
+              {phoneState === 'verified' && (
+                <View style={s.verifiedRow}>
+                  <Ionicons name="checkmark-circle" size={16} color={GREEN} />
+                  <Text style={s.verifiedText}>Phone number verified successfully</Text>
+                </View>
+              )}
 
-    {otpPhoneVerified && (
-      <Text style={{ color: 'green', marginTop: 8 }}>
-         Phone Verified
-      </Text>
-    )}
+              {/* Email */}
+              <InputField
+                label="Email Address"
+                icon="mail-outline"
+                placeholder="Enter email address (optional)"
+                keyboardType="email-address"
+                value={form.email}
+                onChangeText={v => handleChange('email', v)}
+                editable={emailState === 'idle'}
+                error={errors.email}
+                rightButton={emailRightButton()}
+              />
 
-    {!otpPhoneVerified && (
-      <TouchableOpacity onPress={handleResendPhoneOtp} disabled={timerPhone > 0}>
-        <Text style={signupStyles.resend}>
-          {timerPhone > 0 ? `Resend OTP in ${timerPhone}s` : 'Resend OTP'}
-        </Text>
-      </TouchableOpacity>
-    )}
-  </>
-)} */}
-            {otpVisiblePhone && !otpPhoneVerified && (
-              <>
-                <OtpInput
-                  length={6}
-                  value={form.otpPhone}
-                  onChangeText={(v) => handleChange('otpPhone', v)}
-                />
-
-                <PrimaryButton
-                  title="Verify Phone OTP"
-                  onPress={handleVerifyPhoneOtp}
-                  disabled={form.otpPhone.length !== 6}
-                  style={{ marginTop: 10 }}
-                />
-
-                <TouchableOpacity
-                  onPress={handleResendPhoneOtp}
-                  disabled={timerPhone > 0}
-                >
-                  <Text style={signupStyles.resend}>
-                    {timerPhone > 0
-                      ? `Resend OTP in ${timerPhone}s`
-                      : 'Resend OTP'}
+              {/* Email OTP section */}
+              {emailState === 'sent' && (
+                <View style={s.otpSection}>
+                  <Text style={s.otpHint}>
+                    Enter OTP sent to <Text style={s.otpHintBold}>{form.email}</Text>
                   </Text>
-                </TouchableOpacity>
-              </>
-            )}
 
+                  <OtpBoxInput
+                    ref={emailOtpRef}
+                    value={form.otpEmail}
+                    onChangeText={v => handleChange('otpEmail', v)}
+                  />
 
+                  <PrimaryButton
+                    title={verifyEmail ? 'Verifying...' : 'Verify Email OTP'}
+                    onPress={verifyEmailOtp}
+                    disabled={form.otpEmail.length !== 6 || verifyEmail}
+                  />
 
-            <InputField
-              label="Email (optional)"
-              icon="mail-outline"
-              placeholder="Enter email"
-              value={form.email}
-              onChangeText={(v) => handleChange('email', v)}
-              error={errors.email}
-              keyboardType="email-address"
-              rightButton={
-                form.email ? (
-                  otpEmailVerified
-                    ? { label: '✔ Verified', disabled: true }
-                    : {
-                      label: 'Send OTP',
-                      onPress: handleValidateOtpEmail,
-                      disabled: !emailValid,
-                    }
-                ) : null
-              }
-            />
+                  <TouchableOpacity
+                    onPress={sendEmailOtp}
+                    disabled={timerEmail > 0 || loadingEmail}
+                    style={loginStyles.resendWrap}
+                  >
+                    <Text style={loginStyles.resendText}>
+                      {timerEmail > 0
+                        ? `Resend OTP in ${timerEmail}s`
+                        : loadingEmail ? 'Sending...' : 'Resend OTP'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
-            {otpVisibleEmail && form.email && !otpEmailVerified && (
-              <>
-                <OtpInput
-                  length={6}
-                  value={form.otpEmail}
-                  onChangeText={(v) => handleChange('otpEmail', v)}
-                />
+              {emailState === 'verified' && (
+                <View style={s.verifiedRow}>
+                  <Ionicons name="checkmark-circle" size={16} color={GREEN} />
+                  <Text style={s.verifiedText}>Email verified successfully</Text>
+                </View>
+              )}
 
-                <PrimaryButton
-                  title="Verify Email OTP"
-                  onPress={handleVerifyEmailOtp}
-                  disabled={form.otpEmail.length !== 6}
-                  style={{ marginTop: 10 }}
-                />
+              {/* Submit */}
+              <PrimaryButton
+                title={submitting ? 'Creating Account...' : 'Create Account'}
+                onPress={handleSubmit}
+                disabled={!canSubmit || submitting}
+              />
 
-                <TouchableOpacity
-                  onPress={handleResendEmailOtp}
-                  disabled={timerEmail > 0}
-                >
-                  <Text style={signupStyles.resend}>
-                    {timerEmail > 0
-                      ? `Resend OTP in ${timerEmail}s`
-                      : 'Resend OTP'}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
+              {/* Login link */}
+              <View style={loginStyles.dividerRow}>
+                <View style={loginStyles.line} />
+                <Text style={loginStyles.newHereText}>Have an account?</Text>
+                <View style={loginStyles.line} />
+              </View>
 
+              <TouchableOpacity
+                style={loginStyles.signupRow}
+                onPress={() => navigation.navigate('Login')}
+              >
+                <Text style={loginStyles.createText}>Go back to </Text>
+                <Text style={loginStyles.signupText}>Log In →</Text>
+              </TouchableOpacity>
 
-            <PrimaryButton
-              title="Submit"
-              onPress={handleSubmit}
-              disabled={!canSubmit}
-            />
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -628,3 +513,44 @@ export default function SignupScreen({ navigation }) {
   );
 }
 
+// ─── Supplementary styles (only what loginStyles doesn't cover) ───────────────
+const s = StyleSheet.create({
+  backBtn: {
+    position: 'absolute',
+    left: 16,
+    top: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: 8,
+    borderRadius: 20,
+  },
+  otpSection: {
+    marginTop: -6,
+    marginBottom: 10,
+  },
+  otpHint: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 2,
+  },
+  otpHintBold: {
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  verifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0FFF4',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  verifiedText: {
+    fontSize: 13,
+    color: GREEN,
+    fontWeight: '600',
+  },
+});

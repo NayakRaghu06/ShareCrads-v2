@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,18 @@ function InboxScreen({ navigation }) {
   const [inbox, setInbox] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getOrHydrateUserId = async () => {
+    const storedUserId = await AsyncStorage.getItem('loggedInUserId');
+    if (storedUserId) return storedUserId;
+
+    const { res, data } = await apiFetch('/user/profile');
+    if (!res.ok || !data?.data?.userId) return null;
+
+    const fetchedUserId = String(data.data.userId);
+    await AsyncStorage.setItem('loggedInUserId', fetchedUserId);
+    return fetchedUserId;
+  };
+
   useEffect(() => {
     loadInbox();
     const unsubscribe = navigation.addListener('focus', loadInbox);
@@ -21,11 +33,17 @@ function InboxScreen({ navigation }) {
   const loadInbox = async () => {
     try {
       setLoading(true);
-      const userId = await AsyncStorage.getItem('loggedInUserId');
-      if (!userId) { navigation.replace('Login'); return; }
+      const userId = await getOrHydrateUserId();
+      if (!userId) {
+        navigation.replace('Login');
+        return;
+      }
       // GET /api/share/received/{userId}
       const { res, data } = await apiFetch(`/api/share/received/${userId}`);
-      if (res.status === 401) { navigation.replace('Login'); return; }
+      if (res.status === 401) {
+        navigation.replace('Login');
+        return;
+      }
       setInbox(Array.isArray(data) ? data : []);
     } catch {
       setInbox([]);
@@ -46,7 +64,7 @@ function InboxScreen({ navigation }) {
     navigation.navigate('CardDetailsScreen', { cardData: item.card });
   };
 
-  const formatTime = (iso) => {
+  const formatTime = useCallback((iso) => {
     if (!iso) return '';
     const diff = Date.now() - new Date(iso).getTime();
     const mins = Math.floor(diff / 60000);
@@ -54,51 +72,48 @@ function InboxScreen({ navigation }) {
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return `${hrs}h ago`;
     return `${Math.floor(hrs / 24)}d ago`;
-  };
+  }, []);
+
+  const renderItem = useCallback(({ item }) => (
+    <TouchableOpacity
+      style={[styles.card, !item.viewedAt && styles.cardUnread]}
+      onPress={() => handleOpen(item)}
+      activeOpacity={0.85}
+    >
+      <View style={styles.cardRow}>
+        <View style={styles.avatarWrap}>
+          <Ionicons name="person-circle" size={48} color={GOLD} />
+        </View>
+        <View style={styles.info}>
+          <Text style={styles.sender} numberOfLines={1}>
+            {item.senderFirstName} {item.senderLastName}
+          </Text>
+          {item.senderCompany ? (
+            <Text style={styles.company} numberOfLines={1}>{item.senderCompany}</Text>
+          ) : null}
+          {!item.viewedAt && <Text style={styles.newBadge}>New</Text>}
+        </View>
+        <Text style={styles.time}>{formatTime(item.sharedAt)}</Text>
+      </View>
+    </TouchableOpacity>
+  ), [handleOpen, formatTime]);
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader />
 
-      {/* ── Section Label ── */}
-      <Text style={styles.sectionTitle}>Inbox</Text>
-
-      {/* ── List ── */}
       <FlatList
         data={inbox}
-        keyExtractor={item => String(item.shareId)}
+        keyExtractor={(item, index) => String(item?.shareId ?? item?.id ?? `share-${index}`)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         onRefresh={loadInbox}
         refreshing={loading}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.card, !item.viewedAt && styles.cardUnread]} onPress={() => handleOpen(item)} activeOpacity={0.85}>
-            <View style={styles.cardRow}>
-
-              {/* Left: Avatar */}
-              <View style={styles.avatarWrap}>
-                <Ionicons name="person-circle" size={48} color={GOLD} />
-              </View>
-
-              {/* Middle: Name + Company */}
-              <View style={styles.info}>
-                <Text style={styles.sender} numberOfLines={1}>
-                  {item.senderFirstName} {item.senderLastName}
-                </Text>
-                {item.senderCompany ? (
-                  <Text style={styles.company} numberOfLines={1}>{item.senderCompany}</Text>
-                ) : null}
-                {!item.viewedAt && (
-                  <Text style={styles.newBadge}>New</Text>
-                )}
-              </View>
-
-              {/* Right: Time */}
-              <Text style={styles.time}>{formatTime(item.sharedAt)}</Text>
-
-            </View>
-          </TouchableOpacity>
-        )}
+        renderItem={renderItem}
+        removeClippedSubviews
+        initialNumToRender={10}
+        maxToRenderPerBatch={8}
+        windowSize={5}
         ListEmptyComponent={
           !loading ? <Text style={styles.empty}>No cards received yet.</Text> : null
         }

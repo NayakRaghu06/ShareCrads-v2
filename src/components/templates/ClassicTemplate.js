@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 const ClassicTemplate = ({ userData, data }) => {
   const d = data || userData || {};
   // enable LayoutAnimation on Android
-  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental && !global?.nativeFabricUIManager) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
   const [expanded, setExpanded] = useState(false);

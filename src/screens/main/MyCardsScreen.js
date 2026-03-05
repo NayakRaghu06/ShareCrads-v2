@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { apiFetch } from '../../utils/api';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
+import AnimatedCard from '../../components/common/AnimatedCard';
 
 const GOLD = '#C9A227';
 
@@ -22,7 +23,6 @@ export default function MyCardsScreen({ navigation }) {
   const loadCards = async () => {
     try {
       setLoading(true);
-      // GET /api/cards/view-cards
       const { res, data } = await apiFetch('/api/cards/view-cards');
       if (res.status === 401) {
         navigation.replace('Login');
@@ -42,7 +42,7 @@ export default function MyCardsScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  const handleDelete = (cardId) => {
+  const handleDelete = useCallback((cardId) => {
     Alert.alert('Delete Card', 'Are you sure you want to delete this card?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -50,47 +50,29 @@ export default function MyCardsScreen({ navigation }) {
         style: 'destructive',
         onPress: async () => {
           try {
-            // DELETE /api/cards/delete-card/{cardId}
             const { res } = await apiFetch(`/api/cards/delete-card/${cardId}`, { method: 'DELETE' });
-            if (res.status === 401) { navigation.replace('Login'); return; }
-            loadCards();
+            if (res.status === 401) {
+              navigation.replace('Login');
+              return;
+            }
+            // Update state locally instead of re-fetching the whole list
+            setCards(prev => prev.filter(c => c.cardId !== cardId));
           } catch {
             Alert.alert('Error', 'Failed to delete card');
           }
         },
       },
     ]);
-  };
+  }, [navigation]);
 
-  const renderItem = ({ item }) => (
+  const renderItem = useCallback(({ item, index }) => (
+    <AnimatedCard index={index}>
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.85}
       onPress={() => navigation.navigate('CardDetailsScreen', { cardData: item })}
     >
-<<<<<<< HEAD
-      <View style={styles.cardRow}>
-
-        {/* Left: Thumbnail */}
-        <View style={styles.thumbPlaceholder}>
-          <Ionicons name="card-outline" size={28} color={GOLD} />
-        </View>
-
-        {/* Middle: Info */}
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
-          {item.designation ? (
-            <Text style={styles.designation} numberOfLines={1}>{item.designation}</Text>
-          ) : null}
-          {item.companyName ? (
-            <Text style={styles.company} numberOfLines={1}>{item.companyName}</Text>
-          ) : null}
-          {item.phoneNumber ? (
-            <Text style={styles.phone} numberOfLines={1}>{item.phoneNumber}</Text>
-=======
-      {/* ── Mini Card Header ── */}
       <View style={styles.cardHeader}>
-        {/* Profile Image */}
         {item.profileImage ? (
           <Image source={{ uri: item.profileImage }} style={styles.avatar} />
         ) : (
@@ -99,7 +81,6 @@ export default function MyCardsScreen({ navigation }) {
           </View>
         )}
 
-        {/* Name / Designation / Company */}
         <View style={styles.headerInfo}>
           <Text style={styles.headerName} numberOfLines={1}>
             {item.name || 'Unnamed'}
@@ -114,14 +95,14 @@ export default function MyCardsScreen({ navigation }) {
               {item.companyName || item.company}
             </Text>
           ) : null}
-          {item.phone ? (
-            <Text style={styles.headerPhone} numberOfLines={1}>{item.phone}</Text>
->>>>>>> 0b042c43f4eaefd23cf4d00fc6fff725f55d685e
+          {(item.phoneNumber || item.phone) ? (
+            <Text style={styles.headerPhone} numberOfLines={1}>
+              {item.phoneNumber || item.phone}
+            </Text>
           ) : null}
         </View>
       </View>
 
-      {/* ── Action Buttons Row ── */}
       <View style={styles.cardFooter}>
         <TouchableOpacity
           style={styles.shareBtn}
@@ -132,39 +113,18 @@ export default function MyCardsScreen({ navigation }) {
           <Text style={[styles.actionLabel, { color: GOLD }]}>Share</Text>
         </TouchableOpacity>
 
-<<<<<<< HEAD
-          {/* Edit — gold outline */}
-          <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => navigation.navigate('EditCardScreen', { cardData: item })}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="create-outline" size={17} color={GOLD} />
-          </TouchableOpacity>
-
-          {/* Delete — red outline */}
-          <TouchableOpacity
-            style={styles.deleteBtn}
-            onPress={() => handleDelete(item.cardId)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="trash-outline" size={17} color="#DC2626" />
-          </TouchableOpacity>
-        </View>
-=======
         <TouchableOpacity
           style={styles.editBtn}
-          onPress={() => navigation.navigate('EditCardScreen', { cardData: item, cardIndex: index })}
+          onPress={() => navigation.navigate('EditCardScreen', { cardData: item })}
           activeOpacity={0.8}
         >
           <Ionicons name="create-outline" size={15} color="#2F80ED" />
           <Text style={[styles.actionLabel, { color: '#2F80ED' }]}>Edit</Text>
         </TouchableOpacity>
->>>>>>> 0b042c43f4eaefd23cf4d00fc6fff725f55d685e
 
         <TouchableOpacity
           style={styles.deleteBtn}
-          onPress={() => handleDelete(index)}
+          onPress={() => handleDelete(item.cardId)}
           activeOpacity={0.8}
         >
           <Ionicons name="trash-outline" size={15} color="#EB5757" />
@@ -172,16 +132,15 @@ export default function MyCardsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
-  );
+    </AnimatedCard>
+  ), [navigation, handleDelete]);
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader />
 
-      {/* ── Section Label ── */}
-      <Text style={styles.sectionTitle}>My Cards</Text>
+      
 
-      {/* ── Content ── */}
       {loading ? null : cards.length === 0 ? (
         <View style={styles.emptyState}>
           <Ionicons name="albums-outline" size={64} color={GOLD} />
@@ -190,7 +149,7 @@ export default function MyCardsScreen({ navigation }) {
       ) : (
         <FlatList
           data={cards}
-          keyExtractor={(item) => String(item.cardId)}
+          keyExtractor={(item, index) => String(item?.cardId ?? item?.id ?? `card-${index}`)}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -205,8 +164,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-
-  /* ── Section Label ── */
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
@@ -217,15 +174,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F3E9D2',
   },
-
-  /* ── List ── */
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 30,
   },
-
-  /* ── Card ── */
   card: {
     backgroundColor: '#fff',
     borderRadius: 14,
@@ -239,8 +192,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-
-  /* ── Mini Card Header ── */
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -292,8 +243,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#888',
   },
-
-  /* ── Action Buttons Footer ── */
   cardFooter: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -333,8 +282,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
-
-  /* Empty */
   emptyState: {
     flex: 1,
     alignItems: 'center',

@@ -1,11 +1,15 @@
-import React, { useRef } from 'react';
+import React, { useRef, useImperativeHandle } from 'react';
 import { View, TextInput, StyleSheet, Dimensions, TouchableOpacity, Text } from 'react-native';
 import { COLORS } from '../../styles/colors';
 
 const { width } = Dimensions.get('window');
 
-const OtpInput = ({ length = 6, onChangeText, value = '', rightButton }) => {
+const OtpInput = React.forwardRef(({ length = 6, onChangeText, value = '', rightButton }, ref) => {
   const inputs = useRef([]);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => inputs.current[0]?.focus(),
+  }));
 
   const handleChange = (text, index) => {
     const newValue = (value || '').split('');
@@ -60,7 +64,7 @@ const OtpInput = ({ length = 6, onChangeText, value = '', rightButton }) => {
       ) : null}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

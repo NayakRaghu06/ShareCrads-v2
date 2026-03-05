@@ -35,6 +35,7 @@ export default function EditCardScreen({ route, navigation }) {
   const [instagram, setInstagram] = useState(cardData.instagram || '');
   const [twitter, setTwitter] = useState(cardData.twitter || '');
   const [facebook, setFacebook] = useState(cardData.facebook || '');
+  // const [youtube, setYoutube] = useState(cardData.youtube || '');
   const [website, setWebsite] = useState(cardData.website || '');
 
   const handleUpdate = async () => {
@@ -57,6 +58,7 @@ export default function EditCardScreen({ route, navigation }) {
         facebook,
         instagram,
         twitter,
+        youtube,
         website,
         templateSlug: cardData.templateSlug || 'classic',
         templateId: null,

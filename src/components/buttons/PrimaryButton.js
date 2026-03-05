@@ -1,18 +1,49 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { useRef, useCallback } from 'react';
+import { Animated, TouchableWithoutFeedback, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../styles/colors';
 
 const PrimaryButton = ({ title, onPress, variant = 'primary', disabled = false }) => {
+  const scale = useRef(new Animated.Value(1)).current;
   const filled = variant === 'primary';
+
+  const pressIn = useCallback(() => {
+    Animated.spring(scale, {
+      toValue: 0.95,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  }, [scale]);
+
+  const pressOut = useCallback(() => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 6,
+    }).start();
+  }, [scale]);
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
+    <TouchableWithoutFeedback
+      onPressIn={pressIn}
+      onPressOut={pressOut}
       onPress={onPress}
       disabled={disabled}
-      style={[styles.button, filled ? styles.filled : styles.outlined, disabled && styles.disabled]}
     >
-      <Text style={[styles.title, filled ? styles.titleFilled : styles.titleOutlined, disabled && styles.titleDisabled]}>{title}</Text>
-    </TouchableOpacity>
+      <Animated.View
+        style={[
+          styles.button,
+          filled ? styles.filled : styles.outlined,
+          disabled && styles.disabled,
+          { transform: [{ scale }] },
+        ]}
+      >
+        <Text style={[styles.title, filled ? styles.titleFilled : styles.titleOutlined, disabled && styles.titleDisabled]}>
+          {title}
+        </Text>
+      </Animated.View>
+    </TouchableWithoutFeedback>
   );
 };
 

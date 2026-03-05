@@ -93,15 +93,19 @@ function DashboardTabs() {
 // ========== MAIN STACK NAVIGATOR ==========
 export default function AppNavigator() {
   return (
-    <Stack.Navigator 
-      screenOptions={{ headerShown: false }}
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        animationDuration: 300,
+      }}
       initialRouteName="Splash"
     >
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="LocationPermission" component={LocationPermissionScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Splash" component={SplashScreen} options={{ animation: 'fade' }} />
+      <Stack.Screen name="LocationPermission" component={LocationPermissionScreen} options={{ animation: 'fade' }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ animation: 'fade' }} />
       <Stack.Screen name="Signup" component={SignupScreen} />
-      <Stack.Screen name="Landing" component={LandingScreen} />
+      <Stack.Screen name="Landing" component={LandingScreen} options={{ animation: 'fade' }} />
       <Stack.Screen name="UserDetails" component={UserDetailsScreen} />
       <Stack.Screen name="PersonalDetails" component={PersonalDetailsScreen} />
       <Stack.Screen name="Upload" component={UploadScreen} />
@@ -109,16 +113,16 @@ export default function AppNavigator() {
       <Stack.Screen name="SocialMedia" component={SocialMediaScreen} />
       <Stack.Screen name="TemplatePreview" component={TemplatePreviewScreen} />
       <Stack.Screen name="SelectTemplate" component={SelectTemplateScreen} />
-      <Stack.Screen name="FinalPreview" component={FinalPreviewScreen} />
+      <Stack.Screen name="FinalPreview" component={FinalPreviewScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="Contacts" component={ContactsScreen} />
-      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="MyCards" component={MyCardsScreen} />
-      <Stack.Screen name="InboxScreen" component={InboxScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="EditCardScreen" component={EditCardScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CardDetailsScreen" component={CardDetailsScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="ShareCardScreen" component={require('../screens/main/ShareCardScreen').default} />
-      <Stack.Screen name="AppShareScreen" component={AppShareScreen} />
-      <Stack.Screen name="Dashboard" component={DashboardTabs} />
+      <Stack.Screen name="InboxScreen" component={InboxScreen} />
+      <Stack.Screen name="EditCardScreen" component={EditCardScreen} />
+      <Stack.Screen name="CardDetailsScreen" component={CardDetailsScreen} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="ShareCardScreen" component={require('../screens/main/ShareCardScreen').default} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="AppShareScreen" component={AppShareScreen} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="Dashboard" component={DashboardTabs} options={{ animation: 'fade' }} />
     </Stack.Navigator>
   );
 }

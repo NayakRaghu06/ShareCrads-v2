@@ -40,16 +40,6 @@ export const apiFetch = async (endpoint, options = {}) => {
       ...options,
     });
 
-    // Capture Set-Cookie from response and persist it
-    const setCookie = res.headers.get('set-cookie');
-    if (setCookie) {
-      // Store only the cookie value portion (before the first ';')
-      const cookieValue = setCookie.split(';')[0].trim();
-      if (cookieValue) {
-        await AsyncStorage.setItem(SESSION_COOKIE_KEY, cookieValue);
-      }
-    }
-
     const text = await res.text();
     let data = null;
     try {
@@ -57,6 +47,26 @@ export const apiFetch = async (endpoint, options = {}) => {
     } catch (e) {
       data = { raw: text };
     }
+
+    // ── Capture session cookie ──────────────────────────────────────────────
+    // React Native fetch blocks Set-Cookie headers (forbidden response-header
+    // name per the Fetch spec), so res.headers.get('set-cookie') always returns
+    // null. We use two fallbacks:
+    //
+    // 1. Standard Set-Cookie header — works in web/Axios but NOT in RN fetch.
+    // 2. Backend returns sessionId in the response body — the reliable fix.
+    //    Spring Boot: add  "sessionId", session.getId()  to your login response.
+
+    const setCookieHeader = res.headers.get('set-cookie');
+    if (setCookieHeader) {
+      // Works on web; kept as a future-proof fallback
+      const cookieValue = setCookieHeader.split(';')[0].trim();
+      if (cookieValue) await AsyncStorage.setItem(SESSION_COOKIE_KEY, cookieValue);
+    } else if (data?.sessionId) {
+      // Reliable path for React Native: backend returns the session ID in body
+      await AsyncStorage.setItem(SESSION_COOKIE_KEY, `JSESSIONID=${data.sessionId}`);
+    }
+
     return { res, data };
   } catch (err) {
     throw new Error(err.message || 'Network request failed');

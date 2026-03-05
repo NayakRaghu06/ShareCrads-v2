@@ -224,9 +224,9 @@ export default function ContactsScreen({ navigation }) {
                 <Text style={contactsStyles.sectionTitle}>Using DBC ({dbcContacts.length})</Text>
               </View>
               <View style={contactsStyles.contactsList}>
-                {dbcContacts.map((contact) => (
+                {dbcContacts.map((contact, index) => (
                   <TouchableOpacity
-                    key={contact.phone}
+                    key={contact?.phone || contact?.email || `dbc-${index}`}
                     style={contactsStyles.contactItemDBC}
                     onPress={() => handleViewDBCCard(contact)}
                   >
@@ -260,8 +260,8 @@ export default function ContactsScreen({ navigation }) {
                 <Text style={contactsStyles.sectionTitleOther}>Other Contacts ({otherContacts.length})</Text>
               </View>
               <View style={contactsStyles.contactsList}>
-                {otherContacts.map((contact) => (
-                  <View key={contact.phone} style={contactsStyles.contactItem}>
+                {otherContacts.map((contact, index) => (
+                  <View key={contact?.phone || contact?.email || `other-${index}`} style={contactsStyles.contactItem}>
                     <View style={contactsStyles.contactInfo}>
                       <Text style={contactsStyles.contactName}>{contact.name}</Text>
                       <Text style={contactsStyles.contactPhone}>{contact.phone}</Text>

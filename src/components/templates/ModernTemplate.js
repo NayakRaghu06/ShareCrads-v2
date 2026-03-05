@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const ModernTemplate = ({ userData, data }) => {
   const d = data || userData || {};
-  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental && !global?.nativeFabricUIManager) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
   const [expanded, setExpanded] = useState(false);
