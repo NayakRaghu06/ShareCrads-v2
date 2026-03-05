@@ -75,12 +75,19 @@ export default function DigitalCard({ data = {} }) {
             </View>
           ) : null}
 
-          {/* Labeled fields matching Mobile/Email/Address style */}
+          {/* Labeled fields - two-column aligned layout */}
           <View style={styles.labeledBlock}>
-            <Text style={styles.labeledLine}><Text style={{fontWeight:'700'}}>Name:</Text> <Text style={styles.contactTextInline}>{name || '—'}</Text></Text>
-            {designation ? <Text style={styles.labeledLine}><Text style={{fontWeight:'700'}}>Designation:</Text> <Text style={styles.contactTextInline}>{designation}</Text></Text> : null}
-            {companyName ? <Text style={styles.labeledLine}><Text style={{fontWeight:'700'}}>Company Name:</Text> <Text style={styles.contactTextInline}>{companyName}</Text></Text> : null}
-            {businessDescription ? <Text style={styles.labeledLine}><Text style={{fontWeight:'700'}}>Business Description:</Text> <Text style={styles.contactTextInline}>{businessDescription}</Text></Text> : null}
+            {[
+              { label: 'Name', value: name || '—' },
+              designation ? { label: 'Designation', value: designation } : null,
+              companyName ? { label: 'Company Name', value: companyName } : null,
+              businessDescription ? { label: 'Business Description', value: businessDescription } : null,
+            ].filter(Boolean).map((item, i) => (
+              <View key={i} style={styles.labeledRow}>
+                <Text style={styles.labelText}>{item.label}:</Text>
+                <Text style={styles.valueText}>{item.value}</Text>
+              </View>
+            ))}
           </View>
 
           <View style={styles.contactRow}>
@@ -182,9 +189,10 @@ const styles = StyleSheet.create({
   contactRow: { marginTop: 12 },
   contactItem: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   contactText: { marginLeft: 8, color: '#333' },
-  contactTextInline: { marginLeft: 8, color: '#333' },
-  labeledBlock: { marginTop: 10, width: '85%', alignSelf: 'center', alignItems: 'flex-start' },
-  labeledLine: { marginTop: 8, color: '#333' },
+  labeledBlock: { marginTop: 10, paddingHorizontal: 4 },
+  labeledRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 8 },
+  labelText: { fontWeight: '800', color: '#111', flexShrink: 0, fontSize: 13, letterSpacing: 0.2, marginRight: 8 },
+  valueText: { flex: 1, color: '#555', fontSize: 14, marginRight: 20 },
   websiteWrap: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   websiteText: { marginLeft: 8, color: '#1F2937', textDecorationLine: 'underline' },
   qrWrap: { marginTop: 14, alignItems: 'center' },
