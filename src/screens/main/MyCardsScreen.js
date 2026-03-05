@@ -6,8 +6,9 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
-import { getDashboard, removeDashboardCard } from '../../utils/storage';
+import { apiFetch } from '../../utils/api';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
@@ -19,29 +20,50 @@ export default function MyCardsScreen({ navigation }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadCards = async () => {
-      try {
-        const stored = await getDashboard();
-        setCards(Array.isArray(stored) ? stored : []);
-      } catch {
-        setCards([]);
-      } finally {
-        setLoading(false);
+  const loadCards = async () => {
+    try {
+      setLoading(true);
+      // GET /api/cards/view-cards
+      const { res, data } = await apiFetch('/api/cards/view-cards');
+      if (res.status === 401) {
+        navigation.replace('Login');
+        return;
       }
-    };
+      setCards(Array.isArray(data) ? data : []);
+    } catch {
+      setCards([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadCards();
     const unsubscribe = navigation.addListener('focus', loadCards);
     return unsubscribe;
   }, [navigation]);
 
-  const handleDelete = async (index) => {
-    await removeDashboardCard(index);
-    const updated = await getDashboard();
-    setCards(Array.isArray(updated) ? updated : []);
+  const handleDelete = (cardId) => {
+    Alert.alert('Delete Card', 'Are you sure you want to delete this card?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            // DELETE /api/cards/delete-card/{cardId}
+            const { res } = await apiFetch(`/api/cards/delete-card/${cardId}`, { method: 'DELETE' });
+            if (res.status === 401) { navigation.replace('Login'); return; }
+            loadCards();
+          } catch {
+            Alert.alert('Error', 'Failed to delete card');
+          }
+        },
+      },
+    ]);
   };
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.85}
@@ -50,29 +72,21 @@ export default function MyCardsScreen({ navigation }) {
       <View style={styles.cardRow}>
 
         {/* Left: Thumbnail */}
-        {item.savedImage ? (
-          <Image source={{ uri: item.savedImage }} style={styles.thumb} />
-        ) : (
-          <View style={styles.thumbPlaceholder}>
-            <Ionicons name="card-outline" size={28} color={GOLD} />
-          </View>
-        )}
+        <View style={styles.thumbPlaceholder}>
+          <Ionicons name="card-outline" size={28} color={GOLD} />
+        </View>
 
         {/* Middle: Info */}
         <View style={styles.info}>
           <Text style={styles.name} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
-          {(item.designation || item.role) ? (
-            <Text style={styles.designation} numberOfLines={1}>
-              {item.designation || item.role}
-            </Text>
+          {item.designation ? (
+            <Text style={styles.designation} numberOfLines={1}>{item.designation}</Text>
           ) : null}
-          {(item.companyName || item.company) ? (
-            <Text style={styles.company} numberOfLines={1}>
-              {item.companyName || item.company}
-            </Text>
+          {item.companyName ? (
+            <Text style={styles.company} numberOfLines={1}>{item.companyName}</Text>
           ) : null}
-          {item.phone ? (
-            <Text style={styles.phone} numberOfLines={1}>{item.phone}</Text>
+          {item.phoneNumber ? (
+            <Text style={styles.phone} numberOfLines={1}>{item.phoneNumber}</Text>
           ) : null}
         </View>
 
@@ -90,7 +104,7 @@ export default function MyCardsScreen({ navigation }) {
           {/* Edit — gold outline */}
           <TouchableOpacity
             style={styles.editBtn}
-            onPress={() => navigation.navigate('EditCardScreen', { cardData: item, cardIndex: index })}
+            onPress={() => navigation.navigate('EditCardScreen', { cardData: item })}
             activeOpacity={0.8}
           >
             <Ionicons name="create-outline" size={17} color={GOLD} />
@@ -99,7 +113,7 @@ export default function MyCardsScreen({ navigation }) {
           {/* Delete — red outline */}
           <TouchableOpacity
             style={styles.deleteBtn}
-            onPress={() => handleDelete(index)}
+            onPress={() => handleDelete(item.cardId)}
             activeOpacity={0.8}
           >
             <Ionicons name="trash-outline" size={17} color="#DC2626" />
@@ -126,7 +140,7 @@ export default function MyCardsScreen({ navigation }) {
       ) : (
         <FlatList
           data={cards}
-          keyExtractor={(_, idx) => idx.toString()}
+          keyExtractor={(item) => String(item.cardId)}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}

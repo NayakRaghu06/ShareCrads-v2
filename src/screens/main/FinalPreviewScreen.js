@@ -26,7 +26,7 @@ import DarkTemplate from "../../components/templates/DarkTemplate";
 import ExpandableField from '../../components/common/ExpandableField';
 
 import { getUser } from "../../database/userQueries";
-import { saveDashboard, getDashboard, addDashboardCard } from '../../utils/storage';
+import { apiFetch } from '../../utils/api';
 
 const TEMPLATE_COMPONENTS = {
   classic: ClassicTemplate,
@@ -164,37 +164,44 @@ export default function FinalPreviewScreen({ route, navigation }) {
             style={styles.premiumButton}
             onPress={async () => {
               try {
-                // Capture the rendered card as an image so dashboard shows thumbnail
-                let savedImage = null;
-                try {
-                  if (viewRef.current && viewRef.current.capture) {
-                    savedImage = await viewRef.current.capture();
-                  }
-                } catch (captureErr) {
-                  console.warn('Capture failed', captureErr);
-                  savedImage = null;
-                }
-
-                const toSave = savedImage
-                  ? { ...effectiveCardData, savedImage }
-                  : { ...effectiveCardData };
-
-                await addDashboardCard(toSave);
-                Alert.alert(
-                  'Success',
-                  'Card saved successfully!',
-                  [
+                const d = effectiveCardData;
+                // POST /api/cards/business-card
+                const payload = {
+                  name: d.name || '',
+                  designation: d.designation || d.role || '',
+                  companyName: d.companyName || d.company || '',
+                  phoneNumber: d.phone || d.phoneNumber || d.mobile || '',
+                  phoneNumber2: d.phone2 || d.phoneNumber2 || null,
+                  email: d.email || '',
+                  address: d.address || d.location || '',
+                  keywords: d.searchKeywords || d.keywords || '',
+                  businessCategory: d.businessCategory || '',
+                  businessSubcategory: d.businessSubCategory || d.businessSubcategory || '',
+                  clients: d.clients || '',
+                  businessDescription: d.businessDescription || d.description || '',
+                  linkedin: d.linkedin || '',
+                  facebook: d.facebook || '',
+                  instagram: d.instagram || '',
+                  twitter: d.twitter || '',
+                  whatsappUrl: d.whatsapp || d.whatsappUrl || '',
+                  templateSlug: selectedTemplate || 'classic',
+                  templateId: null,
+                };
+                const { res, data } = await apiFetch('/api/cards/business-card', {
+                  method: 'POST',
+                  body: JSON.stringify(payload),
+                });
+                if (res.status === 401) { navigation.replace('Login'); return; }
+                if (res.ok && data?.status === 1) {
+                  Alert.alert('Success', 'Card saved successfully!', [
                     {
                       text: 'OK',
-                      onPress: () => {
-                        navigation.reset({
-                          index: 0,
-                          routes: [{ name: 'Landing' }],
-                        });
-                      },
+                      onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Landing' }] }),
                     },
-                  ]
-                );
+                  ]);
+                } else {
+                  Alert.alert('Error', data?.message || 'Failed to save card');
+                }
               } catch (e) {
                 Alert.alert('Error', e.message || 'Failed to save card');
               }

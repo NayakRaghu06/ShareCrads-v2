@@ -1,19 +1,20 @@
 import React, { useEffect } from 'react';
 import { View, Text, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../styles/colors';
 import { splashStyles } from '../../styles/screens/splashStyles';
-import { getUser } from '../../utils/storage';
 
 export default function SplashScreen({ navigation }) {
   useEffect(() => {
     let mounted = true;
 
     const check = async () => {
-      // Always send user to Login first; login flow will decide Landing vs Signup
-      setTimeout(() => {
-        if (!mounted) return;
-        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-      }, 1500);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (!mounted) return;
+
+      const userPhone = await AsyncStorage.getItem('userPhone');
+      const destination = userPhone ? 'Landing' : 'Login';
+      navigation.reset({ index: 0, routes: [{ name: destination }] });
     };
 
     check();

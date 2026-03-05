@@ -1,16 +1,61 @@
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiFetch } from '../../utils/api';
 import AppHeader from '../../components/common/AppHeader';
 
 const GOLD = '#C9A227';
 
-const mockInbox = [
-  { id: '1', sender: 'John Doe', company: 'Acme Corp', time: '2 min ago' },
-  { id: '2', sender: 'Jane Smith', company: 'Beta Ltd', time: '10 min ago' },
-];
+function InboxScreen({ navigation }) {
+  const [inbox, setInbox] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-function InboxScreen() {
+  useEffect(() => {
+    loadInbox();
+    const unsubscribe = navigation.addListener('focus', loadInbox);
+    return unsubscribe;
+  }, [navigation]);
+
+  const loadInbox = async () => {
+    try {
+      setLoading(true);
+      const userId = await AsyncStorage.getItem('loggedInUserId');
+      if (!userId) { navigation.replace('Login'); return; }
+      // GET /api/share/received/{userId}
+      const { res, data } = await apiFetch(`/api/share/received/${userId}`);
+      if (res.status === 401) { navigation.replace('Login'); return; }
+      setInbox(Array.isArray(data) ? data : []);
+    } catch {
+      setInbox([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpen = async (item) => {
+    if (!item.viewedAt) {
+      try {
+        // PUT /api/share/view/{shareId}
+        await apiFetch(`/api/share/view/${item.shareId}`, { method: 'PUT' });
+      } catch {
+        // non-blocking
+      }
+    }
+    navigation.navigate('CardDetailsScreen', { cardData: item.card });
+  };
+
+  const formatTime = (iso) => {
+    if (!iso) return '';
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader />
@@ -20,33 +65,42 @@ function InboxScreen() {
 
       {/* ── List ── */}
       <FlatList
-        data={mockInbox}
-        keyExtractor={item => item.id}
+        data={inbox}
+        keyExtractor={item => String(item.shareId)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        onRefresh={loadInbox}
+        refreshing={loading}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity style={[styles.card, !item.viewedAt && styles.cardUnread]} onPress={() => handleOpen(item)} activeOpacity={0.85}>
             <View style={styles.cardRow}>
 
-              {/* Left: Avatar icon */}
+              {/* Left: Avatar */}
               <View style={styles.avatarWrap}>
                 <Ionicons name="person-circle" size={48} color={GOLD} />
               </View>
 
               {/* Middle: Name + Company */}
               <View style={styles.info}>
-                <Text style={styles.sender} numberOfLines={1}>{item.sender}</Text>
-                <Text style={styles.company} numberOfLines={1}>{item.company}</Text>
+                <Text style={styles.sender} numberOfLines={1}>
+                  {item.senderFirstName} {item.senderLastName}
+                </Text>
+                {item.senderCompany ? (
+                  <Text style={styles.company} numberOfLines={1}>{item.senderCompany}</Text>
+                ) : null}
+                {!item.viewedAt && (
+                  <Text style={styles.newBadge}>New</Text>
+                )}
               </View>
 
               {/* Right: Time */}
-              <Text style={styles.time}>{item.time}</Text>
+              <Text style={styles.time}>{formatTime(item.sharedAt)}</Text>
 
             </View>
-          </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>No cards received yet.</Text>
+          !loading ? <Text style={styles.empty}>No cards received yet.</Text> : null
         }
       />
     </SafeAreaView>
@@ -130,6 +184,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 10,
     flexShrink: 0,
+  },
+
+  /* Unread highlight */
+  cardUnread: {
+    borderColor: GOLD,
+    borderWidth: 1.5,
+  },
+
+  /* New badge */
+  newBadge: {
+    marginTop: 4,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+    backgroundColor: GOLD,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
   },
 
   /* Empty */

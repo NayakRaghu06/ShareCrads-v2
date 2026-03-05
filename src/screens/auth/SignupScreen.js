@@ -178,17 +178,9 @@ export default function SignupScreen({ navigation }) {
 
       setOtpPhoneVerified(false);
 
-      const payload = {
-        firstName: form.first,
-        middleName: form.middle,
-        lastName: form.last,
-        mobileNumber: Number(form.phone),
-        email: form.email?.trim() || null,
-      };
-
       const { res, data } = await apiFetch('/auth/mobile-signup', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ mobileNumber: Number(form.phone) }),
       });
       if (res && res.ok && data && data.status === 1) {
         setOtpVisiblePhone(true);
@@ -256,17 +248,9 @@ export default function SignupScreen({ navigation }) {
     (async () => {
       try {
         setOtpPhoneVerified(false);
-        const payload = {
-          firstName: form.first,
-          middleName: form.middle,
-          lastName: form.last,
-          mobileNumber: Number(form.phone),
-          email: form.email?.trim() || null,
-        };
-
         const { res, data } = await apiFetch('/auth/mobile-signup', {
           method: 'POST',
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ mobileNumber: Number(form.phone) }),
         });
 
         if (res && res.ok && data && data.status === 1) {
@@ -340,21 +324,11 @@ export default function SignupScreen({ navigation }) {
 
     try {
 
-      const payload = {
-        firstName: form.first,
-        middleName: form.middle,
-        lastName: form.last,
-        mobileNumber: Number(form.phone),
-        email: form.email?.trim() || null,
-      };
-
-      const { res, data } = await apiFetch(
-        `/auth/verify-phone-otp?otp=${form.otpPhone}`,
-        {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        }
-      );
+      // POST /auth/verify-phone-otp
+      const { res, data } = await apiFetch('/auth/verify-phone-otp', {
+        method: 'POST',
+        body: JSON.stringify({ mobileNumber: Number(form.phone), otp: form.otpPhone }),
+      });
 
       if (res && res.ok && data && data.status === 1) {
         // Mark phone OTP as verified. Do NOT create account or navigate here.
@@ -420,12 +394,21 @@ export default function SignupScreen({ navigation }) {
         mobileNumber: Number(form.phone),
         email: form.email?.trim() || null,
       };
-      const { res, data } = await apiFetch('/auth/register', {
+      // POST /auth/final-submit
+      const { res, data } = await apiFetch('/auth/final-submit', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
 
       if (res && res.ok && data && data.status === 1) {
+        try {
+          await AsyncStorage.setItem('userPhone', form.phone);
+          if (data.userId) {
+            await AsyncStorage.setItem('loggedInUserId', String(data.userId));
+          }
+        } catch (e) {
+          console.warn('Failed to save session after signup', e);
+        }
         Alert.alert('Success', 'Account Created', [
           {
             text: 'OK',
@@ -433,7 +416,7 @@ export default function SignupScreen({ navigation }) {
           },
         ]);
       } else {
-        console.log('register failed', { resStatus: res?.status, data });
+        console.log('final-submit failed', { resStatus: res?.status, data });
         Alert.alert('Error', data?.message || `Registration failed (status ${res?.status || 'unknown'})`);
       }
     } catch (error) {

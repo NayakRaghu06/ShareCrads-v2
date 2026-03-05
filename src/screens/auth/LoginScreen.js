@@ -166,11 +166,16 @@ export default function LoginScreen({ navigation }) {
 
       if (res.ok && data.status === 1) {
 
-        // Save phone after successful OTP verification
+        // Save session after successful login
         try {
           await AsyncStorage.setItem('userPhone', phone);
+          // GET /user/profile — fetch userId after login (session cookie is now set)
+          const { res: pRes, data: pData } = await apiFetch('/user/profile');
+          if (pRes.ok && pData?.data?.userId) {
+            await AsyncStorage.setItem('loggedInUserId', String(pData.data.userId));
+          }
         } catch (e) {
-          console.warn('Failed to save userPhone', e);
+          console.warn('Failed to save session', e);
         }
 
         Alert.alert('Success ', 'Login Successful');

@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { profileStyles } from '../../styles/screens/profileStyles';
 import { COLORS } from '../../styles/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
 import Footer from '../../components/common/Footer';
 
@@ -143,14 +144,12 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleLogout = async () => {
     try {
-      const { res } = await apiFetch('/user/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      // Clear session/token here if needed
-      navigation.replace('Login');
+      await apiFetch('/auth/logout', { method: 'POST' });
     } catch {
-      Alert.alert('Error', 'Failed to logout');
+      // proceed with local logout even if API call fails
+    } finally {
+      await AsyncStorage.multiRemove(['loggedInUserId', 'userPhone', 'activeCardId', 'sessionCookie']);
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
     }
   };
 

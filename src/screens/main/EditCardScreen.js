@@ -8,67 +8,72 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Dimensions
+  Dimensions,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getDashboard, saveDashboard } from '../../utils/storage';
+import { apiFetch } from '../../utils/api';
 import AppHeader from '../../components/common/AppHeader';
 
 export default function EditCardScreen({ route, navigation }) {
-  const { cardData, cardIndex } = route.params;
+  const { cardData } = route.params;
+  const cardId = cardData.cardId;
 
   const [name, setName] = useState(cardData.name || '');
   const [companyName, setCompanyName] = useState(cardData.companyName || '');
   const [designation, setDesignation] = useState(cardData.designation || '');
-  const phone = cardData.phone || '';
+  const phone = cardData.phoneNumber || cardData.phone || '';
   const [email, setEmail] = useState(cardData.email || '');
   const [address, setAddress] = useState(cardData.address || '');
-  const [searchKeywords, setSearchKeywords] = useState(cardData.searchKeywords || '');
+  const [searchKeywords, setSearchKeywords] = useState(cardData.keywords || cardData.searchKeywords || '');
   const [businessCategory, setBusinessCategory] = useState(cardData.businessCategory || '');
-  const [businessSubCategory, setBusinessSubCategory] = useState(cardData.businessSubCategory || '');
+  const [businessSubCategory, setBusinessSubCategory] = useState(cardData.businessSubcategory || cardData.businessSubCategory || '');
   const [clients, setClients] = useState(cardData.clients || '');
-  const [description, setDescription] = useState(cardData.description || cardData.businessDescription || '');
-  const [whatsapp, setWhatsapp] = useState(cardData.whatsapp || '');
+  const [description, setDescription] = useState(cardData.businessDescription || cardData.description || '');
+  const [whatsapp, setWhatsapp] = useState(cardData.whatsappUrl || cardData.whatsapp || '');
   const [linkedin, setLinkedin] = useState(cardData.linkedin || '');
   const [instagram, setInstagram] = useState(cardData.instagram || '');
   const [twitter, setTwitter] = useState(cardData.twitter || '');
   const [facebook, setFacebook] = useState(cardData.facebook || '');
-  const [youtube, setYoutube] = useState(cardData.youtube || '');
   const [website, setWebsite] = useState(cardData.website || '');
-  const [companyLogo, setCompanyLogo] = useState(cardData.companyLogo || '');
-  const [profileImage, setProfileImage] = useState(cardData.profileImage || '');
-  const [qrCodeImage, setQrCodeImage] = useState(cardData.qrCodeImage || '');
-  const [descriptionPdf, setDescriptionPdf] = useState(cardData.descriptionPdf || '');
 
   const handleUpdate = async () => {
-    let dashboard = await getDashboard();
-    dashboard[cardIndex] = {
-      ...dashboard[cardIndex],
-      name,
-      companyName,
-      designation,
-      // phone is intentionally NOT updated
-      email,
-      address,
-      searchKeywords,
-      businessCategory,
-      businessSubCategory,
-      clients,
-      description,
-      whatsapp,
-      linkedin,
-      instagram,
-      twitter,
-      facebook,
-      youtube,
-      website,
-      companyLogo,
-      profileImage,
-      qrCodeImage,
-      descriptionPdf
-    };
-    await saveDashboard(dashboard);
-    navigation.goBack();
+    try {
+      // PUT /api/cards/update-card/{cardId}
+      const payload = {
+        name,
+        designation,
+        companyName,
+        phoneNumber: phone,
+        email,
+        address,
+        keywords: searchKeywords,
+        businessCategory,
+        businessSubcategory: businessSubCategory,
+        clients,
+        businessDescription: description,
+        whatsappUrl: whatsapp,
+        linkedin,
+        facebook,
+        instagram,
+        twitter,
+        website,
+        templateSlug: cardData.templateSlug || 'classic',
+        templateId: null,
+      };
+      const { res, data } = await apiFetch(`/api/cards/update-card/${cardId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 401) { navigation.replace('Login'); return; }
+      if (res.ok) {
+        navigation.goBack();
+      } else {
+        Alert.alert('Error', data?.message || 'Failed to update card');
+      }
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Failed to update card');
+    }
   };
 
   const firstLetter = name && name.length > 0 ? name.trim().charAt(0).toUpperCase() : 'N';

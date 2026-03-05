@@ -5,15 +5,15 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   Linking,
   Alert,
-  Platform,
   ScrollView,
   Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiFetch } from '../../utils/api';
 import AppHeader from '../../components/common/AppHeader';
 
 const GOLD = '#C9A227';
@@ -24,44 +24,91 @@ export default function ShareCardScreen({ navigation, route }) {
   const { cardData } = route.params;
 
   const [mobile, setMobile] = useState('');
-  const [userStatus, setUserStatus] = useState('none');
-  // "none" | "found" | "notfound"
+  const [userStatus, setUserStatus] = useState('none'); // "none" | "found" | "notfound"
+  const [foundUser, setFoundUser] = useState(null);
+  const [checking, setChecking] = useState(false);
 
   const APP_LINK = 'https://sharecards.in';
-  const cardLink = `https://sharecards.in/card/${cardData.phone}`;
-  const waMessage = `Check my Digital Business Card 👇\n\n${cardLink}`;
   const inviteMessage =
     `Hey! I'm using Digital Business Card (DBC) to share my professional profile instantly.\nCreate your card and connect with me here:\n${APP_LINK}`;
 
-  // CHECK USER
-  const handleCheckUser = () => {
+  // GET /api/share/check-user?mobileNumber=...
+  const handleCheckUser = async () => {
     if (mobile.length !== 10) {
       Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
       return;
     }
-    if (mobile === '9876543210') {
-      setUserStatus('found');
-    } else {
-      setUserStatus('notfound');
+    setChecking(true);
+    try {
+      const { res, data } = await apiFetch(`/api/share/check-user?mobileNumber=${mobile}`);
+      if (res.status === 401) { navigation.replace('Login'); return; }
+      if (res.ok && data?.exists) {
+        setFoundUser(data);
+        setUserStatus('found');
+      } else {
+        setFoundUser(null);
+        setUserStatus('notfound');
+      }
+    } catch {
+      Alert.alert('Error', 'Failed to check user');
+    } finally {
+      setChecking(false);
     }
   };
 
-  // SHARE ON WHATSAPP
-  const handleWhatsApp = async () => {
-    const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(waMessage)}`;
+  // POST /api/share — in-app share
+  const handleShareInApp = async () => {
     try {
-      await Linking.openURL(url);
+      const senderId = await AsyncStorage.getItem('loggedInUserId');
+      if (!senderId) { navigation.replace('Login'); return; }
+      // POST /api/share
+      const { res, data } = await apiFetch('/api/share', {
+        method: 'POST',
+        body: JSON.stringify({
+          senderId: Number(senderId),
+          receiverMobile: Number(mobile),
+          cardId: Number(cardData.cardId),
+        }),
+      });
+      if (res.status === 401) { navigation.replace('Login'); return; }
+      if (res.ok) {
+        Alert.alert('Shared!', 'Card shared successfully.');
+      } else {
+        Alert.alert('Error', data?.message || 'Failed to share card');
+      }
+    } catch {
+      Alert.alert('Error', 'Failed to share card');
+    }
+  };
+
+  // POST /api/share/whatsapp — get WhatsApp URL then open it
+  const handleWhatsApp = async () => {
+    try {
+      const senderId = await AsyncStorage.getItem('loggedInUserId');
+      if (!senderId) { navigation.replace('Login'); return; }
+      // POST /api/share/whatsapp
+      const { res, data } = await apiFetch('/api/share/whatsapp', {
+        method: 'POST',
+        body: JSON.stringify({
+          senderId: Number(senderId),
+          receiverMobile: Number(mobile),
+          cardId: Number(cardData.cardId),
+        }),
+      });
+      if (res.status === 401) { navigation.replace('Login'); return; }
+      const url = data?.whatsappUrl;
+      if (url) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Could not get WhatsApp link');
+      }
     } catch {
       Alert.alert('Unable to open WhatsApp');
     }
   };
 
-  // INVITE via WhatsApp
+  // INVITE via WhatsApp (user not on app)
   const handleInviteWhatsApp = async () => {
-    if (mobile.length !== 10) {
-      Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
-      return;
-    }
     const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(inviteMessage)}`;
     try {
       await Linking.openURL(url);
@@ -72,10 +119,6 @@ export default function ShareCardScreen({ navigation, route }) {
 
   // INVITE via system share sheet
   const handleInviteShare = async () => {
-    if (mobile.length !== 10) {
-      Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
-      return;
-    }
     try {
       await Share.share({ message: inviteMessage });
     } catch {
@@ -107,13 +150,13 @@ export default function ShareCardScreen({ navigation, route }) {
             keyboardType="phone-pad"
             maxLength={10}
             value={mobile}
-            onChangeText={(t) => { setMobile(t); setUserStatus('none'); }}
+            onChangeText={(t) => { setMobile(t); setUserStatus('none'); setFoundUser(null); }}
           />
         </View>
 
         {/* ── Check User Button ── */}
-        <TouchableOpacity style={styles.checkBtn} onPress={handleCheckUser} activeOpacity={0.85}>
-          <Text style={styles.checkBtnText}>Check User</Text>
+        <TouchableOpacity style={styles.checkBtn} onPress={handleCheckUser} activeOpacity={0.85} disabled={checking}>
+          <Text style={styles.checkBtnText}>{checking ? 'Checking...' : 'Check User'}</Text>
         </TouchableOpacity>
 
         {/* ── USER FOUND ── */}
@@ -125,14 +168,15 @@ export default function ShareCardScreen({ navigation, route }) {
             </View>
 
             <View style={styles.userCard}>
-              <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }}
-                style={styles.profile}
-              />
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarLetter}>
+                  {foundUser?.firstName?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              </View>
               <View style={styles.userInfo}>
-                <Text style={styles.userName}>Rahul Sharma</Text>
-                <Text style={styles.userDesignation}>Software Engineer</Text>
-                <Text style={styles.userCompany}>DBC Technologies</Text>
+                <Text style={styles.userName}>
+                  {foundUser?.firstName} {foundUser?.lastName}
+                </Text>
               </View>
             </View>
 
@@ -144,7 +188,7 @@ export default function ShareCardScreen({ navigation, route }) {
 
             <TouchableOpacity
               style={styles.shareInAppBtn}
-              onPress={() => navigation.navigate('AppShareScreen', { cardData })}
+              onPress={handleShareInApp}
               activeOpacity={0.85}
             >
               <Ionicons name="phone-portrait-outline" size={20} color="#fff" />
@@ -298,11 +342,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  profile: {
+  avatarCircle: {
     width: 56,
     height: 56,
     borderRadius: 28,
+    backgroundColor: GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 14,
+  },
+  avatarLetter: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   userInfo: {
     flex: 1,
