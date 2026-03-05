@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
+import socket from '../../utils/socket';
 import AppHeader from '../../components/common/AppHeader';
 
 const GOLD = '#C9A227';
@@ -72,6 +73,15 @@ export default function ShareCardScreen({ navigation, route }) {
       });
       if (res.status === 401) { navigation.replace('Login'); return; }
       if (res.ok) {
+        // Emit real-time socket event so receiver gets instant notification
+        const receiverId = foundUser?.userId || foundUser?.id;
+        if (receiverId) {
+          socket.emit('shareCard', {
+            senderId: Number(senderId),
+            receiverId: Number(receiverId),
+            card: cardData,
+          });
+        }
         Alert.alert('Shared!', 'Card shared successfully.');
       } else {
         Alert.alert('Error', data?.message || 'Failed to share card');

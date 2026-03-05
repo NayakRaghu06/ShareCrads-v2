@@ -55,8 +55,12 @@ export default function MyCardsScreen({ navigation }) {
               navigation.replace('Login');
               return;
             }
+<<<<<<< HEAD
             // Update state locally instead of re-fetching the whole list
             setCards(prev => prev.filter(c => c.cardId !== cardId));
+=======
+            loadCards();
+>>>>>>> d171760491f43f3850cd94873005649dfb52af06
           } catch {
             Alert.alert('Error', 'Failed to delete card');
           }
@@ -138,9 +142,13 @@ export default function MyCardsScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader />
+<<<<<<< HEAD
 
       
 
+=======
+      <Text style={styles.sectionTitle}>My Cards</Text>
+>>>>>>> d171760491f43f3850cd94873005649dfb52af06
       {loading ? null : cards.length === 0 ? (
         <View style={styles.emptyState}>
           <Ionicons name="albums-outline" size={64} color={GOLD} />

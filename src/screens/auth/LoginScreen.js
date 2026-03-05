@@ -143,6 +143,7 @@ export default function LoginScreen({ navigation }) {
         body: JSON.stringify({ mobileNumber: phone, otp: enteredOtp }),
       });
 
+<<<<<<< HEAD
       if (res.ok && data?.status === 1) {
         await saveSession(phone);
         await AsyncStorage.setItem('userPhone', phone);
@@ -157,6 +158,23 @@ export default function LoginScreen({ navigation }) {
         } catch {
           // Non-critical; screens can re-fetch profile if needed
         }
+=======
+      if (res.ok && data.status === 1) {
+
+        // Save session after successful login
+        try {
+          await AsyncStorage.setItem('userPhone', phone);
+          // GET /user/profile — fetch userId after login (session cookie is now set)
+          const { res: pRes, data: pData } = await apiFetch('/user/profile');
+          if (pRes.ok && pData?.data?.userId) {
+            await AsyncStorage.setItem('loggedInUserId', String(pData.data.userId));
+          }
+        } catch (e) {
+          console.warn('Failed to save session', e);
+        }
+        // Save session after successful OTP verification
+        await saveSession(phone);
+>>>>>>> d171760491f43f3850cd94873005649dfb52af06
 
         navigation.replace('Landing');
 

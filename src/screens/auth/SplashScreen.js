@@ -10,15 +10,16 @@ export default function SplashScreen({ navigation }) {
 
     const check = async () => {
       try {
-        const session = await getSession();
-        setTimeout(() => {
-          if (!mounted) return;
-          if (session) {
-            navigation.reset({ index: 0, routes: [{ name: 'Landing' }] });
-          } else {
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-          }
-        }, 1500);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        if (!mounted) return;
+
+        const [userPhone, session] = await Promise.all([
+          AsyncStorage.getItem('userPhone'),
+          getSession(),
+        ]);
+
+        const destination = userPhone || session ? 'Landing' : 'Login';
+        navigation.reset({ index: 0, routes: [{ name: destination }] });
       } catch {
         if (mounted) {
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
