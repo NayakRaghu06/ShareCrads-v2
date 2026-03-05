@@ -10,6 +10,7 @@ import {
   Alert,
   Platform,
   ScrollView,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,8 +27,11 @@ export default function ShareCardScreen({ navigation, route }) {
   const [userStatus, setUserStatus] = useState('none');
   // "none" | "found" | "notfound"
 
+  const APP_LINK = 'https://sharecards.in';
   const cardLink = `https://sharecards.in/card/${cardData.phone}`;
   const waMessage = `Check my Digital Business Card 👇\n\n${cardLink}`;
+  const inviteMessage =
+    `Hey! I'm using Digital Business Card (DBC) to share my professional profile instantly.\nCreate your card and connect with me here:\n${APP_LINK}`;
 
   // CHECK USER
   const handleCheckUser = () => {
@@ -52,19 +56,31 @@ export default function ShareCardScreen({ navigation, route }) {
     }
   };
 
-  // SEND INVITATION via SMS
-  const handleSendInvite = () => {
+  // INVITE via WhatsApp
+  const handleInviteWhatsApp = async () => {
     if (mobile.length !== 10) {
       Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
       return;
     }
-    const smsMessage =
-      'Hi! Join Digital Business Card (DBC) to receive my card. Download the app and connect with me.';
-    const separator = Platform.OS === 'ios' ? '&' : '?';
-    const url = `sms:${mobile}${separator}body=${encodeURIComponent(smsMessage)}`;
-    Linking.openURL(url).catch(() =>
-      Alert.alert('Error', 'Unable to open SMS app.')
-    );
+    const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(inviteMessage)}`;
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('WhatsApp Not Found', 'Could not open WhatsApp. Try sharing via other apps.');
+    }
+  };
+
+  // INVITE via system share sheet
+  const handleInviteShare = async () => {
+    if (mobile.length !== 10) {
+      Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
+      return;
+    }
+    try {
+      await Share.share({ message: inviteMessage });
+    } catch {
+      Alert.alert('Error', 'Unable to open share sheet.');
+    }
   };
 
   return (
@@ -156,12 +172,21 @@ export default function ShareCardScreen({ navigation, route }) {
             </Text>
 
             <TouchableOpacity
-              style={styles.inviteBtn}
-              onPress={handleSendInvite}
+              style={styles.inviteWhatsappBtn}
+              onPress={handleInviteWhatsApp}
               activeOpacity={0.85}
             >
-              <Ionicons name="chatbubble-ellipses-outline" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>  Send Invitation</Text>
+              <Ionicons name="logo-whatsapp" size={20} color="#fff" />
+              <Text style={styles.shareBtnText}>  Share via WhatsApp</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.inviteBtn}
+              onPress={handleInviteShare}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="share-social-outline" size={20} color="#fff" />
+              <Text style={styles.shareBtnText}>  Share Invitation</Text>
             </TouchableOpacity>
           </>
         )}
@@ -375,7 +400,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  /* ── Invite (SMS) Button ── */
+  /* ── Invite WhatsApp Button ── */
+  inviteWhatsappBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#25D366',
+    height: 50,
+    borderRadius: 12,
+    marginTop: 16,
+    elevation: 3,
+  },
+
+  /* ── Invite Share Button ── */
   inviteBtn: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -383,7 +420,7 @@ const styles = StyleSheet.create({
     backgroundColor: GOLD,
     height: 50,
     borderRadius: 12,
-    marginTop: 16,
+    marginTop: 12,
     elevation: 3,
     shadowColor: GOLD,
     shadowOpacity: 0.25,
