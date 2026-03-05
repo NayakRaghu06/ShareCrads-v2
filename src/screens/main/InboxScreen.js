@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
+import socket from '../../utils/socket';
 import AppHeader from '../../components/common/AppHeader';
 
 const GOLD = '#C9A227';
@@ -17,6 +18,33 @@ function InboxScreen({ navigation }) {
     const unsubscribe = navigation.addListener('focus', loadInbox);
     return unsubscribe;
   }, [navigation]);
+
+  // Join socket room and listen for real-time card shares
+  useEffect(() => {
+    let joined = false;
+
+    AsyncStorage.getItem('loggedInUserId').then((userId) => {
+      if (userId) {
+        socket.emit('join', userId);
+        joined = true;
+      }
+    });
+
+    socket.on('receiveCard', (incomingItem) => {
+      setInbox((prev) => {
+        // Avoid duplicates if both REST and socket deliver the same item
+        const exists = prev.some(
+          (i) => i.shareId && incomingItem.shareId && i.shareId === incomingItem.shareId
+        );
+        if (exists) return prev;
+        return [incomingItem, ...prev];
+      });
+    });
+
+    return () => {
+      socket.off('receiveCard');
+    };
+  }, []);
 
   const loadInbox = async () => {
     try {

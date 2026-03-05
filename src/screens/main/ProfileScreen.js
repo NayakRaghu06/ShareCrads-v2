@@ -154,20 +154,12 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleLogout = async () => {
     try {
-<<<<<<< HEAD
       await apiFetch('/auth/logout', { method: 'POST' });
     } catch {
       // proceed with local logout even if API call fails
-    } finally {
-      await AsyncStorage.multiRemove(['loggedInUserId', 'userPhone', 'activeCardId', 'sessionCookie']);
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-=======
-      await apiFetch('/user/logout', { method: 'POST', credentials: 'include' });
-    } catch {
-      // proceed with local logout even if API fails
->>>>>>> 0b042c43f4eaefd23cf4d00fc6fff725f55d685e
     }
     try {
+      await AsyncStorage.multiRemove(['loggedInUserId', 'userPhone', 'activeCardId', 'sessionCookie']);
       await clearSession();
     } catch {
       // ignore storage errors

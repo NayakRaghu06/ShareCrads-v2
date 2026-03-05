@@ -167,7 +167,6 @@ export default function LoginScreen({ navigation }) {
 
       if (res.ok && data.status === 1) {
 
-<<<<<<< HEAD
         // Save session after successful login
         try {
           await AsyncStorage.setItem('userPhone', phone);
@@ -179,10 +178,8 @@ export default function LoginScreen({ navigation }) {
         } catch (e) {
           console.warn('Failed to save session', e);
         }
-=======
         // Save session after successful OTP verification
         await saveSession(phone);
->>>>>>> 0b042c43f4eaefd23cf4d00fc6fff725f55d685e
 
         Alert.alert('Success ', 'Login Successful');
         navigation.replace('Landing');
