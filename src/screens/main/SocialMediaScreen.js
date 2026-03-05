@@ -83,7 +83,7 @@ export default function SocialMediaScreen({ route, navigation }) {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.7,
+        quality: 1,
       });
 
       if (!result.canceled) {
@@ -221,7 +221,7 @@ export default function SocialMediaScreen({ route, navigation }) {
         ...prev,
         companyLogo: cardData.companyLogo || cardData.logoImage || prev.companyLogo,
         profilePhoto: cardData.profileImage || cardData.profilePhoto || prev.profilePhoto,
-        whatsapp: cardData.whatsapp || prev.whatsapp,
+        whatsapp: cardData.whatsapp || cardData.phone || prev.whatsapp,
         linkedin: cardData.linkedin || prev.linkedin,
         instagram: cardData.instagram || prev.instagram,
         twitter: cardData.twitter || prev.twitter,
@@ -241,7 +241,7 @@ export default function SocialMediaScreen({ route, navigation }) {
   React.useEffect(() => {
     const loadPhone = async () => {
       try {
-        const phone = await AsyncStorage.getItem('userPhone');
+        const phone = await AsyncStorage.getItem('userSession');
         if (phone) {
           setFormData((prev) => ({ ...prev, whatsapp: phone }));
         }

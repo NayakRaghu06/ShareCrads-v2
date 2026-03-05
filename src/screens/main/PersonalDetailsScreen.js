@@ -105,7 +105,7 @@ export default function PersonalDetailsScreen({ navigation }) {
   useEffect(() => {
     const loadPhone = async () => {
       try {
-        const phone = await AsyncStorage.getItem('userPhone');
+        const phone = await AsyncStorage.getItem('userSession');
         if (phone) {
           setFormData((prev) => ({ ...prev, phone }));
         }

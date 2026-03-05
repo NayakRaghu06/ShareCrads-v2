@@ -1,5 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// ── Session helpers ──────────────────────────────────────────────────────────
+export const saveSession = async (phone) => {
+  await AsyncStorage.setItem('userSession', phone);
+  await AsyncStorage.setItem('loggedInUser', phone);
+};
+
+export const getSession = async () => {
+  return await AsyncStorage.getItem('userSession');
+};
+
+export const clearSession = async () => {
+  await AsyncStorage.multiRemove(['userSession', 'loggedInUser', 'userPhone']);
+};
+// ────────────────────────────────────────────────────────────────────────────
+
 // Card draft helpers: save/read temporary card data across steps
 export const saveCardDraft = async (card) => {
   await AsyncStorage.setItem('CARD_DRAFT', JSON.stringify(card));

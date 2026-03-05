@@ -10,6 +10,8 @@ import {
   StatusBar,
   Alert,
   Image,
+  Modal,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +19,7 @@ import { profileStyles } from '../../styles/screens/profileStyles';
 import { COLORS } from '../../styles/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
+import { clearSession } from '../../utils/storage';
 import Footer from '../../components/common/Footer';
 
 export default function ProfileScreen({ navigation, route }) {
@@ -38,6 +41,7 @@ export default function ProfileScreen({ navigation, route }) {
     profileImage: null,
   });
   const [loading, setLoading] = useState(true);
+  const [pendingImage, setPendingImage] = useState(null);
   const fromScreen = route?.params?.fromScreen || null;
 
   useEffect(() => {
@@ -76,15 +80,21 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleImagePick = async () => {
     try {
+      const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!granted) {
+        Alert.alert('Permission Required', 'Please allow gallery access to upload a profile photo.');
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 1,
       });
 
       if (!result.canceled) {
-        setEditedData({ ...editedData, profileImage: result.assets[0].uri });
+        setPendingImage(result.assets[0].uri);
       }
     } catch {
       Alert.alert('Error', 'Failed to pick image');
@@ -144,13 +154,25 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleLogout = async () => {
     try {
+<<<<<<< HEAD
       await apiFetch('/auth/logout', { method: 'POST' });
     } catch {
       // proceed with local logout even if API call fails
     } finally {
       await AsyncStorage.multiRemove(['loggedInUserId', 'userPhone', 'activeCardId', 'sessionCookie']);
       navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+=======
+      await apiFetch('/user/logout', { method: 'POST', credentials: 'include' });
+    } catch {
+      // proceed with local logout even if API fails
+>>>>>>> 0b042c43f4eaefd23cf4d00fc6fff725f55d685e
     }
+    try {
+      await clearSession();
+    } catch {
+      // ignore storage errors
+    }
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
   if (loading) {
@@ -392,6 +414,95 @@ export default function ProfileScreen({ navigation, route }) {
         navigation={navigation}
         fromScreen={fromScreen || null}
       />
+
+      {/* ── Image Confirm Modal ── */}
+      <Modal visible={!!pendingImage} transparent animationType="fade">
+        <View style={imgStyles.overlay}>
+          <View style={imgStyles.card}>
+            <Text style={imgStyles.title}>Use this photo?</Text>
+            {pendingImage && (
+              <Image source={{ uri: pendingImage }} style={imgStyles.preview} />
+            )}
+            <View style={imgStyles.row}>
+              <TouchableOpacity
+                style={imgStyles.cancelBtn}
+                onPress={() => setPendingImage(null)}
+              >
+                <Text style={imgStyles.cancelText}>Retake</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={imgStyles.doneBtn}
+                onPress={() => {
+                  setEditedData({ ...editedData, profileImage: pendingImage });
+                  setPendingImage(null);
+                }}
+              >
+                <Text style={imgStyles.doneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const imgStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 16,
+  },
+  preview: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    marginBottom: 24,
+    resizeMode: 'cover',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#C9A227',
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: '#C9A227',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  doneBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#C9A227',
+    alignItems: 'center',
+  },
+  doneText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+});

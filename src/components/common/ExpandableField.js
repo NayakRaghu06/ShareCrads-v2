@@ -33,8 +33,6 @@ const ExpandableField = ({
         <View style={styles.labelBox}>
           <Text
             style={[styles.label, labelStyle]}
-            numberOfLines={2}
-            ellipsizeMode="tail"
           >
             {label}
           </Text>
@@ -66,17 +64,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   labelBox: {
-    width: "45%",
-    paddingRight: 6,
+    flex: 7,
+    paddingRight: 3,
     flexShrink: 0,
   },
   valueBox: {
-    width: "55%",
+    flex: 4,
     overflow: "hidden",
-    paddingLeft: 0,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     color: "#EDEDED",
   },

@@ -210,13 +210,6 @@ export default function FinalPreviewScreen({ route, navigation }) {
             <Ionicons name="bookmark" size={20} color="#FFFFFF" />
             <Text style={[styles.primaryText, { marginLeft: 10 }]}>Save Card</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={handleShare}
-          >
-            <Ionicons name="share-social" size={20} color="#D4AF37" />
-            <Text style={styles.secondaryText}>Share Card</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
