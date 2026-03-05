@@ -2,18 +2,28 @@ import React, { useEffect } from 'react';
 import { View, Text, Image } from 'react-native';
 import { COLORS } from '../../styles/colors';
 import { splashStyles } from '../../styles/screens/splashStyles';
-import { getUser } from '../../utils/storage';
+import { getSession } from '../../utils/storage';
 
 export default function SplashScreen({ navigation }) {
   useEffect(() => {
     let mounted = true;
 
     const check = async () => {
-      // Always send user to Login first; login flow will decide Landing vs Signup
-      setTimeout(() => {
-        if (!mounted) return;
-        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-      }, 1500);
+      try {
+        const session = await getSession();
+        setTimeout(() => {
+          if (!mounted) return;
+          if (session) {
+            navigation.reset({ index: 0, routes: [{ name: 'Landing' }] });
+          } else {
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+          }
+        }, 1500);
+      } catch {
+        if (mounted) {
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+        }
+      }
     };
 
     check();

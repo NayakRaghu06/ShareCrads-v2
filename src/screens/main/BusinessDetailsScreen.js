@@ -10,6 +10,8 @@ import {
   Alert,
   StatusBar,
   Image,
+  Modal,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
@@ -82,6 +84,7 @@ export default function BusinessDetailsScreen({ route, navigation }) {
 
   const [pdfFile, setPdfFile] = useState(null);
   const [logoImage, setLogoImage] = useState(null);
+  const [pendingLogo, setPendingLogo] = useState(null);
   const [errors, setErrors] = useState({});
 
   const updateForm = (field, value) => {
@@ -128,21 +131,21 @@ export default function BusinessDetailsScreen({ route, navigation }) {
 
   const handleLogoUpload = async () => {
     try {
+      const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!granted) {
+        Alert.alert('Permission Required', 'Please allow gallery access to upload a company logo.');
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 1,
       });
 
       if (!result.canceled) {
-        setLogoImage({
-          name: result.assets[0].fileName || 'logo.jpg',
-          uri: result.assets[0].uri,
-          type: result.assets[0].type,
-          width: result.assets[0].width,
-          height: result.assets[0].height,
-        });
+        setPendingLogo(result.assets[0]);
       }
     } catch (err) {
       Alert.alert('Error', 'Failed to pick image');
@@ -200,7 +203,7 @@ export default function BusinessDetailsScreen({ route, navigation }) {
       console.log("📦 FULL USER AFTER BUSINESS SAVE:");
       console.log(JSON.stringify(storedUser, null, 2));
 
-      navigation.navigate('SocialMedia');
+      navigation.navigate('SocialMedia', { cardData: { ...personalData, ...businessData } });
 
     } catch (error) {
       console.log("SQLite Error:", error);
@@ -496,6 +499,101 @@ export default function BusinessDetailsScreen({ route, navigation }) {
         </ScrollView>
       </KeyboardAvoidingView>
       {/* <Footer activeTab="" navigation={navigation} fromScreen="BusinessDetails" /> */}
+
+      {/* ── Logo Confirm Modal ── */}
+      <Modal visible={!!pendingLogo} transparent animationType="fade">
+        <View style={logoStyles.overlay}>
+          <View style={logoStyles.card}>
+            <Text style={logoStyles.title}>Use this logo?</Text>
+            {pendingLogo && (
+              <Image source={{ uri: pendingLogo.uri }} style={logoStyles.preview} />
+            )}
+            <View style={logoStyles.row}>
+              <TouchableOpacity
+                style={logoStyles.cancelBtn}
+                onPress={() => setPendingLogo(null)}
+              >
+                <Text style={logoStyles.cancelText}>Retake</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={logoStyles.doneBtn}
+                onPress={() => {
+                  setLogoImage({
+                    name: pendingLogo.fileName || 'logo.jpg',
+                    uri: pendingLogo.uri,
+                    type: pendingLogo.type,
+                    width: pendingLogo.width,
+                    height: pendingLogo.height,
+                  });
+                  setPendingLogo(null);
+                }}
+              >
+                <Text style={logoStyles.doneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const logoStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 16,
+  },
+  preview: {
+    width: 160,
+    height: 160,
+    borderRadius: 12,
+    marginBottom: 24,
+    resizeMode: 'cover',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#C9A227',
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: '#C9A227',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  doneBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#C9A227',
+    alignItems: 'center',
+  },
+  doneText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+});

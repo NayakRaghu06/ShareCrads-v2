@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
 
 const GOLD = '#C9A227';
-const BTN_SIZE = 36;
 
 export default function MyCardsScreen({ navigation }) {
   const [cards, setCards] = useState([]);
@@ -47,65 +46,66 @@ export default function MyCardsScreen({ navigation }) {
       activeOpacity={0.85}
       onPress={() => navigation.navigate('CardDetailsScreen', { cardData: item })}
     >
-      <View style={styles.cardRow}>
-
-        {/* Left: Thumbnail */}
-        {item.savedImage ? (
-          <Image source={{ uri: item.savedImage }} style={styles.thumb} />
+      {/* ── Mini Card Header ── */}
+      <View style={styles.cardHeader}>
+        {/* Profile Image */}
+        {item.profileImage ? (
+          <Image source={{ uri: item.profileImage }} style={styles.avatar} />
         ) : (
-          <View style={styles.thumbPlaceholder}>
-            <Ionicons name="card-outline" size={28} color={GOLD} />
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="person" size={26} color="#fff" />
           </View>
         )}
 
-        {/* Middle: Info */}
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>{item.name || 'Unnamed'}</Text>
+        {/* Name / Designation / Company */}
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerName} numberOfLines={1}>
+            {item.name || 'Unnamed'}
+          </Text>
           {(item.designation || item.role) ? (
-            <Text style={styles.designation} numberOfLines={1}>
+            <Text style={styles.headerDesignation} numberOfLines={1}>
               {item.designation || item.role}
             </Text>
           ) : null}
           {(item.companyName || item.company) ? (
-            <Text style={styles.company} numberOfLines={1}>
+            <Text style={styles.headerCompany} numberOfLines={1}>
               {item.companyName || item.company}
             </Text>
           ) : null}
           {item.phone ? (
-            <Text style={styles.phone} numberOfLines={1}>{item.phone}</Text>
+            <Text style={styles.headerPhone} numberOfLines={1}>{item.phone}</Text>
           ) : null}
         </View>
+      </View>
 
-        {/* Right: Action Buttons */}
-        <View style={styles.actions}>
-          {/* Share — full gold */}
-          <TouchableOpacity
-            style={styles.shareBtn}
-            onPress={() => navigation.navigate('ShareCardScreen', { cardData: item })}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="share-social" size={17} color="#fff" />
-          </TouchableOpacity>
+      {/* ── Action Buttons Row ── */}
+      <View style={styles.cardFooter}>
+        <TouchableOpacity
+          style={styles.shareBtn}
+          onPress={() => navigation.navigate('ShareCardScreen', { cardData: item })}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="share-social" size={15} color={GOLD} />
+          <Text style={[styles.actionLabel, { color: GOLD }]}>Share</Text>
+        </TouchableOpacity>
 
-          {/* Edit — gold outline */}
-          <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => navigation.navigate('EditCardScreen', { cardData: item, cardIndex: index })}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="create-outline" size={17} color={GOLD} />
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.editBtn}
+          onPress={() => navigation.navigate('EditCardScreen', { cardData: item, cardIndex: index })}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="create-outline" size={15} color="#2F80ED" />
+          <Text style={[styles.actionLabel, { color: '#2F80ED' }]}>Edit</Text>
+        </TouchableOpacity>
 
-          {/* Delete — red outline */}
-          <TouchableOpacity
-            style={styles.deleteBtn}
-            onPress={() => handleDelete(index)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="trash-outline" size={17} color="#DC2626" />
-          </TouchableOpacity>
-        </View>
-
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => handleDelete(index)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="trash-outline" size={15} color="#EB5757" />
+          <Text style={[styles.actionLabel, { color: '#EB5757' }]}>Delete</Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -165,103 +165,109 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginBottom: 12,
+    marginBottom: 14,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#F3E9D2',
     shadowColor: '#C9A227',
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    elevation: 3,
   },
-  cardRow: {
+
+  /* ── Mini Card Header ── */
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#1A1A2E',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
   },
-
-  /* Thumbnail */
-  thumb: {
-    width: 62,
-    height: 62,
-    borderRadius: 10,
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     marginRight: 14,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#333',
+    resizeMode: 'cover',
+    borderWidth: 2,
+    borderColor: GOLD,
   },
-  thumbPlaceholder: {
-    width: 62,
-    height: 62,
-    borderRadius: 10,
+  avatarPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     marginRight: 14,
-    backgroundColor: '#FDF6E3',
+    backgroundColor: '#333',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#F3E9D2',
+    borderWidth: 2,
+    borderColor: GOLD,
   },
-
-  /* Info */
-  info: {
+  headerInfo: {
     flex: 1,
-    justifyContent: 'center',
   },
-  name: {
+  headerName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#fff',
     marginBottom: 3,
   },
-  designation: {
-    fontSize: 13,
+  headerDesignation: {
+    fontSize: 12,
     color: GOLD,
     marginBottom: 2,
   },
-  company: {
-    fontSize: 13,
-    color: '#555',
+  headerCompany: {
+    fontSize: 12,
+    color: '#BBBBBB',
     marginBottom: 2,
   },
-  phone: {
-    fontSize: 12,
+  headerPhone: {
+    fontSize: 11,
     color: '#888',
   },
 
-  /* Action Buttons */
-  actions: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-    gap: 7,
+  /* ── Action Buttons Footer ── */
+  cardFooter: {
+    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#F3E9D2',
   },
   shareBtn: {
-    width: BTN_SIZE,
-    height: BTN_SIZE,
-    borderRadius: 8,
-    backgroundColor: GOLD,
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 10,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderColor: '#F3E9D2',
   },
   editBtn: {
-    width: BTN_SIZE,
-    height: BTN_SIZE,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    borderWidth: 1.5,
-    borderColor: GOLD,
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 10,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderColor: '#F3E9D2',
   },
   deleteBtn: {
-    width: BTN_SIZE,
-    height: BTN_SIZE,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    borderWidth: 1.5,
-    borderColor: '#DC2626',
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 10,
+  },
+  actionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
   },
 
   /* Empty */
