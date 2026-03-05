@@ -293,17 +293,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    width: '40%',
     color: '#EDEDED',
     fontWeight: '800',
-    fontSize: 14,
-    marginRight: 8,
+    fontSize: 11,
   },
   value: {
-    width: '100%',
     color: '#D1D5DB',
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 11,
+    lineHeight: 18,
   },
   /* small decorative corner boxes */
   cornerBoxTopLeft: {
