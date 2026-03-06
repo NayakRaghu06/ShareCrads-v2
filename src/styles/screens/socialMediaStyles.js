@@ -123,6 +123,12 @@ export const layoutStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
   },
+  stepUnderline: {
+    height: 2,
+    marginTop: 10,
+    borderRadius: 2,
+    backgroundColor: '#D4AF37',
+  },
 
   // ========== DETAILS SECTION ==========
   detailsSection: {
@@ -276,10 +282,19 @@ export const formStyles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    backgroundColor: '#F9FAFB',
-    height: 50,
+    backgroundColor: '#F8F9FB',
+    height: 52,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+
+  inputContainerFilled: {
+    backgroundColor: '#FFFFFF',
   },
 
   inputIcon: {
@@ -298,7 +313,11 @@ export const formStyles = StyleSheet.create({
 
   inputFocused: {
     borderColor: '#D4AF37',
-    borderWidth: 2,
+    borderWidth: 1.5,
+    shadowColor: '#D4AF37',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   inputFieldError: {

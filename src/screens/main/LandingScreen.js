@@ -219,16 +219,34 @@ import { getDBCUsers } from '../../utils/contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
 import { getDashboard } from '../../utils/storage';
+import AnimatedPressable from '../../components/common/AnimatedPressable';
 
 // ─── Moved OUTSIDE LandingScreen — was previously defined inside render,
 //     causing it to remount on every parent state change.
 const InboxButton = React.memo(({ navigation }) => {
   const [unreadCount, setUnreadCount] = useState(2);
   const isMounted = useRef(true);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     return () => { isMounted.current = false; };
   }, []);
+
+  // Pulse the badge while there are unread messages
+  useEffect(() => {
+    if (unreadCount > 0) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.spring(pulseAnim, { toValue: 1.3, useNativeDriver: true, speed: 18, bounciness: 10 }),
+          Animated.spring(pulseAnim, { toValue: 1,   useNativeDriver: true, speed: 18, bounciness: 6  }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [unreadCount]);
 
   const handleInboxPress = useCallback(() => {
     navigation.navigate('InboxScreen');
@@ -239,19 +257,18 @@ const InboxButton = React.memo(({ navigation }) => {
 
   return (
     <View style={ls.inboxWrap}>
-      <TouchableOpacity
+      <AnimatedPressable
         style={landingStyles.secondaryButton}
         onPress={handleInboxPress}
-        activeOpacity={0.85}
       >
         <Ionicons name="mail-outline" size={20} color={COLORS.accent} />
         <Text style={landingStyles.secondaryButtonText}>Inbox</Text>
         {unreadCount > 0 && (
-          <View style={ls.badge}>
+          <Animated.View style={[ls.badge, { transform: [{ scale: pulseAnim }] }]}>
             <Text style={ls.badgeText}>{unreadCount}</Text>
-          </View>
+          </Animated.View>
         )}
-      </TouchableOpacity>
+      </AnimatedPressable>
     </View>
   );
 });
@@ -529,18 +546,18 @@ export default function LandingScreen({ navigation }) {
                 Create your digital business card and start sharing with the world
               </Text>
 
-              <TouchableOpacity style={landingStyles.createButton} onPress={handleCreateCard}>
+              <AnimatedPressable style={landingStyles.createButton} onPress={handleCreateCard}>
                 <Ionicons name="add-circle" size={20} color="#FFF" />
                 <Text style={landingStyles.createButtonText}>Create Your Card</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
 
-              <TouchableOpacity
+              <AnimatedPressable
                 style={landingStyles.secondaryButton}
                 onPress={() => navigation.navigate('MyCards')}
               >
                 <Ionicons name="albums-outline" size={20} color={COLORS.accent} />
                 <Text style={landingStyles.secondaryButtonText}>My Cards</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
 
               <InboxButton navigation={navigation} />
             </View>

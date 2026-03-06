@@ -4,6 +4,7 @@ import ExpandableField from '../common/ExpandableField';
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const ModernTemplate = ({ userData, data }) => {
   const d = data || userData || {};
@@ -55,7 +56,7 @@ const ModernTemplate = ({ userData, data }) => {
   };
 
   return (
-    <View style={styles.card}>
+    <LinearGradient colors={['#1F1B4D', '#2C1F7A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
       {d?.companyLogo ? (
         <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
       ) : null}
@@ -142,7 +143,7 @@ const ModernTemplate = ({ userData, data }) => {
         <Text style={{ color: '#D4AF37', fontWeight: '700' }}>{expanded ? 'Show Less' : 'More'}</Text>
       </TouchableOpacity>
       {/* visiting card removed */}
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -154,12 +155,18 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 18,
     borderRadius: 20,
-    backgroundColor: "#1F1147",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: 'rgba(212,175,55,0.25)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 10,
   },
   avatarOuter: {
     borderWidth: 4,
-    borderColor: "#FF4081",
+    borderColor: "#D4AF37",
     borderRadius: 48,
     padding: 4,
     marginBottom: 12,
@@ -170,7 +177,7 @@ const styles = StyleSheet.create({
     borderRadius: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#374151',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   avatarImage: {
     width: 88,
@@ -210,7 +217,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   nameBox: {
-    backgroundColor: "#FF4081",
+    backgroundColor: 'rgba(212,175,55,0.18)',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
@@ -230,13 +237,13 @@ const styles = StyleSheet.create({
   },
   company: {
     fontSize: 14,
-    color: '#F3E8FF',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginTop: 6,
   },
   description: {
     fontSize: 12,
-    color: '#E6E6E6',
+    color: '#9CA3AF',
     textAlign: 'center',
     marginTop: 6,
   },
@@ -256,7 +263,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
     padding: 6,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.15)'
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderWidth: 1,
+    borderColor: 'rgba(212,175,55,0.22)',
   }
   ,
   /* unified styles */
@@ -268,7 +277,7 @@ const styles = StyleSheet.create({
   },
   fieldBox: {
     width: '100%',
-    backgroundColor: '#0E131A',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 12,
@@ -277,12 +286,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   label: {
-    color: '#EDEDED',
+    color: '#9CA3AF',
     fontWeight: '800',
     fontSize: 11,
   },
   value: {
-    color: '#D1D5DB',
+    color: '#FFFFFF',
     fontSize: 11,
     lineHeight: 18,
   },

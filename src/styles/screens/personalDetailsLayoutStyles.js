@@ -138,6 +138,12 @@ export const layoutStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
   },
+  stepUnderline: {
+    height: 2,
+    marginTop: 10,
+    borderRadius: 2,
+    backgroundColor: '#D4AF37',
+  },
 
   // ========== DETAILS SECTION ==========
   detailsSection: {

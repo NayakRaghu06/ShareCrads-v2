@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Image,
   Modal,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
@@ -23,6 +24,8 @@ import { businessDetailsStyles } from '../../styles/screens/businessDetailsStyle
 import { layoutStyles } from '../../styles/screens/personalDetailsLayoutStyles';
 // import { getUser } from '../../utils/storage';
 import AppHeader from '../../components/common/AppHeader';
+import AnimatedFormItem from '../../components/common/AnimatedFormItem';
+import AnimatedPressable from '../../components/common/AnimatedPressable';
 
 import { getUser, updateBusinessDetails } from '../../database/userQueries';
 
@@ -86,6 +89,45 @@ export default function BusinessDetailsScreen({ route, navigation }) {
   const [logoImage, setLogoImage] = useState(null);
   const [pendingLogo, setPendingLogo] = useState(null);
   const [errors, setErrors] = useState({});
+  const [focusedField, setFocusedField] = useState('');
+  const underlineAnim = useRef(new Animated.Value(0)).current;
+  const fieldAnimsRef = useRef({});
+
+  const getFieldAnim = (key) => {
+    if (!fieldAnimsRef.current[key]) {
+      fieldAnimsRef.current[key] = {
+        scale: new Animated.Value(1),
+        icon: new Animated.Value(1),
+      };
+    }
+    return fieldAnimsRef.current[key];
+  };
+
+  const handleFocusAnim = (key) => {
+    setFocusedField(key);
+    const anim = getFieldAnim(key);
+    Animated.parallel([
+      Animated.timing(anim.scale, { toValue: 1.02, duration: 150, useNativeDriver: true }),
+      Animated.timing(anim.icon, { toValue: 1.1, duration: 150, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const handleBlurAnim = (key) => {
+    setFocusedField((prev) => (prev === key ? '' : prev));
+    const anim = getFieldAnim(key);
+    Animated.parallel([
+      Animated.timing(anim.scale, { toValue: 1, duration: 150, useNativeDriver: true }),
+      Animated.timing(anim.icon, { toValue: 1, duration: 150, useNativeDriver: true }),
+    ]).start();
+  };
+
+  useEffect(() => {
+    Animated.timing(underlineAnim, {
+      toValue: 1,
+      duration: 350,
+      useNativeDriver: false,
+    }).start();
+  }, [underlineAnim]);
 
   const updateForm = (field, value) => {
     setForm({ ...form, [field]: value });
@@ -253,21 +295,28 @@ export default function BusinessDetailsScreen({ route, navigation }) {
               <Text style={layoutStyles.cardSubtitle}>
                 All fields marked with * are mandatory
               </Text>
+              <Animated.View
+                style={[
+                  layoutStyles.stepUnderline,
+                  {
+                    width: underlineAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '38%'],
+                    }),
+                  },
+                ]}
+              />
             </View>
 
             {/* Business Details Section */}
             <View style={layoutStyles.detailsSection}>
               {/* SEARCH KEYWORDS */}
+              <AnimatedFormItem index={0}>
               <View style={businessDetailsStyles.fieldWrapper}>
                 <View style={businessDetailsStyles.labelRow}>
                   <View style={businessDetailsStyles.labelLeft}>
-                    <Ionicons
-                      name="search"
-                      size={17}
-                      color="#D4AF37"
-                    />
                     <Text style={businessDetailsStyles.label}>
-                      {'  '}Search Keywords
+                      Search Keywords
                       <Text style={businessDetailsStyles.star}> *</Text>
                     </Text>
                   </View>
@@ -277,31 +326,45 @@ export default function BusinessDetailsScreen({ route, navigation }) {
                     </Text>
                   )}
                 </View>
-                <TextInput
-                  style={[
+                <Animated.View style={{ transform: [{ scale: getFieldAnim('searchKeywords').scale }] }}>
+                  <View style={[
                     businessDetailsStyles.input,
+                    businessDetailsStyles.inputRow,
+                    !!form.searchKeywords?.trim() && businessDetailsStyles.inputFilled,
+                    focusedField === 'searchKeywords' && businessDetailsStyles.inputFocused,
                     errors.searchKeywords && businessDetailsStyles.inputError,
-                  ]}
-                  placeholder="e.g., Web Design, Digital Marketing"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.searchKeywords}
-                  onChangeText={(value) =>
-                    updateForm('searchKeywords', value)
-                  }
-                />
+                  ]}>
+                    <Animated.View style={{ transform: [{ scale: getFieldAnim('searchKeywords').icon }] }}>
+                      <Ionicons
+                        name="search"
+                        size={17}
+                        color={'#D4AF37'}
+                        style={businessDetailsStyles.inputIcon}
+                      />
+                    </Animated.View>
+                    <TextInput
+                      style={businessDetailsStyles.inputField}
+                      placeholder="e.g., Web Design, Digital Marketing"
+                      placeholderTextColor="#9CA3AF"
+                      value={form.searchKeywords}
+                      onChangeText={(value) =>
+                        updateForm('searchKeywords', value)
+                      }
+                      onFocus={() => handleFocusAnim('searchKeywords')}
+                      onBlur={() => handleBlurAnim('searchKeywords')}
+                    />
+                  </View>
+                </Animated.View>
               </View>
+              </AnimatedFormItem>
 
               {/* COMPANY NAME */}
+              <AnimatedFormItem index={1}>
               <View style={businessDetailsStyles.fieldWrapper}>
                 <View style={businessDetailsStyles.labelRow}>
                   <View style={businessDetailsStyles.labelLeft}>
-                    <Ionicons
-                      name="briefcase"
-                      size={17}
-                      color="#D4AF37"
-                    />
                     <Text style={businessDetailsStyles.label}>
-                      {'  '}Company Name
+                      Company Name
                       <Text style={businessDetailsStyles.star}> *</Text>
                     </Text>
                   </View>
@@ -311,102 +374,164 @@ export default function BusinessDetailsScreen({ route, navigation }) {
                     </Text>
                   )}
                 </View>
-                <TextInput
-                  style={[
+                <Animated.View style={{ transform: [{ scale: getFieldAnim('companyName').scale }] }}>
+                  <View style={[
                     businessDetailsStyles.input,
+                    businessDetailsStyles.inputRow,
+                    !!form.companyName?.trim() && businessDetailsStyles.inputFilled,
+                    focusedField === 'companyName' && businessDetailsStyles.inputFocused,
                     errors.companyName && businessDetailsStyles.inputError,
-                  ]}
-                  placeholder="Enter your company name"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.companyName}
-                  onChangeText={(value) => updateForm('companyName', value)}
-                />
+                  ]}>
+                    <Animated.View style={{ transform: [{ scale: getFieldAnim('companyName').icon }] }}>
+                      <Ionicons
+                        name="briefcase"
+                        size={17}
+                        color={'#D4AF37'}
+                        style={businessDetailsStyles.inputIcon}
+                      />
+                    </Animated.View>
+                    <TextInput
+                      style={businessDetailsStyles.inputField}
+                      placeholder="Enter your company name"
+                      placeholderTextColor="#9CA3AF"
+                      value={form.companyName}
+                      onChangeText={(value) => updateForm('companyName', value)}
+                      onFocus={() => handleFocusAnim('companyName')}
+                      onBlur={() => handleBlurAnim('companyName')}
+                    />
+                  </View>
+                </Animated.View>
               </View>
+              </AnimatedFormItem>
 
               {/* BUSINESS CATEGORY */}
+              <AnimatedFormItem index={2}>
               <View style={businessDetailsStyles.fieldWrapper}>
                 <View style={businessDetailsStyles.labelRow}>
                   <View style={businessDetailsStyles.labelLeft}>
+                    <Text style={businessDetailsStyles.label}>
+                      Business Category
+                    </Text>
+                  </View>
+                </View>
+                <Animated.View style={{ transform: [{ scale: getFieldAnim('businessCategory').scale }] }}>
+                <View style={[
+                  businessDetailsStyles.input,
+                  businessDetailsStyles.inputRow,
+                  !!form.businessCategory?.trim() && businessDetailsStyles.inputFilled,
+                  focusedField === 'businessCategory' && businessDetailsStyles.inputFocused,
+                ]}>
+                  <Animated.View style={{ transform: [{ scale: getFieldAnim('businessCategory').icon }] }}>
                     <Ionicons
                       name="pricetag"
                       size={17}
-                      color="#D4AF37"
+                      color={'#D4AF37'}
+                      style={businessDetailsStyles.inputIcon}
                     />
-                    <Text style={businessDetailsStyles.label}>
-                      {'  '}Business Category
-                    </Text>
-                  </View>
+                  </Animated.View>
+                  <TextInput
+                    style={businessDetailsStyles.inputField}
+                    placeholder="e.g., Technology, Finance"
+                    placeholderTextColor="#9CA3AF"
+                    value={form.businessCategory}
+                    onChangeText={(value) =>
+                      updateForm('businessCategory', value)
+                    }
+                    onFocus={() => handleFocusAnim('businessCategory')}
+                    onBlur={() => handleBlurAnim('businessCategory')}
+                  />
                 </View>
-                <TextInput
-                  style={businessDetailsStyles.input}
-                  placeholder="e.g., Technology, Finance"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.businessCategory}
-                  onChangeText={(value) =>
-                    updateForm('businessCategory', value)
-                  }
-                />
+                </Animated.View>
               </View>
+              </AnimatedFormItem>
 
               {/* BUSINESS SUB-CATEGORY */}
+              <AnimatedFormItem index={3}>
               <View style={businessDetailsStyles.fieldWrapper}>
                 <View style={businessDetailsStyles.labelRow}>
                   <View style={businessDetailsStyles.labelLeft}>
+                    <Text style={businessDetailsStyles.label}>
+                      Business Sub-Category
+                    </Text>
+                  </View>
+                </View>
+                <Animated.View style={{ transform: [{ scale: getFieldAnim('businessSubCategory').scale }] }}>
+                <View style={[
+                  businessDetailsStyles.input,
+                  businessDetailsStyles.inputRow,
+                  !!form.businessSubCategory?.trim() && businessDetailsStyles.inputFilled,
+                  focusedField === 'businessSubCategory' && businessDetailsStyles.inputFocused,
+                ]}>
+                  <Animated.View style={{ transform: [{ scale: getFieldAnim('businessSubCategory').icon }] }}>
                     <Ionicons
                       name="layers"
                       size={17}
-                      color="#D4AF37"
+                      color={'#D4AF37'}
+                      style={businessDetailsStyles.inputIcon}
                     />
-                    <Text style={businessDetailsStyles.label}>
-                      {'  '}Business Sub-Category
-                    </Text>
-                  </View>
+                  </Animated.View>
+                  <TextInput
+                    style={businessDetailsStyles.inputField}
+                    placeholder="e.g., Web Development, Consulting"
+                    placeholderTextColor="#9CA3AF"
+                    value={form.businessSubCategory}
+                    onChangeText={(value) =>
+                      updateForm('businessSubCategory', value)
+                    }
+                    onFocus={() => handleFocusAnim('businessSubCategory')}
+                    onBlur={() => handleBlurAnim('businessSubCategory')}
+                  />
                 </View>
-                <TextInput
-                  style={businessDetailsStyles.input}
-                  placeholder="e.g., Web Development, Consulting"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.businessSubCategory}
-                  onChangeText={(value) =>
-                    updateForm('businessSubCategory', value)
-                  }
-                />
+                </Animated.View>
               </View>
+              </AnimatedFormItem>
 
               {/* CLIENTS */}
+              <AnimatedFormItem index={4}>
               <View style={businessDetailsStyles.fieldWrapper}>
                 <View style={businessDetailsStyles.labelRow}>
                   <View style={businessDetailsStyles.labelLeft}>
+                    <Text style={businessDetailsStyles.label}>
+                      Clients
+                    </Text>
+                  </View>
+                </View>
+                <Animated.View style={{ transform: [{ scale: getFieldAnim('clients').scale }] }}>
+                <View style={[
+                  businessDetailsStyles.input,
+                  businessDetailsStyles.inputRow,
+                  !!form.clients?.trim() && businessDetailsStyles.inputFilled,
+                  focusedField === 'clients' && businessDetailsStyles.inputFocused,
+                ]}>
+                  <Animated.View style={{ transform: [{ scale: getFieldAnim('clients').icon }] }}>
                     <Ionicons
                       name="people"
                       size={17}
-                      color="#D4AF37"
+                      color={'#D4AF37'}
+                      style={businessDetailsStyles.inputIcon}
                     />
-                    <Text style={businessDetailsStyles.label}>
-                      {'  '}Clients
-                    </Text>
-                  </View>
+                  </Animated.View>
+                  <TextInput
+                    style={businessDetailsStyles.inputField}
+                    placeholder="List your main clients (optional)"
+                    placeholderTextColor="#9CA3AF"
+                    value={form.clients}
+                    onChangeText={(value) => updateForm('clients', value)}
+                    onFocus={() => handleFocusAnim('clients')}
+                    onBlur={() => handleBlurAnim('clients')}
+                  />
                 </View>
-                <TextInput
-                  style={businessDetailsStyles.input}
-                  placeholder="List your main clients (optional)"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.clients}
-                  onChangeText={(value) => updateForm('clients', value)}
-                />
+                </Animated.View>
               </View>
+              </AnimatedFormItem>
 
               {/* BUSINESS DESCRIPTION */}
+              <AnimatedFormItem index={5}>
               <View style={businessDetailsStyles.fieldWrapper}>
                 <View style={businessDetailsStyles.labelRow}>
                   <View style={businessDetailsStyles.labelLeft}>
-                    <Ionicons
-                      name="document-text"
-                      size={17}
-                      color="#D4AF37"
-                    />
                     <Text style={businessDetailsStyles.label}>
-                      {'  '}Business Description
+                      Business Description
                       <Text style={businessDetailsStyles.star}> *</Text>
                     </Text>
                   </View>
@@ -416,26 +541,45 @@ export default function BusinessDetailsScreen({ route, navigation }) {
                     </Text>
                   )}
                 </View>
-                <TextInput
-                  style={[
+                <Animated.View style={{ transform: [{ scale: getFieldAnim('businessDescription').scale }] }}>
+                  <View style={[
                     businessDetailsStyles.input,
+                    businessDetailsStyles.inputRow,
+                    !!form.businessDescription?.trim() && businessDetailsStyles.inputFilled,
+                    focusedField === 'businessDescription' && businessDetailsStyles.inputFocused,
                     businessDetailsStyles.multilineInput,
                     errors.businessDescription &&
                     businessDetailsStyles.inputError,
-                  ]}
-                  placeholder="Describe your business, services, and expertise"
-                  placeholderTextColor="#9CA3AF"
-                  value={form.businessDescription}
-                  onChangeText={(value) =>
-                    updateForm('businessDescription', value)
-                  }
-                  multiline
-                  numberOfLines={5}
-                  textAlignVertical="top"
-                />
+                  ]}>
+                    <Animated.View style={{ transform: [{ scale: getFieldAnim('businessDescription').icon }] }}>
+                      <Ionicons
+                        name="document-text"
+                        size={17}
+                        color={'#D4AF37'}
+                        style={[businessDetailsStyles.inputIcon, businessDetailsStyles.inputIconMultiline]}
+                      />
+                    </Animated.View>
+                    <TextInput
+                      style={[businessDetailsStyles.inputField, businessDetailsStyles.multilineInput]}
+                      placeholder="Describe your business, services, and expertise"
+                      placeholderTextColor="#9CA3AF"
+                      value={form.businessDescription}
+                      onChangeText={(value) =>
+                        updateForm('businessDescription', value)
+                      }
+                      multiline
+                      numberOfLines={5}
+                      textAlignVertical="top"
+                      onFocus={() => handleFocusAnim('businessDescription')}
+                      onBlur={() => handleBlurAnim('businessDescription')}
+                    />
+                  </View>
+                </Animated.View>
               </View>
+              </AnimatedFormItem>
 
               {/* PDF UPLOAD */}
+              <AnimatedFormItem index={6}>
               <View style={businessDetailsStyles.fieldWrapper}>
                 <View style={businessDetailsStyles.labelRow}>
                   <View style={businessDetailsStyles.labelLeft}>
@@ -475,25 +619,26 @@ export default function BusinessDetailsScreen({ route, navigation }) {
                   </View>
                 )}
               </View>
+              </AnimatedFormItem>
 
             </View>
 
             {/* BUTTON GROUP */}
             <View style={layoutStyles.buttonGroup}>
-              <TouchableOpacity
+              <AnimatedPressable
                 style={layoutStyles.saveButton}
                 onPress={handleNext}
               >
                 <Ionicons name="checkmark-done" size={18} color="#0F0F0F" />
                 <Text style={layoutStyles.saveButtonText}>Step 3: Social Media</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </AnimatedPressable>
+              <AnimatedPressable
                 style={layoutStyles.skipButton}
                 onPress={handleBack}
               >
                 <Ionicons name="arrow-back" size={18} color="#D4AF37" />
                 <Text style={layoutStyles.skipButtonText}>Go Back</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
           </View>
         </ScrollView>
@@ -597,3 +742,4 @@ const logoStyles = StyleSheet.create({
     fontSize: 15,
   },
 });
+

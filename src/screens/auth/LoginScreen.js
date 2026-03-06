@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/common/Header';
@@ -30,6 +31,28 @@ export default function LoginScreen({ navigation }) {
   const [verifying, setVerifying]   = useState(false);
 
   const inputs = useRef([]);
+
+  // ── Card entrance animation ───────────────────────────────────────────────────
+  const cardOpacity    = useRef(new Animated.Value(0)).current;
+  const cardTranslateY = useRef(new Animated.Value(56)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(cardOpacity, {
+        toValue: 1,
+        duration: 380,
+        delay: 120,
+        useNativeDriver: true,
+      }),
+      Animated.spring(cardTranslateY, {
+        toValue: 0,
+        delay: 120,
+        useNativeDriver: true,
+        speed: 18,
+        bounciness: 5,
+      }),
+    ]).start();
+  }, []);
 
   // ── Countdown timer ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -55,6 +78,30 @@ export default function LoginScreen({ navigation }) {
   };
 
   const validPhone = (v) => /^[1-9]\d{9}$/.test(v);
+  const shouldShowSignupPrompt = (res, data) => {
+    const msg = String(data?.message || '').toLowerCase();
+    return (
+      res?.status === 404 ||
+      data?.status === 0 ||
+      data?.status === 2 ||
+      msg.includes('not registered') ||
+      msg.includes('not found') ||
+      msg.includes('no account') ||
+      msg.includes('does not exist') ||
+      msg.includes("doesn't exist")
+    );
+  };
+
+  const showSignupAlert = (message) => {
+    Alert.alert(
+      'Please Sign Up First',
+      message || 'No account found for this number. Please sign up first.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Up', onPress: () => navigation.navigate('Signup') },
+      ]
+    );
+  };
 
   // ── Start OTP flow (shared by Send and Resend) ───────────────────────────────
   const startOtpFlow = async (endpoint) => {
@@ -71,16 +118,8 @@ export default function LoginScreen({ navigation }) {
         setTimer(30);
         setCanResend(false);
         setTimeout(() => inputs.current[0]?.focus(), 300);
-      } else if (res.status === 404 || data?.status === 0) {
-        // User not registered — offer to sign up
-        Alert.alert(
-          'Not Registered',
-          data?.message || 'This number is not registered. Would you like to create an account?',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Sign Up', onPress: () => navigation.navigate('Signup') },
-          ]
-        );
+      } else if (shouldShowSignupPrompt(res, data)) {
+        showSignupAlert(data?.message);
       } else {
         Alert.alert('Error', data?.message || 'Failed to send OTP. Please try again.');
       }
@@ -160,16 +199,8 @@ export default function LoginScreen({ navigation }) {
         await saveSession(phone);
         navigation.replace('Landing');
 
-      } else if (res.status === 404 || data?.status === 2) {
-        // Account does not exist — redirect to signup
-        Alert.alert(
-          'Account Not Found',
-          'No account found for this number. Please sign up to create one.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Sign Up', onPress: () => navigation.navigate('Signup') },
-          ]
-        );
+      } else if (shouldShowSignupPrompt(res, data)) {
+        showSignupAlert(data?.message);
       } else {
         Alert.alert('Wrong OTP', data?.message || 'The OTP you entered is incorrect. Please try again.');
         resetOtp();
@@ -207,7 +238,12 @@ export default function LoginScreen({ navigation }) {
             </Header>
 
             {/* ── Card ── */}
-            <View style={loginStyles.card}>
+            <Animated.View
+              style={[
+                loginStyles.card,
+                { opacity: cardOpacity, transform: [{ translateY: cardTranslateY }] },
+              ]}
+            >
 
               {/* Phone Input */}
               <InputField
@@ -297,10 +333,12 @@ export default function LoginScreen({ navigation }) {
                 <Text style={loginStyles.signupText}>Sign Up →</Text>
               </TouchableOpacity>
 
-            </View>
+            </Animated.View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
+

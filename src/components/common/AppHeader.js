@@ -9,29 +9,42 @@ const AppHeader = () => {
   return (
     <View>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
         </TouchableOpacity>
 
         <Text style={styles.title}>DIGITAL BUSINESS CARD</Text>
 
-        <View style={{ width: 36 }} />
+        {/* Spacer to balance the back button */}
+        <View style={styles.spacer} />
       </View>
 
-      <View style={styles.goldLine} />
+      {/* Two-tone accent bar: full gold line + inner shimmer line */}
+      <View style={styles.accentBar}>
+        <View style={styles.accentBarInner} />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    height: 56,
+    height: 58,
     width: '100%',
     backgroundColor: COLORS.surface,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   backBtn: {
     width: 36,
@@ -42,16 +55,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
-    letterSpacing: 1.2,
+    letterSpacing: 1.4,
     color: COLORS.text,
     textAlign: 'center',
+    flex: 1,
+    marginHorizontal: 8,
   },
-  goldLine: {
-    height: 2,
+  spacer: {
+    width: 36,
+  },
+  accentBar: {
+    height: 3,
     width: '100%',
     backgroundColor: COLORS.accent,
+  },
+  accentBarInner: {
+    position: 'absolute',
+    top: 0,
+    left: '15%',
+    width: '70%',
+    height: 3,
+    backgroundColor: '#E8CC6A',
+    opacity: 0.55,
+    borderRadius: 2,
   },
 });
 

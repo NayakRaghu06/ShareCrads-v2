@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { layoutStyles } from '../../styles/screens/personalDetailsLayoutStyles';
 import { formStyles } from '../../styles/screens/personalDetailsFormStyles';
 import AppHeader from '../../components/common/AppHeader';
+import AnimatedFormItem from '../../components/common/AnimatedFormItem';
+import AnimatedPressable from '../../components/common/AnimatedPressable';
 // import { getUser, saveDashboard } from '../../utils/storage';
 import Footer from '../../components/common/Footer';
 import { saveOrUpdateUser, getUser } from '../../database/userQueries';// Validation rules
@@ -101,6 +104,7 @@ export default function PersonalDetailsScreen({ navigation }) {
 
   const [errors, setErrors] = useState({});
   const [phoneLocked, setPhoneLocked] = useState(true);
+  const underlineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const loadPhone = async () => {
@@ -115,6 +119,14 @@ export default function PersonalDetailsScreen({ navigation }) {
     };
     loadPhone();
   }, []);
+
+  useEffect(() => {
+    Animated.timing(underlineAnim, {
+      toValue: 1,
+      duration: 350,
+      useNativeDriver: false,
+    }).start();
+  }, [underlineAnim]);
 
   // Validate single field
   const validateField = (name, value) => {
@@ -253,6 +265,17 @@ export default function PersonalDetailsScreen({ navigation }) {
             <Text style={layoutStyles.cardSubtitle}>
               All fields marked with * are mandatory
             </Text>
+            <Animated.View
+              style={[
+                layoutStyles.stepUnderline,
+                {
+                  width: underlineAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', '38%'],
+                  }),
+                },
+              ]}
+            />
           </View>
 
           {/* Personal Details Section */}
@@ -260,64 +283,74 @@ export default function PersonalDetailsScreen({ navigation }) {
             <Text style={layoutStyles.sectionTitle}>Personal Details</Text>
 
             {/* Name */}
-            <InputField
-              label="Name *"
-              placeholder="Enter your name"
-              icon="person"
-              value={formData.name}
-              onChangeText={(text) => handleFieldChange('name', text)}
-              error={errors.name}
-            />
+            <AnimatedFormItem index={0}>
+              <InputField
+                label="Name *"
+                placeholder="Enter your name"
+                icon="person"
+                value={formData.name}
+                onChangeText={(text) => handleFieldChange('name', text)}
+                error={errors.name}
+              />
+            </AnimatedFormItem>
 
             {/* Designation */}
-            <InputField
-              label="Designation (max 40 chars) *"
-              required={true}
-              placeholder="Enter designation"
-              icon="briefcase"
-              value={formData.designation}
-              onChangeText={(text) => handleFieldChange('designation', text)}
-              error={errors.designation}
-            />
+            <AnimatedFormItem index={1}>
+              <InputField
+                label="Designation (max 40 chars) *"
+                required={true}
+                placeholder="Enter designation"
+                icon="briefcase"
+                value={formData.designation}
+                onChangeText={(text) => handleFieldChange('designation', text)}
+                error={errors.designation}
+              />
+            </AnimatedFormItem>
 
             {/* Phone Number */}
-            <InputField
-              label="Phone Number * (10 digits)"
-              placeholder="10-digit phone number"
-              icon="call"
-              keyboardType="phone-pad"
-              value={formData.phone}
-              onChangeText={(text) => handleFieldChange('phone', text)}
-              editable={false}
-              error={errors.phone}
-              maxLength={10}
-            />
+            <AnimatedFormItem index={2}>
+              <InputField
+                label="Phone Number * (10 digits)"
+                placeholder="10-digit phone number"
+                icon="call"
+                keyboardType="phone-pad"
+                value={formData.phone}
+                onChangeText={(text) => handleFieldChange('phone', text)}
+                editable={false}
+                error={errors.phone}
+                maxLength={10}
+              />
+            </AnimatedFormItem>
 
             {/* Email */}
-            <InputField
-              label="Email (optional)"
-              placeholder="your.email@gmail.com"
-              icon="mail"
-              keyboardType="email-address"
-              value={formData.email}
-              onChangeText={(text) => handleFieldChange('email', text)}
-              error={errors.email}
-            />
+            <AnimatedFormItem index={3}>
+              <InputField
+                label="Email (optional)"
+                placeholder="your.email@gmail.com"
+                icon="mail"
+                keyboardType="email-address"
+                value={formData.email}
+                onChangeText={(text) => handleFieldChange('email', text)}
+                error={errors.email}
+              />
+            </AnimatedFormItem>
 
             {/* Address */}
-            <InputField
-              label="Address *"
-              placeholder="Enter address"
-              icon="location"
-              multiline
-              value={formData.address}
-              onChangeText={(text) => setFormData({ ...formData, address: text })}
-              error={errors.address}
-            />
+            <AnimatedFormItem index={4}>
+              <InputField
+                label="Address *"
+                placeholder="Enter address"
+                icon="location"
+                multiline
+                value={formData.address}
+                onChangeText={(text) => setFormData({ ...formData, address: text })}
+                error={errors.address}
+              />
+            </AnimatedFormItem>
           </View>
 
           {/* Save Button */}
-          <TouchableOpacity
+          <AnimatedPressable
             style={layoutStyles.saveButton}
             onPress={async () => {
               if (validateAllFields()) {
@@ -335,18 +368,18 @@ export default function PersonalDetailsScreen({ navigation }) {
           >
             <Ionicons name="checkmark-done" size={18} color="#0F0F0F" />
             <Text style={layoutStyles.saveButtonText}>Step 2: Business Details</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Preview Templates removed from this step (moved to Final Preview) */}
 
           {/* Next Step Button */}
-          <TouchableOpacity
+          <AnimatedPressable
             style={layoutStyles.skipButton}
             onPress={navigateToLanding}
           >
             <Ionicons name="arrow-back" size={18} color="#D4AF37" />
             <Text style={layoutStyles.skipButtonText}>Go Back</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         <View style={{ height: 30 }} />
@@ -368,6 +401,42 @@ function InputField({
   error,
   editable = true
 }) {
+  const [isFocused, setIsFocused] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const iconScaleAnim = useRef(new Animated.Value(1)).current;
+
+  const onFocusField = () => {
+    setIsFocused(true);
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 1.02,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(iconScaleAnim, {
+        toValue: 1.1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const onBlurField = () => {
+    setIsFocused(false);
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(iconScaleAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   const renderLabel = () => {
     if (!label) return null;
 
@@ -390,17 +459,22 @@ function InputField({
   return (
     <View style={formStyles.inputWrapper}>
       {renderLabel()}
-      <View style={[
-        formStyles.inputContainer,
-        multiline && formStyles.addressInputContainer,
-        error && { borderColor: '#EF4444', borderWidth: 2 }
-      ]}>
-        <Ionicons
-          name={icon}
-          size={20}
-          color={error ? '#EF4444' : '#D4AF37'}
-          style={[formStyles.inputIcon, multiline && formStyles.addressIcon]}
-        />
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <View style={[
+          formStyles.inputContainer,
+          value?.trim?.() ? formStyles.inputContainerFilled : null,
+          multiline && formStyles.addressInputContainer,
+          isFocused && formStyles.inputFocused,
+          error && { borderColor: '#EF4444', borderWidth: 1.5 }
+        ]}>
+          <Animated.View style={{ transform: [{ scale: iconScaleAnim }] }}>
+            <Ionicons
+              name={icon}
+              size={20}
+              color={error ? '#EF4444' : isFocused ? '#D4AF37' : '#9CA3AF'}
+              style={[formStyles.inputIcon, multiline && formStyles.addressIcon]}
+            />
+          </Animated.View>
         <TextInput
           style={[
             formStyles.input,
@@ -416,8 +490,11 @@ function InputField({
           value={value}
           onChangeText={onChangeText}
           editable={editable}
+          onFocus={onFocusField}
+          onBlur={onBlurField}
         />
-      </View>
+        </View>
+      </Animated.View>
       {error && (
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
           <Ionicons name="alert-circle" size={14} color="#EF4444" />

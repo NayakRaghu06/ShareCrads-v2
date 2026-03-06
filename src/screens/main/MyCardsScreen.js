@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,83 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Animated,
 } from 'react-native';
 import { apiFetch } from '../../utils/api';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
 import AnimatedCard from '../../components/common/AnimatedCard';
+import AnimatedPressable from '../../components/common/AnimatedPressable';
+
+// ── Shimmer skeleton shown while cards are loading
+const ShimmerBar = ({ width = '100%', height = 14, style }) => {
+  const shimmer = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [shimmer]);
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.7] });
+  return (
+    <Animated.View style={[{ width, height, borderRadius: 6, backgroundColor: '#D4AF37', opacity }, style]} />
+  );
+};
+
+const SkeletonCard = () => (
+  <View style={sk.card}>
+    <View style={sk.header}>
+      <View style={sk.avatar} />
+      <View style={{ flex: 1, gap: 8 }}>
+        <ShimmerBar width="60%" height={12} />
+        <ShimmerBar width="40%" height={10} />
+        <ShimmerBar width="50%" height={10} />
+      </View>
+    </View>
+    <View style={sk.footer}>
+      <ShimmerBar width="28%" height={10} />
+      <ShimmerBar width="28%" height={10} />
+      <ShimmerBar width="28%" height={10} />
+    </View>
+  </View>
+);
+
+const sk = StyleSheet.create({
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    marginBottom: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F3E9D2',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1A2E',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 14,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#2A2A4E',
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+    opacity: 0.5,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+});
 
 const GOLD = '#C9A227';
 
@@ -69,71 +140,79 @@ export default function MyCardsScreen({ navigation }) {
 
   const renderItem = useCallback(({ item, index }) => (
     <AnimatedCard index={index}>
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.85}
-      onPress={() => navigation.navigate('CardDetailsScreen', { cardData: item })}
-    >
-      <View style={styles.cardHeader}>
-        {item.profileImage ? (
-          <Image source={{ uri: item.profileImage }} style={styles.avatar} />
-        ) : (
-          <View style={styles.avatarPlaceholder}>
-            <Ionicons name="person" size={26} color="#fff" />
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('CardDetailsScreen', { cardData: item })}
+      >
+        <View style={styles.cardHeader}>
+          {item.profileImage ? (
+            <Image source={{ uri: item.profileImage }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={26} color="#fff" />
+            </View>
+          )}
+
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerName} numberOfLines={1}>
+              {item.name || 'Unnamed'}
+            </Text>
+            {(item.designation || item.role) ? (
+              <Text style={styles.headerDesignation} numberOfLines={1}>
+                {item.designation || item.role}
+              </Text>
+            ) : null}
+            {(item.companyName || item.company) ? (
+              <Text style={styles.headerCompany} numberOfLines={1}>
+                {item.companyName || item.company}
+              </Text>
+            ) : null}
+            {(item.phoneNumber || item.phone) ? (
+              <Text style={styles.headerPhone} numberOfLines={1}>
+                {item.phoneNumber || item.phone}
+              </Text>
+            ) : null}
           </View>
-        )}
-
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerName} numberOfLines={1}>
-            {item.name || 'Unnamed'}
-          </Text>
-          {(item.designation || item.role) ? (
-            <Text style={styles.headerDesignation} numberOfLines={1}>
-              {item.designation || item.role}
-            </Text>
-          ) : null}
-          {(item.companyName || item.company) ? (
-            <Text style={styles.headerCompany} numberOfLines={1}>
-              {item.companyName || item.company}
-            </Text>
-          ) : null}
-          {(item.phoneNumber || item.phone) ? (
-            <Text style={styles.headerPhone} numberOfLines={1}>
-              {item.phoneNumber || item.phone}
-            </Text>
-          ) : null}
         </View>
-      </View>
 
-      <View style={styles.cardFooter}>
-        <TouchableOpacity
-          style={styles.shareBtn}
-          onPress={() => navigation.navigate('ShareCardScreen', { cardData: item })}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="share-social" size={15} color={GOLD} />
-          <Text style={[styles.actionLabel, { color: GOLD }]}>Share</Text>
-        </TouchableOpacity>
+        <View style={styles.cardFooter}>
+          <AnimatedPressable
+            style={styles.shareBtn}
+            // onPress={() => navigation.navigate('ShareCardScreen', { cardData: item })}
+            onPress={() =>
+              navigation.navigate('ShareCardScreen', {
+                cardData: {
+                  ...item,
+                  cardId: item.cardId ?? item.id
+                }
+              })
+            }
+            scaleTo={0.93}
+          >
+            <Ionicons name="share-social" size={15} color={GOLD} />
+            <Text style={[styles.actionLabel, { color: GOLD }]}>Share</Text>
+          </AnimatedPressable>
 
-        <TouchableOpacity
-          style={styles.editBtn}
-          onPress={() => navigation.navigate('EditCardScreen', { cardData: item })}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="create-outline" size={15} color="#2F80ED" />
-          <Text style={[styles.actionLabel, { color: '#2F80ED' }]}>Edit</Text>
-        </TouchableOpacity>
+          <AnimatedPressable
+            style={styles.editBtn}
+            onPress={() => navigation.navigate('EditCardScreen', { cardData: item })}
+            scaleTo={0.93}
+          >
+            <Ionicons name="create-outline" size={15} color="#2F80ED" />
+            <Text style={[styles.actionLabel, { color: '#2F80ED' }]}>Edit</Text>
+          </AnimatedPressable>
 
-        <TouchableOpacity
-          style={styles.deleteBtn}
-          onPress={() => handleDelete(item.cardId)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="trash-outline" size={15} color="#EB5757" />
-          <Text style={[styles.actionLabel, { color: '#EB5757' }]}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+          <AnimatedPressable
+            style={styles.deleteBtn}
+            onPress={() => handleDelete(item.cardId ?? item.id)}
+            scaleTo={0.93}
+          >
+            <Ionicons name="trash-outline" size={15} color="#EB5757" />
+            <Text style={[styles.actionLabel, { color: '#EB5757' }]}>Delete</Text>
+          </AnimatedPressable>
+        </View>
+      </TouchableOpacity>
     </AnimatedCard>
   ), [navigation, handleDelete]);
 
@@ -142,21 +221,26 @@ export default function MyCardsScreen({ navigation }) {
       <AppHeader />
 
       <Text style={styles.sectionTitle}>My Cards</Text>
-      {loading ? null : cards.length === 0 ? (
+      {loading ? (
+        <View style={styles.listContent}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </View>
+      ) : cards.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIconWrap}>
             <Ionicons name="albums-outline" size={48} color={GOLD} />
           </View>
           <Text style={styles.emptyTitle}>No Cards Yet</Text>
           <Text style={styles.emptyText}>Create your first digital business card and manage it here</Text>
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.emptyAction}
             onPress={() => navigation.navigate('PersonalDetails')}
-            activeOpacity={0.85}
           >
             <Ionicons name="add-circle-outline" size={18} color="#fff" />
             <Text style={styles.emptyActionText}>Create a Card</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       ) : (
         <FlatList

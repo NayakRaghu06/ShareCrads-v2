@@ -7,20 +7,18 @@ const PrimaryButton = ({ title, onPress, variant = 'primary', disabled = false }
   const filled = variant === 'primary';
 
   const pressIn = useCallback(() => {
-    Animated.spring(scale, {
-      toValue: 0.95,
+    Animated.timing(scale, {
+      toValue: 0.96,
+      duration: 120,
       useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
     }).start();
   }, [scale]);
 
   const pressOut = useCallback(() => {
-    Animated.spring(scale, {
+    Animated.timing(scale, {
       toValue: 1,
+      duration: 120,
       useNativeDriver: true,
-      speed: 50,
-      bounciness: 6,
     }).start();
   }, [scale]);
 

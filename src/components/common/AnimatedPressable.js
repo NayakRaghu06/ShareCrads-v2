@@ -14,26 +14,24 @@ const AnimatedPressable = ({
   children,
   onPress,
   style,
-  scaleTo = 0.95,
+  scaleTo = 0.96,
   disabled = false,
 }) => {
   const scale = useRef(new Animated.Value(1)).current;
 
   const pressIn = useCallback(() => {
-    Animated.spring(scale, {
+    Animated.timing(scale, {
       toValue: scaleTo,
+      duration: 120,
       useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
     }).start();
   }, [scale, scaleTo]);
 
   const pressOut = useCallback(() => {
-    Animated.spring(scale, {
+    Animated.timing(scale, {
       toValue: 1,
+      duration: 120,
       useNativeDriver: true,
-      speed: 50,
-      bounciness: 6,
     }).start();
   }, [scale]);
 

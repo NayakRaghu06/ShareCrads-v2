@@ -41,6 +41,20 @@ const TEMPLATE_ID_MAP = {
   dark: 3,
 };
 
+const normalizePhoneDigits = (value) => String(value || '').replace(/\D/g, '');
+const normalizeOptionalUrl = (value) => {
+  const v = String(value || '').trim();
+  if (!v) return null;
+  return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+};
+const normalizeWhatsappUrl = (value) => {
+  const v = String(value || '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  const digits = normalizePhoneDigits(v);
+  return digits ? `https://wa.me/${digits}` : null;
+};
+
 export default function FinalPreviewScreen({ route, navigation }) {
   const { template = "classic" } = route?.params || {};
   const [selectedTemplate, setSelectedTemplate] = useState(template);
@@ -202,7 +216,7 @@ export default function FinalPreviewScreen({ route, navigation }) {
                   name: d.name || '',
                   designation: d.designation || d.role || '',
                   companyName: d.companyName || d.company || '',
-                  phoneNumber: d.phone || d.phoneNumber || d.mobile || '',
+                  phoneNumber: normalizePhoneDigits(d.phone || d.phoneNumber || d.mobile || ''),
                   email: d.email || null,
                   address: d.address || d.location || null,
                   keywords: d.searchKeywords || d.keywords || null,
@@ -210,11 +224,11 @@ export default function FinalPreviewScreen({ route, navigation }) {
                   businessSubcategory: d.businessSubCategory || d.businessSubcategory || null,
                   clients: d.clients || null,
                   businessDescription: d.businessDescription || d.description || null,
-                  linkedin: d.linkedin || null,
-                  facebook: d.facebook || null,
-                  instagram: d.instagram || null,
-                  twitter: d.twitter || null,
-                  whatsappUrl: d.whatsapp || d.whatsappUrl || null,
+                  linkedin: normalizeOptionalUrl(d.linkedin),
+                  facebook: normalizeOptionalUrl(d.facebook),
+                  instagram: normalizeOptionalUrl(d.instagram),
+                  twitter: normalizeOptionalUrl(d.twitter),
+                  whatsappUrl: normalizeWhatsappUrl(d.whatsappUrl || d.whatsapp),
                   templateSlug: slug,
                   templateId: resolvedTemplateId,
                 };

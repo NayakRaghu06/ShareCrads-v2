@@ -56,7 +56,7 @@ export const businessDetailsStyles = StyleSheet.create({
 
   /* INPUT FIELD */
   input: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F8F9FB',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 12,
@@ -65,6 +65,44 @@ export const businessDetailsStyles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.text,
     fontWeight: '500',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputField: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.text,
+    fontWeight: '500',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  inputIcon: {
+    marginRight: 10,
+    color: '#D4AF37',
+  },
+  inputIconMultiline: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+
+  inputFilled: {
+    backgroundColor: '#FFFFFF',
+  },
+
+  inputFocused: {
+    borderColor: '#D4AF37',
+    borderWidth: 1.5,
+    shadowColor: '#D4AF37',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   inputError: {
@@ -74,21 +112,27 @@ export const businessDetailsStyles = StyleSheet.create({
 
   multilineInput: {
     paddingTop: 12,
-    height: 120,
+    height: 110,
     textAlignVertical: 'top',
   },
 
   /* PDF BUTTON */
   pdfButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F8F9FB',
     borderWidth: 1.5,
     borderColor: COLORS.accent,
+    borderStyle: 'dashed',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
 
   pdfButtonText: {

@@ -61,15 +61,15 @@ const styles = StyleSheet.create({
   row: {
     width: "100%",
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   labelBox: {
-    flex: 7,
-    paddingRight: 3,
+    flex: 0.42,
+    paddingRight: 8,
     flexShrink: 0,
   },
   valueBox: {
-    flex: 4,
+    flex: 0.58,
     overflow: "hidden",
   },
   label: {

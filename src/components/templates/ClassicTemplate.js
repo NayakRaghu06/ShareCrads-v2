@@ -60,11 +60,6 @@ const ClassicTemplate = ({ userData, data }) => {
 
   return (
     <View style={styles.card}>
-      {/* decorative corner boxes */}
-      <View style={styles.cornerBoxTopLeft} />
-      <View style={styles.cornerBoxTopRight} />
-      <View style={styles.cornerBoxBottomLeft} />
-      <View style={styles.cornerBoxBottomRight} />
       {/* Company logo fixed top-left */}
       {d?.companyLogo ? (
         <Image source={{ uri: d.companyLogo }} style={styles.companyLogo} />
@@ -148,54 +143,66 @@ export default ClassicTemplate;
 const styles = StyleSheet.create({
   card: {
     margin: 16,
-    paddingVertical: 22,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: "#070912",
+    paddingTop: 20,
+    paddingBottom: 22,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    backgroundColor: "#0F0F0F",
     borderWidth: 1,
-    borderColor: "#0F1724",
+    borderColor: "#242424",
     alignItems: "center",
     alignSelf: 'center',
     width: '92%',
     maxWidth: 720,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
     elevation: 12,
   },
   avatarOuter: {
-    borderWidth: 3,
+    width: 98,
+    height: 98,
+    borderRadius: 49,
+    borderWidth: 1.5,
     borderColor: "#D4AF37",
-    borderRadius: 48,
-    padding: 4,
-    marginBottom: 12,
-    backgroundColor: 'transparent'
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+    marginBottom: 14,
+    backgroundColor: 'transparent',
   },
   avatarInner: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: "#0B1023",
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#1A1A1A",
     justifyContent: "center",
     alignItems: "center",
   },
   avatarText: {
-    fontSize: 34,
+    fontSize: 32,
     color: "#D4AF37",
     fontWeight: "bold",
   },
   avatarImage: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
   },
   companyLogo: {
     position: 'absolute',
-    left: 12,
-    top: 12,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    left: 14,
+    top: 14,
+    width: 70,
+    height: 70,
+    borderRadius: 10,
     overflow: 'hidden',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
     zIndex: 5,
+    backgroundColor: '#151515',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
   },
   qrImage: {
     width: 80,
@@ -238,13 +245,15 @@ const styles = StyleSheet.create({
   /* unified field box used for all data rows */
   fieldBox: {
     width: '100%',
-    backgroundColor: '#0E131A',
+    backgroundColor: '#171717',
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     borderRadius: 12,
-    marginVertical: 8,
+    marginVertical: 6,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#242424',
   },
   info: {
     color: "#E5E7EB",
@@ -253,16 +262,22 @@ const styles = StyleSheet.create({
   },
   socialRow: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: 14,
     alignItems: 'center',
-    justifyContent: 'space-around',
-    width: '100%'
+    justifyContent: 'space-evenly',
+    width: '100%',
+    flexWrap: 'wrap',
   },
   iconBtn: {
-    marginHorizontal: 6,
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.08)'
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#191919',
+    borderWidth: 1,
+    borderColor: '#2B2B2B',
+    marginBottom: 10,
   },
   scannedCard: {
     width: '100%',
@@ -283,7 +298,7 @@ const styles = StyleSheet.create({
   fieldsContainer: {
     width: '100%',
     alignSelf: 'center',
-    marginTop: 8,
+    marginTop: 10,
     paddingHorizontal: 0,
   },
   row: {
@@ -292,61 +307,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    color: '#EDEDED',
-    fontWeight: '800',
-    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
   },
   value: {
-    color: '#D1D5DB',
-    fontSize: 11,
-    lineHeight: 18,
-  },
-  /* small decorative corner boxes */
-  cornerBoxTopLeft: {
-    position: 'absolute',
-    left: 10,
-    top: 10,
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    backgroundColor: '#D4AF37',
-    opacity: 0.95,
-  },
-  cornerBoxTopRight: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    backgroundColor: '#D4AF37',
-    opacity: 0.95,
-  },
-  cornerBoxBottomLeft: {
-    position: 'absolute',
-    left: 10,
-    bottom: 10,
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    backgroundColor: '#D4AF37',
-    opacity: 0.95,
-  },
-  cornerBoxBottomRight: {
-    position: 'absolute',
-    right: 10,
-    bottom: 10,
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    backgroundColor: '#D4AF37',
-    opacity: 0.95,
-  },
-  /* responsive tweaks */
-  qrContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 6,
+    color: '#9CA3AF',
+    fontSize: 12,
+    lineHeight: 17,
   },
 });

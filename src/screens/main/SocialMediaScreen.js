@@ -1,14 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Image,
   StatusBar,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,8 +17,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { layoutStyles } from '../../styles/screens/socialMediaStyles';
 import { formStyles } from '../../styles/screens/socialMediaStyles';
 import AppHeader from '../../components/common/AppHeader';
-import Footer from '../../components/common/Footer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ProfileAvatarUpload from '../../components/common/ProfileAvatarUpload';
+import LogoUploadCard from '../../components/common/LogoUploadCard';
+import AnimatedFormItem from '../../components/common/AnimatedFormItem';
+import AnimatedPressable from '../../components/common/AnimatedPressable';
 // template previews moved to TemplatePreview flow
 
 // Validation rules
@@ -36,10 +39,18 @@ const validations = {
     urlFormat: true,
     required: false,
   },
-  website: {
+  twitter: {
+    usernameFormat: true,
+    required: false,
+  },
+  facebook: {
     urlFormat: true,
     required: false,
   },
+  // website: {
+  //   urlFormat: true,
+  //   required: false,
+  // },
 };
 
 export default function SocialMediaScreen({ route, navigation }) {
@@ -51,12 +62,13 @@ export default function SocialMediaScreen({ route, navigation }) {
     instagram: '',
     twitter: '',
     facebook: '',
-    website: '',
+    // website: '',
     companyLogo: null,
     profilePhoto: null,
   });
 
   const [errors, setErrors] = useState({});
+  const underlineAnim = useRef(new Animated.Value(0)).current;
 
   // ================================
   // IMAGE PICKER FUNCTION (WORKING)
@@ -94,6 +106,13 @@ export default function SocialMediaScreen({ route, navigation }) {
     }
   };
 
+  const handleRemoveImage = (field) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: null,
+    }));
+  };
+
   // ================================
   // VALIDATION
   // ================================
@@ -116,11 +135,27 @@ export default function SocialMediaScreen({ route, navigation }) {
       }
     }
 
-    if (name === 'website') {
-      if (!/^https?:\/\/.+\..+/.test(value)) {
-        return 'Enter valid website URL';
+    if (name === 'twitter') {
+      const handle = value.startsWith('@') ? value.slice(1) : value;
+      if (!/^[A-Za-z0-9_]+$/.test(handle)) {
+        return 'Twitter can only contain letters, numbers, and underscore';
+      }
+      if (handle.length > 15) {
+        return 'Twitter username must be max 15 characters';
       }
     }
+
+    if (name === 'facebook') {
+      if (!/^https?:\/\/(www\.)?facebook\.com\/[A-Za-z0-9.]+\/?$/.test(value)) {
+        return 'Enter valid Facebook profile URL';
+      }
+    }
+
+    // if (name === 'website') {
+    //   if (!/^https?:\/\/.+\..+/.test(value)) {
+    //     return 'Enter valid website URL';
+    //   }
+    // }
 
     return '';
   };
@@ -132,6 +167,8 @@ export default function SocialMediaScreen({ route, navigation }) {
       cleanedValue = value.replace(/\D/g, '').slice(0, 10);
     } else if (name === 'instagram') {
       cleanedValue = value.replace(/\s/g, '');
+    } else if (name === 'twitter') {
+      cleanedValue = value.replace(/\s/g, '').slice(0, 16);
     }
 
     setFormData({ ...formData, [name]: cleanedValue });
@@ -172,7 +209,7 @@ export default function SocialMediaScreen({ route, navigation }) {
         instagram: formData.instagram || cardData.instagram || null,
         twitter: formData.twitter || cardData.twitter || null,
         facebook: formData.facebook || cardData.facebook || null,
-        website: formData.website || cardData.website || null,
+        // website: formData.website || cardData.website || null,
       };
 
       const finalCardData = {
@@ -194,7 +231,7 @@ export default function SocialMediaScreen({ route, navigation }) {
           whatsapp: finalCardData.whatsapp || null,
           linkedin: finalCardData.linkedin || null,
           instagram: finalCardData.instagram || null,
-          website: finalCardData.website || null,
+          // website: finalCardData.website || null,
         },
         logo: finalCardData.companyLogo || null,
       };
@@ -219,7 +256,7 @@ export default function SocialMediaScreen({ route, navigation }) {
         instagram: cardData.instagram || prev.instagram,
         twitter: cardData.twitter || prev.twitter,
         facebook: cardData.facebook || prev.facebook,
-        website: cardData.website || prev.website,
+        // website: cardData.website || prev.website,
       };
 
       // Avoid updating state if nothing changed (prevents infinite loops when cardData reference changes)
@@ -243,6 +280,14 @@ export default function SocialMediaScreen({ route, navigation }) {
     };
     loadPhone();
   }, []);
+
+  React.useEffect(() => {
+    Animated.timing(underlineAnim, {
+      toValue: 1,
+      duration: 350,
+      useNativeDriver: false,
+    }).start();
+  }, [underlineAnim]);
 
   const navigateToBusinessDetails = () => {
     navigation.goBack();
@@ -278,88 +323,119 @@ export default function SocialMediaScreen({ route, navigation }) {
             <Text style={layoutStyles.cardSubtitle}>
               All fields marked with * are mandatory
             </Text>
+            <Animated.View
+              style={[
+                layoutStyles.stepUnderline,
+                {
+                  width: underlineAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', '38%'],
+                  }),
+                },
+              ]}
+            />
           </View>
 
           {/* <Text style={layoutStyles.sectionTitle}>
           Social Media & Contact Links
         </Text> */}
 
-          <InputField
-            label="WhatsApp (Optional, 10 digits)"
-            placeholder="Mobile number"
-            icon="logo-whatsapp"
-            keyboardType="phone-pad"
-            value={formData.whatsapp}
-            onChangeText={(text) => handleFieldChange('whatsapp', text.replace(/[^0-9]/g, '').slice(0, 10))}
-            error={errors.whatsapp}
-            maxLength={10}
-            editable={true}
-          />
+          <AnimatedFormItem index={0}>
+            <InputField
+              label="WhatsApp (Optional, 10 digits)"
+              placeholder="Mobile number"
+              icon="logo-whatsapp"
+              keyboardType="phone-pad"
+              value={formData.whatsapp}
+              onChangeText={(text) => handleFieldChange('whatsapp', text.replace(/[^0-9]/g, '').slice(0, 10))}
+              error={errors.whatsapp}
+              maxLength={10}
+              editable={true}
+            />
+          </AnimatedFormItem>
 
-          <InputField
-            label="LinkedIn (Optional)"
-            placeholder="https://linkedin.com/in/yourprofile"
-            icon="logo-linkedin"
-            value={formData.linkedin}
-            onChangeText={(text) => handleFieldChange('linkedin', text)}
-            error={errors.linkedin}
-          />
+          <AnimatedFormItem index={1}>
+            <InputField
+              label="LinkedIn (Optional)"
+              placeholder="https://linkedin.com/in/yourprofile"
+              icon="logo-linkedin"
+              value={formData.linkedin}
+              onChangeText={(text) => handleFieldChange('linkedin', text)}
+              error={errors.linkedin}
+            />
+          </AnimatedFormItem>
 
-          <InputField
-            label="Instagram (Optional)"
-            placeholder="yourusername"
-            icon="logo-instagram"
-            value={formData.instagram}
-            onChangeText={(text) => handleFieldChange('instagram', text)}
-            error={errors.instagram}
-          />
+          <AnimatedFormItem index={2}>
+            <InputField
+              label="Website (Optional)"
+              placeholder="Website URL"
+              icon="globe-outline"
+              value={formData.instagram}
+              onChangeText={(text) => handleFieldChange('instagram', text)}
+              error={errors.instagram}
+            />
+          </AnimatedFormItem>
 
-          <InputField
+          <AnimatedFormItem index={3}>
+            <InputField
+              label="Twitter (Optional)"
+              placeholder="@username"
+              icon="logo-twitter"
+              value={formData.twitter}
+              onChangeText={(text) => handleFieldChange('twitter', text)}
+              error={errors.twitter}
+              maxLength={16}
+            />
+          </AnimatedFormItem>
+
+          <AnimatedFormItem index={4}>
+            <InputField
+              label="Facebook (Optional)"
+              placeholder="https://facebook.com/username"
+              icon="logo-facebook"
+              value={formData.facebook}
+              onChangeText={(text) => handleFieldChange('facebook', text)}
+              error={errors.facebook}
+            />
+          </AnimatedFormItem>
+
+          {/* <InputField
             label="Website (Optional)"
             placeholder="https://example.com"
             icon="globe"
             value={formData.website}
             onChangeText={(text) => handleFieldChange('website', text)}
             error={errors.website}
-          />
+          /> */}
 
           {/* ================= UPLOAD SECTION ================= */}
 
           <Text style={layoutStyles.sectionTitle}>Media Uploads</Text>
 
-          {['companyLogo', 'profilePhoto'].map((field) => (
-            <TouchableOpacity
-              key={field}
-              style={layoutStyles.uploadBox}
-              onPress={() => handleImagePicker(field)}
-            >
-              <View style={layoutStyles.uploadContent}>
-                <Ionicons name="image" size={32} color="#D4AF37" />
-                <Text style={layoutStyles.uploadLabel}>{field}</Text>
-              </View>
-              {formData[field] && (
-                field === 'companyLogo' ? (
-                  <View style={layoutStyles.uploadedImageLogo}>
-                    <Image
-                      source={{ uri: formData[field] }}
-                      style={layoutStyles.uploadedImageLogoPreview}
-                    />
-                  </View>
-                ) : (
-                  <View style={layoutStyles.uploadedImage}>
-                    <Image
-                      source={{ uri: formData[field] }}
-                      style={layoutStyles.uploadedImagePreview}
-                    />
-                  </View>
-                )
-              )}
-            </TouchableOpacity>
-          ))}
+          <AnimatedFormItem index={5}>
+            <ProfileAvatarUpload
+              label="Profile Photo"
+              imageUri={formData.profilePhoto}
+              onPress={() => handleImagePicker('profilePhoto')}
+              onRemovePress={() => handleRemoveImage('profilePhoto')}
+              size={110}
+              centered
+            />
+          </AnimatedFormItem>
+
+          <AnimatedFormItem index={6}>
+            <LogoUploadCard
+              label="Company Logo"
+              imageUri={formData.companyLogo}
+              onPress={() => handleImagePicker('companyLogo')}
+              onRemovePress={() => handleRemoveImage('companyLogo')}
+              height={120}
+            />
+          </AnimatedFormItem>
 
           {/* Template selection moved to TemplatePreview after Save & Submit */}
 
-          <TouchableOpacity
+          <AnimatedPressable
             style={layoutStyles.saveButton}
             onPress={handleSave}
           >
@@ -367,15 +443,15 @@ export default function SocialMediaScreen({ route, navigation }) {
             <Text style={layoutStyles.saveButtonText}>
               Save & Submit
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Go Back Button */}
-          <TouchableOpacity
+          <AnimatedPressable
             style={[layoutStyles.saveButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D4AF37', marginTop: 12 }]}
             onPress={() => navigation.goBack()}
           >
             <Text style={[layoutStyles.saveButtonText, { color: '#D4AF37' }]}>← Go Back</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -393,30 +469,58 @@ export default function SocialMediaScreen({ route, navigation }) {
     maxLength,
     error,
   }) {
+    const [isFocused, setIsFocused] = useState(false);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const iconScaleAnim = useRef(new Animated.Value(1)).current;
+
+    const onFocusField = () => {
+      setIsFocused(true);
+      Animated.parallel([
+        Animated.timing(scaleAnim, { toValue: 1.02, duration: 150, useNativeDriver: true }),
+        Animated.timing(iconScaleAnim, { toValue: 1.1, duration: 150, useNativeDriver: true }),
+      ]).start();
+    };
+
+    const onBlurField = () => {
+      setIsFocused(false);
+      Animated.parallel([
+        Animated.timing(scaleAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+        Animated.timing(iconScaleAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+      ]).start();
+    };
+
     return (
       <View style={formStyles.inputWrapper}>
         <Text style={formStyles.label}>{label}</Text>
 
-        <View style={[
-          formStyles.inputContainer,
-          error && { borderColor: '#EF4444', borderWidth: 2 }
-        ]}>
-          <Ionicons
-            name={icon}
-            size={20}
-            color={error ? '#EF4444' : '#D4AF37'}
-            style={formStyles.inputIcon}
-          />
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+          <View style={[
+            formStyles.inputContainer,
+            value?.trim?.() ? formStyles.inputContainerFilled : null,
+            isFocused && formStyles.inputFocused,
+            error && { borderColor: '#EF4444', borderWidth: 1.5 }
+          ]}>
+            <Animated.View style={{ transform: [{ scale: iconScaleAnim }] }}>
+              <Ionicons
+                name={icon}
+                size={20}
+                color={error ? '#EF4444' : isFocused ? '#D4AF37' : '#9CA3AF'}
+                style={formStyles.inputIcon}
+              />
+            </Animated.View>
 
-          <TextInput
-            style={formStyles.input}
-            placeholder={placeholder}
-            keyboardType={keyboardType || 'default'}
-            maxLength={maxLength}
-            value={value}
-            onChangeText={onChangeText}
-          />
-        </View>
+            <TextInput
+              style={formStyles.input}
+              placeholder={placeholder}
+              keyboardType={keyboardType || 'default'}
+              maxLength={maxLength}
+              value={value}
+              onChangeText={onChangeText}
+              onFocus={onFocusField}
+              onBlur={onBlurField}
+            />
+          </View>
+        </Animated.View>
 
         {error && (
           <Text style={{ color: '#EF4444', fontSize: 12 }}>
@@ -427,3 +531,4 @@ export default function SocialMediaScreen({ route, navigation }) {
     );
   }
 }
+
