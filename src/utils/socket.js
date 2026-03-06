@@ -1,13 +1,4 @@
-import { io } from 'socket.io-client';
-import { BASE_URL } from './api';
+import websocketService from './websocketService';
 
-// Singleton socket instance — shared across all screens
-const socket = io(BASE_URL, {
-  transports: ['websocket'],
-  autoConnect: true,
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 2000,
-});
-
-export default socket;
+// Backward-compatible export. New code should import websocketService directly.
+export default websocketService;

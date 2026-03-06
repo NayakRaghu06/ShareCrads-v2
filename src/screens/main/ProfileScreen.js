@@ -15,10 +15,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { profileStyles } from '../../styles/screens/profileStyles';
 import { COLORS } from '../../styles/colors';
 import { apiFetch } from '../../utils/api';
 import { clearSession } from '../../utils/storage';
+import websocketService from '../../utils/websocketService';
 import Footer from '../../components/common/Footer';
 
 export default function ProfileScreen({ navigation, route }) {
@@ -152,6 +154,7 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const handleLogout = async () => {
+    await websocketService.disconnect();
     try {
       await apiFetch('/auth/logout', { method: 'POST' });
     } catch {

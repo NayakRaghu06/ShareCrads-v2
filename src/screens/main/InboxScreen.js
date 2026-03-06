@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
@@ -7,11 +8,15 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
+=======
+import { useEffect, useState, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+>>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
-import socket from '../../utils/socket';
+import websocketService from '../../utils/websocketService';
 import AppHeader from '../../components/common/AppHeader';
 import AnimatedCard from '../../components/common/AnimatedCard';
 
@@ -97,6 +102,8 @@ const emptyStyles = StyleSheet.create({
 function InboxScreen({ navigation }) {
   const [inbox, setInbox] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newArrivalCount, setNewArrivalCount] = useState(0);
+  const [badgeScale] = useState(new Animated.Value(1));
 
   const getOrHydrateUserId = async () => {
     const storedUserId = await AsyncStorage.getItem('loggedInUserId');
@@ -116,6 +123,7 @@ function InboxScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
+<<<<<<< HEAD
   // ── Real-time socket ────────────────────────────────────────────────────────
   useEffect(() => {
     AsyncStorage.getItem('loggedInUserId').then((userId) => {
@@ -134,6 +142,42 @@ function InboxScreen({ navigation }) {
 
     return () => { socket.off('receiveCard'); };
   }, []);
+=======
+  // Subscribe to user-specific inbox queue for real-time shares
+  useEffect(() => {
+    let unsubscribe = null;
+
+    getOrHydrateUserId().then(async (userId) => {
+      if (!userId) return;
+
+      await websocketService.connect(userId);
+      unsubscribe = websocketService.subscribeToInbox((payload) => {
+        const incomingItem = payload?.data || payload;
+        if (!incomingItem) return;
+
+        Animated.sequence([
+          Animated.spring(badgeScale, { toValue: 1.2, useNativeDriver: true }),
+          Animated.spring(badgeScale, { toValue: 1, useNativeDriver: true }),
+        ]).start();
+
+        setNewArrivalCount((prev) => prev + 1);
+
+        setInbox((prev) => {
+          // Avoid duplicates if both REST and socket deliver the same item
+          const exists = prev.some(
+            (i) => i.shareId && incomingItem.shareId && i.shareId === incomingItem.shareId
+          );
+          if (exists) return prev;
+          return [incomingItem, ...prev];
+        });
+      });
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [badgeScale]);
+>>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
 
   const loadInbox = async () => {
     try {
@@ -215,6 +259,12 @@ function InboxScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader />
+      {newArrivalCount > 0 && (
+        <Animated.View style={[styles.liveBadge, { transform: [{ scale: badgeScale }] }]}>
+          <Ionicons name="notifications" size={14} color="#fff" />
+          <Text style={styles.liveBadgeText}> {newArrivalCount} new</Text>
+        </Animated.View>
+      )}
 
       <FlatList
         data={inbox}
@@ -223,6 +273,7 @@ function InboxScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         onRefresh={loadInbox}
         refreshing={loading}
+        onScrollBeginDrag={() => setNewArrivalCount(0)}
         renderItem={renderItem}
         removeClippedSubviews
         initialNumToRender={10}
@@ -333,5 +384,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: GOLD,
     fontWeight: '600',
+  },
+  liveBadge: {
+    alignSelf: 'center',
+    marginTop: 8,
+    marginBottom: 6,
+    backgroundColor: GOLD,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  liveBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

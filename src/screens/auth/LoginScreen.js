@@ -18,6 +18,7 @@ import { loginStyles } from '../../styles/screens/loginStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
 import { saveSession } from '../../utils/storage';
+import websocketService from '../../utils/websocketService';
 
 const OTP_LENGTH = 6;
 
@@ -187,13 +188,19 @@ export default function LoginScreen({ navigation }) {
         await AsyncStorage.setItem('userPhone', phone);
 
         // Fetch and store userId
+        let resolvedUserId = null;
         try {
           const { res: profileRes, data: profileData } = await apiFetch('/user/profile');
           if (profileRes.ok && profileData?.data?.userId != null) {
-            await AsyncStorage.setItem('loggedInUserId', String(profileData.data.userId));
+            resolvedUserId = String(profileData.data.userId);
+            await AsyncStorage.setItem('loggedInUserId', resolvedUserId);
           }
         } catch (e) {
           console.warn('Failed to save session', e);
+        }
+
+        if (resolvedUserId) {
+          await websocketService.connect(resolvedUserId);
         }
 
         await saveSession(phone);
