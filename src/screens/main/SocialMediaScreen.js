@@ -51,7 +51,6 @@ export default function SocialMediaScreen({ route, navigation }) {
     instagram: '',
     twitter: '',
     facebook: '',
-    youtube: '',
     website: '',
     companyLogo: null,
     profilePhoto: null,
@@ -173,7 +172,6 @@ export default function SocialMediaScreen({ route, navigation }) {
         instagram: formData.instagram || cardData.instagram || null,
         twitter: formData.twitter || cardData.twitter || null,
         facebook: formData.facebook || cardData.facebook || null,
-        youtube: formData.youtube || cardData.youtube || null,
         website: formData.website || cardData.website || null,
       };
 
@@ -221,7 +219,6 @@ export default function SocialMediaScreen({ route, navigation }) {
         instagram: cardData.instagram || prev.instagram,
         twitter: cardData.twitter || prev.twitter,
         facebook: cardData.facebook || prev.facebook,
-        youtube: cardData.youtube || prev.youtube,
         website: cardData.website || prev.website,
       };
 

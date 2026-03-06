@@ -13,9 +13,9 @@ export const loginStyles = StyleSheet.create({
   },
 
   header: {
-    height: 240,
+    height: 300,
     paddingHorizontal: 20,
-    paddingTop: 30,
+    paddingTop: 40,
     alignItems: 'center',
     justifyContent: 'flex-start',
     borderBottomLeftRadius: 40,
@@ -43,12 +43,16 @@ export const loginStyles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: COLORS.card,
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
-    marginTop: -30,
-    borderRadius: 16,
-    padding: 18,
-    elevation: 3,
+    marginTop: -24,
+    borderRadius: 20,
+    padding: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
   },
 
   otpRow: {

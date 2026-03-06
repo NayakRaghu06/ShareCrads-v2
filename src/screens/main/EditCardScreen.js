@@ -35,7 +35,6 @@ export default function EditCardScreen({ route, navigation }) {
   const [instagram, setInstagram] = useState(cardData.instagram || '');
   const [twitter, setTwitter] = useState(cardData.twitter || '');
   const [facebook, setFacebook] = useState(cardData.facebook || '');
-  // const [youtube, setYoutube] = useState(cardData.youtube || '');
   const [website, setWebsite] = useState(cardData.website || '');
 
   const handleUpdate = async () => {
@@ -46,22 +45,19 @@ export default function EditCardScreen({ route, navigation }) {
         designation,
         companyName,
         phoneNumber: phone,
-        email,
-        address,
-        keywords: searchKeywords,
-        businessCategory,
-        businessSubcategory: businessSubCategory,
-        clients,
-        businessDescription: description,
-        whatsappUrl: whatsapp,
-        linkedin,
-        facebook,
-        instagram,
-        twitter,
-        youtube,
-        website,
+        email: email || null,
+        address: address || null,
+        keywords: searchKeywords || null,
+        businessCategory: businessCategory || null,
+        businessSubcategory: businessSubCategory || null,
+        clients: clients || null,
+        businessDescription: description || null,
+        whatsappUrl: whatsapp || null,
+        linkedin: linkedin || null,
+        facebook: facebook || null,
+        instagram: instagram || null,
+        twitter: twitter || null,
         templateSlug: cardData.templateSlug || 'classic',
-        templateId: null,
       };
       const { res, data } = await apiFetch(`/api/cards/update-card/${cardId}`, {
         method: 'PUT',
@@ -151,8 +147,6 @@ export default function EditCardScreen({ route, navigation }) {
               <TextInput value={twitter} onChangeText={setTwitter} style={styles.input} />
               <Text style={styles.label}>Facebook</Text>
               <TextInput value={facebook} onChangeText={setFacebook} style={styles.input} />
-              <Text style={styles.label}>YouTube</Text>
-              <TextInput value={youtube} onChangeText={setYoutube} style={styles.input} />
               <Text style={styles.label}>Website</Text>
               <TextInput value={website} onChangeText={setWebsite} style={styles.input} />
             </View>

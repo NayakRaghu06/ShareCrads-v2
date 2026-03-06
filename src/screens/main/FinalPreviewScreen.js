@@ -199,31 +199,31 @@ export default function FinalPreviewScreen({ route, navigation }) {
                   TEMPLATE_ID_MAP.classic;
                 // POST /api/cards/business-card
                 const payload = {
-                 // userId: Number(userId),
                   name: d.name || '',
                   designation: d.designation || d.role || '',
                   companyName: d.companyName || d.company || '',
                   phoneNumber: d.phone || d.phoneNumber || d.mobile || '',
-                  phoneNumber2: d.phone2 || d.phoneNumber2 || null,
-                  email: d.email || '',
-                  address: d.address || d.location || '',
-                  keywords: d.searchKeywords || d.keywords || '',
-                  businessCategory: d.businessCategory || '',
-                  businessSubcategory: d.businessSubCategory || d.businessSubcategory || '',
-                  clients: d.clients || '',
-                  businessDescription: d.businessDescription || d.description || '',
-                  linkedin: d.linkedin || '',
-                  facebook: d.facebook || '',
-                  instagram: d.instagram || '',
-                  twitter: d.twitter || '',
-                  whatsappUrl: d.whatsapp || d.whatsappUrl || '',
+                  email: d.email || null,
+                  address: d.address || d.location || null,
+                  keywords: d.searchKeywords || d.keywords || null,
+                  businessCategory: d.businessCategory || null,
+                  businessSubcategory: d.businessSubCategory || d.businessSubcategory || null,
+                  clients: d.clients || null,
+                  businessDescription: d.businessDescription || d.description || null,
+                  linkedin: d.linkedin || null,
+                  facebook: d.facebook || null,
+                  instagram: d.instagram || null,
+                  twitter: d.twitter || null,
+                  whatsappUrl: d.whatsapp || d.whatsappUrl || null,
                   templateSlug: slug,
                   templateId: resolvedTemplateId,
                 };
+                console.log('[SaveCard] payload:', JSON.stringify(payload));
                 const { res, data } = await apiFetch('/api/cards/business-card', {
                   method: 'POST',
                   body: JSON.stringify(payload),
                 });
+                console.log('[SaveCard] status:', res.status, 'data:', JSON.stringify(data));
                 if (res.status === 401) { navigation.replace('Login'); return; }
                 if (res.ok) {
                   Alert.alert('Success', 'Card saved successfully!', [
@@ -233,7 +233,7 @@ export default function FinalPreviewScreen({ route, navigation }) {
                     },
                   ]);
                 } else {
-                  Alert.alert('Error', data?.message || 'Failed to save card');
+                  Alert.alert('Error', `[${res.status}] ${data?.message || JSON.stringify(data) || 'Failed to save card'}`);
                 }
               } catch (e) {
                 Alert.alert('Error', e.message || 'Failed to save card');

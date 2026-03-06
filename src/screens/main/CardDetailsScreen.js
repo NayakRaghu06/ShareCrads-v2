@@ -12,14 +12,23 @@ const TEMPLATE_COMPONENTS = {
 };
 
 export default function CardDetailsScreen({ route }) {
-  const { cardData } = route.params;
-  const SelectedComponent = TEMPLATE_COMPONENTS[cardData?.template] || ClassicTemplate;
+  const cardData = route?.params?.cardData || {};
+  const SelectedComponent = TEMPLATE_COMPONENTS[cardData.templateSlug || cardData.template] || ClassicTemplate;
+
+  // Normalize API field names to match what templates expect
+  const normalizedData = {
+    ...cardData,
+    phone: cardData.phone || cardData.phoneNumber || cardData.mobile,
+    whatsapp: cardData.whatsapp || cardData.whatsappUrl,
+    businessSubCategory: cardData.businessSubCategory || cardData.businessSubcategory,
+    businessDescription: cardData.businessDescription || cardData.description,
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <SelectedComponent data={cardData} landscape />
+        <SelectedComponent userData={normalizedData} />
       </ScrollView>
     </SafeAreaView>
   );

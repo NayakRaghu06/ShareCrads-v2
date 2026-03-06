@@ -15,8 +15,17 @@ const TEMPLATE_COMPONENTS = {
 
 export default function SavedCardViewScreen({ route, navigation }) {
   const cardData = route?.params?.cardData || {};
-  const template = cardData.template || 'classic';
+  const template = cardData.templateSlug || cardData.template || 'classic';
   const SelectedComponent = TEMPLATE_COMPONENTS[template] || ClassicTemplate;
+
+  // Normalize API field names to match what templates expect
+  const normalizedData = {
+    ...cardData,
+    phone: cardData.phone || cardData.phoneNumber || cardData.mobile,
+    whatsapp: cardData.whatsapp || cardData.whatsappUrl,
+    businessSubCategory: cardData.businessSubCategory || cardData.businessSubcategory,
+    businessDescription: cardData.businessDescription || cardData.description,
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,7 +43,7 @@ export default function SavedCardViewScreen({ route, navigation }) {
 
       <View style={styles.center}>
         <View style={styles.cardWrapper}>
-          <SelectedComponent userData={cardData} />
+          <SelectedComponent userData={normalizedData} />
         </View>
       </View>
     </SafeAreaView>

@@ -130,9 +130,6 @@ const ModernTemplate = ({ userData, data }) => {
         {d?.facebook ? (
           <TouchableOpacity onPress={() => Linking.openURL(d.facebook)} style={styles.iconBtn}><Ionicons name="logo-facebook" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
-        {d?.youtube ? (
-          <TouchableOpacity onPress={() => Linking.openURL(d.youtube)} style={styles.iconBtn}><Ionicons name="logo-youtube" size={20} color="#D4AF37" /></TouchableOpacity>
-        ) : null}
         {d?.website ? (
           <TouchableOpacity onPress={() => Linking.openURL(d.website)} style={styles.iconBtn}><Ionicons name="globe" size={20} color="#D4AF37" /></TouchableOpacity>
         ) : null}
