@@ -219,6 +219,7 @@ import { getDBCUsers } from '../../utils/contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
 import { getDashboard } from '../../utils/storage';
+import websocketService from '../../utils/websocketService';
 
 // ─── Moved OUTSIDE LandingScreen — was previously defined inside render,
 //     causing it to remount on every parent state change.
@@ -350,6 +351,14 @@ export default function LandingScreen({ navigation }) {
     return unsubscribe;
   }, [navigation, loadContacts, loadDashboardCards]);
 
+  useEffect(() => {
+    AsyncStorage.getItem('loggedInUserId').then((userId) => {
+      if (userId) {
+        websocketService.connect(userId);
+      }
+    });
+  }, []);
+
   // ── Derived: filtered contacts (memoized — recalculates only when deps change)
   const filteredContacts = useMemo(() => {
     if (!searchQuery.trim()) return contacts;
@@ -374,6 +383,7 @@ export default function LandingScreen({ navigation }) {
   const handleMicPress  = useCallback(() => setIsListening(v => !v), []);
 
   const handleLogout = useCallback(async () => {
+    await websocketService.disconnect();
     try {
       await apiFetch('/user/logout', { method: 'POST', credentials: 'include' });
     } catch (e) {

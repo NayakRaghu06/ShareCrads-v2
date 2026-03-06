@@ -20,6 +20,19 @@ export default function MyCardsScreen({ navigation }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getCardId = useCallback((item = {}) => {
+    const candidate =
+      item.cardId ??
+      item.id ??
+      item.businessCardId ??
+      item.business_card_id ??
+      item.card?.cardId ??
+      item.card?.id;
+
+    const parsed = Number(candidate);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, []);
+
   const loadCards = async () => {
     try {
       setLoading(true);
@@ -108,7 +121,10 @@ export default function MyCardsScreen({ navigation }) {
       <View style={styles.cardFooter}>
         <TouchableOpacity
           style={styles.shareBtn}
-          onPress={() => navigation.navigate('ShareCardScreen', { cardData: item })}
+          onPress={() => {
+            const resolved = getCardId(item);
+            navigation.navigate('ShareCardScreen', { cardData: item, cardId: resolved });
+          }}
           activeOpacity={0.8}
         >
           <Ionicons name="share-social" size={15} color={GOLD} />
@@ -135,7 +151,7 @@ export default function MyCardsScreen({ navigation }) {
       </View>
     </TouchableOpacity>
     </AnimatedCard>
-  ), [navigation, handleDelete]);
+  ), [navigation, handleDelete, getCardId]);
 
   return (
     <SafeAreaView style={styles.container}>

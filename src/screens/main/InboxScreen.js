@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
-import socket from '../../utils/socket';
+import websocketService from '../../utils/websocketService';
 import AppHeader from '../../components/common/AppHeader';
 
 const GOLD = '#C9A227';
@@ -12,6 +12,8 @@ const GOLD = '#C9A227';
 function InboxScreen({ navigation }) {
   const [inbox, setInbox] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newArrivalCount, setNewArrivalCount] = useState(0);
+  const [badgeScale] = useState(new Animated.Value(1));
 
   const getOrHydrateUserId = async () => {
     const storedUserId = await AsyncStorage.getItem('loggedInUserId');
@@ -31,32 +33,40 @@ function InboxScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  // Join socket room and listen for real-time card shares
+  // Subscribe to user-specific inbox queue for real-time shares
   useEffect(() => {
-    let joined = false;
+    let unsubscribe = null;
 
-    AsyncStorage.getItem('loggedInUserId').then((userId) => {
-      if (userId) {
-        socket.emit('join', userId);
-        joined = true;
-      }
-    });
+    getOrHydrateUserId().then(async (userId) => {
+      if (!userId) return;
 
-    socket.on('receiveCard', (incomingItem) => {
-      setInbox((prev) => {
-        // Avoid duplicates if both REST and socket deliver the same item
-        const exists = prev.some(
-          (i) => i.shareId && incomingItem.shareId && i.shareId === incomingItem.shareId
-        );
-        if (exists) return prev;
-        return [incomingItem, ...prev];
+      await websocketService.connect(userId);
+      unsubscribe = websocketService.subscribeToInbox((payload) => {
+        const incomingItem = payload?.data || payload;
+        if (!incomingItem) return;
+
+        Animated.sequence([
+          Animated.spring(badgeScale, { toValue: 1.2, useNativeDriver: true }),
+          Animated.spring(badgeScale, { toValue: 1, useNativeDriver: true }),
+        ]).start();
+
+        setNewArrivalCount((prev) => prev + 1);
+
+        setInbox((prev) => {
+          // Avoid duplicates if both REST and socket deliver the same item
+          const exists = prev.some(
+            (i) => i.shareId && incomingItem.shareId && i.shareId === incomingItem.shareId
+          );
+          if (exists) return prev;
+          return [incomingItem, ...prev];
+        });
       });
     });
 
     return () => {
-      socket.off('receiveCard');
+      if (unsubscribe) unsubscribe();
     };
-  }, []);
+  }, [badgeScale]);
 
   const loadInbox = async () => {
     try {
@@ -129,6 +139,12 @@ function InboxScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader />
+      {newArrivalCount > 0 && (
+        <Animated.View style={[styles.liveBadge, { transform: [{ scale: badgeScale }] }]}>
+          <Ionicons name="notifications" size={14} color="#fff" />
+          <Text style={styles.liveBadgeText}> {newArrivalCount} new</Text>
+        </Animated.View>
+      )}
 
       <FlatList
         data={inbox}
@@ -137,6 +153,7 @@ function InboxScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         onRefresh={loadInbox}
         refreshing={loading}
+        onScrollBeginDrag={() => setNewArrivalCount(0)}
         renderItem={renderItem}
         removeClippedSubviews
         initialNumToRender={10}
@@ -255,5 +272,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
     fontSize: 15,
+  },
+  liveBadge: {
+    alignSelf: 'center',
+    marginTop: 8,
+    marginBottom: 6,
+    backgroundColor: GOLD,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  liveBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

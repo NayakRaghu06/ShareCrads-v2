@@ -12,9 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apiFetch } from '../../utils/api';
-import socket from '../../utils/socket';
+import { apiFetch, checkUser, shareCardInApp, shareCardWhatsApp, getUserId } from '../../utils/api';
+import websocketService from '../../utils/websocketService';
 import AppHeader from '../../components/common/AppHeader';
 
 const GOLD = '#C9A227';
@@ -22,7 +21,131 @@ const GOLD_LIGHT = '#E6D7A3';
 const GOLD_BG = '#FDF6E3';
 
 export default function ShareCardScreen({ navigation, route }) {
-  const { cardData } = route.params;
+  const cardData = route?.params?.cardData || {};
+
+  const parsePositiveNumber = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+
+  const extractCardIdDeep = (node) => {
+    if (!node || typeof node !== 'object') return null;
+
+    const direct =
+      parsePositiveNumber(node.cardId) ??
+      parsePositiveNumber(node.businessCardId) ??
+      parsePositiveNumber(node.card_id) ??
+      parsePositiveNumber(node.business_card_id);
+    if (direct) return direct;
+
+    if (Array.isArray(node)) {
+      for (const item of node) {
+        const fromItem = extractCardIdDeep(item);
+        if (fromItem) return fromItem;
+      }
+      return null;
+    }
+
+    for (const [key, value] of Object.entries(node)) {
+      // Recurse into likely card-containing branches first.
+      if (key.toLowerCase().includes('card')) {
+        const nested = extractCardIdDeep(value);
+        if (nested) return nested;
+      }
+    }
+
+    // Fallback: recurse remaining branches.
+    for (const value of Object.values(node)) {
+      const nested = extractCardIdDeep(value);
+      if (nested) return nested;
+    }
+
+    return null;
+  };
+
+  const normalizeCardsPayload = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.cards)) return payload.cards;
+    if (Array.isArray(payload?.content)) return payload.content;
+    if (Array.isArray(payload?.data?.cards)) return payload.data.cards;
+    if (Array.isArray(payload?.data?.content)) return payload.data.content;
+    if (payload && typeof payload === 'object') return [payload];
+    return [];
+  };
+
+  const looksSameCard = (a, b) => {
+    const aName = String(a?.name || '').trim().toLowerCase();
+    const bName = String(b?.name || '').trim().toLowerCase();
+    const aPhone = String(a?.phoneNumber ?? a?.phone ?? '').replace(/\D/g, '');
+    const bPhone = String(b?.phoneNumber ?? b?.phone ?? '').replace(/\D/g, '');
+
+    const nameMatch = aName && bName && aName === bName;
+    const phoneMatch = aPhone && bPhone && aPhone === bPhone;
+    return nameMatch || phoneMatch;
+  };
+
+  const extractCardId = (obj) => {
+    if (!obj || typeof obj !== 'object') return null;
+
+    const explicit =
+      parsePositiveNumber(route?.params?.cardId) ??
+      parsePositiveNumber(obj.cardId) ??
+      parsePositiveNumber(obj.id) ??
+      parsePositiveNumber(obj.businessCardId) ??
+      parsePositiveNumber(obj.business_card_id) ??
+      parsePositiveNumber(obj.cardID) ??
+      parsePositiveNumber(obj.card_id);
+    if (explicit) return explicit;
+
+    const nestedCard = obj.card || obj.businessCard || obj.cardDetails || obj.cardDto;
+    if (nestedCard && typeof nestedCard === 'object') {
+      const nested = extractCardId(nestedCard);
+      if (nested) return nested;
+    }
+
+    return null;
+  };
+
+  const resolveCardId = async () => {
+    const fromRoute = extractCardId({ ...cardData, cardId: route?.params?.cardId });
+    if (fromRoute) return fromRoute;
+
+    // Final fallback: fetch latest cards and use first valid id
+    const { res, data } = await apiFetch('/api/cards/view-cards');
+    if (!res.ok) {
+      console.log('[Share In App] view-cards status:', res.status);
+      return null;
+    }
+
+    const list = normalizeCardsPayload(data);
+
+    if (!Array.isArray(list) || list.length === 0) {
+      console.log('[Share In App] view-cards payload:', JSON.stringify(data));
+      return null;
+    }
+
+    // Prefer the id of the same card being shared, otherwise first valid id.
+    let fromApi = null;
+    for (const item of list) {
+      if (looksSameCard(item, cardData)) {
+        fromApi = extractCardId(item) || extractCardIdDeep(item);
+        if (fromApi) break;
+      }
+    }
+
+    if (!fromApi) {
+      for (const item of list) {
+        fromApi = extractCardId(item) || extractCardIdDeep(item);
+        if (fromApi) break;
+      }
+    }
+
+    if (fromApi) return fromApi;
+
+    console.log('[Share In App] unable to extract cardId from list payload');
+    return null;
+  };
 
   const [mobile, setMobile] = useState('');
   const [userStatus, setUserStatus] = useState('none'); // "none" | "found" | "notfound"
@@ -35,16 +158,20 @@ export default function ShareCardScreen({ navigation, route }) {
 
   // GET /api/share/check-user?mobileNumber=...
   const handleCheckUser = async () => {
-    if (mobile.length !== 10) {
+    const receiverMobile = String(mobile || '').trim();
+    if (!/^[0-9]{10}$/.test(receiverMobile)) {
       Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
       return;
     }
+
     setChecking(true);
     try {
-      const { res, data } = await apiFetch(`/api/share/check-user?mobileNumber=${mobile}`);
+      const { res, data } = await checkUser(receiverMobile);
       if (res.status === 401) { navigation.replace('Login'); return; }
-      if (res.ok && data?.exists) {
-        setFoundUser(data);
+
+      const exists = Boolean(data?.exists ?? data?.data?.exists);
+      if (res.ok && exists) {
+        setFoundUser(data?.data || data);
         setUserStatus('found');
       } else {
         setFoundUser(null);
@@ -60,26 +187,40 @@ export default function ShareCardScreen({ navigation, route }) {
   // POST /api/share — in-app share
   const handleShareInApp = async () => {
     try {
-      const senderId = await AsyncStorage.getItem('loggedInUserId');
-      if (!senderId) { navigation.replace('Login'); return; }
-      // POST /api/share
-      const resolvedCardId = cardData.cardId ?? cardData.id;
-      if (!resolvedCardId) { Alert.alert('Error', 'Card ID is missing. Please try again.'); return; }
-      const { res, data } = await apiFetch('/api/share', {
-        method: 'POST',
-        body: JSON.stringify({
-          senderId: Number(senderId),
-          receiverMobile: Number(mobile),
-          cardId: Number(resolvedCardId),
-        }),
-      });
+      const senderIdRaw = await getUserId();
+      const receiverMobileRaw = String(mobile || '').trim();
+
+      const senderId = Number(senderIdRaw);
+      const receiverMobile = Number(receiverMobileRaw);
+      const cardId = await resolveCardId();
+
+      console.log('[Share In App] senderId:', senderIdRaw);
+      console.log('[Share In App] receiverMobile:', receiverMobileRaw);
+      console.log('[Share In App] backendResolvedCardId:', cardId);
+
+      if (!senderIdRaw || !Number.isFinite(senderId) || senderId <= 0) {
+        navigation.replace('Login');
+        return;
+      }
+      if (!Number.isFinite(receiverMobile) || receiverMobileRaw.length !== 10) {
+        Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
+        return;
+      }
+      if (!Number.isFinite(cardId) || cardId <= 0) {
+        Alert.alert('Error', 'Card ID is missing. Please try again.');
+        return;
+      }
+
+      const { res, data } = await shareCardInApp(senderId, receiverMobile, cardId);
       if (res.status === 401) { navigation.replace('Login'); return; }
+
       if (res.ok) {
-        // Emit real-time socket event so receiver gets instant notification
+        // Publish to STOMP destination: /app/share-card
         const receiverId = foundUser?.userId || foundUser?.id;
         if (receiverId) {
-          socket.emit('shareCard', {
-            senderId: Number(senderId),
+          await websocketService.connect(senderIdRaw);
+          websocketService.sendShareCard({
+            senderId,
             receiverId: Number(receiverId),
             card: cardData,
           });
@@ -94,23 +235,35 @@ export default function ShareCardScreen({ navigation, route }) {
   };
 
   // POST /api/share/whatsapp — get WhatsApp URL then open it
-  const handleWhatsApp = async () => {
+  const handleShareWhatsApp = async () => {
     try {
-      const senderId = await AsyncStorage.getItem('loggedInUserId');
-      if (!senderId) { navigation.replace('Login'); return; }
-      // POST /api/share/whatsapp
-      const resolvedCardId = cardData.cardId ?? cardData.id;
-      if (!resolvedCardId) { Alert.alert('Error', 'Card ID is missing. Please try again.'); return; }
-      const { res, data } = await apiFetch('/api/share/whatsapp', {
-        method: 'POST',
-        body: JSON.stringify({
-          senderId: Number(senderId),
-          receiverMobile: Number(mobile),
-          cardId: Number(resolvedCardId),
-        }),
-      });
+      const senderIdRaw = await getUserId();
+      const receiverMobileRaw = String(mobile || '').trim();
+
+      const senderId = Number(senderIdRaw);
+      const receiverMobile = Number(receiverMobileRaw);
+      const cardId = await resolveCardId();
+
+      console.log('[Share WhatsApp] senderId:', senderIdRaw);
+      console.log('[Share WhatsApp] receiverMobile:', receiverMobileRaw);
+      console.log('[Share WhatsApp] backendResolvedCardId:', cardId);
+
+      if (!senderIdRaw || !Number.isFinite(senderId) || senderId <= 0) {
+        navigation.replace('Login');
+        return;
+      }
+      if (!Number.isFinite(receiverMobile) || receiverMobileRaw.length !== 10) {
+        Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
+        return;
+      }
+      if (!Number.isFinite(cardId) || cardId <= 0) {
+        Alert.alert('Error', 'Card ID is missing. Please try again.');
+        return;
+      }
+
+      const { res, data } = await shareCardWhatsApp(senderId, receiverMobile, cardId);
       if (res.status === 401) { navigation.replace('Login'); return; }
-      const url = data?.whatsappUrl;
+      const url = data?.whatsappUrl || data?.whatsappLink;
       if (url) {
         await Linking.openURL(url);
       } else {
@@ -118,16 +271,6 @@ export default function ShareCardScreen({ navigation, route }) {
       }
     } catch {
       Alert.alert('Unable to open WhatsApp');
-    }
-  };
-
-  // INVITE via WhatsApp (user not on app)
-  const handleInviteWhatsApp = async () => {
-    const url = `https://wa.me/91${mobile}?text=${encodeURIComponent(inviteMessage)}`;
-    try {
-      await Linking.openURL(url);
-    } catch {
-      Alert.alert('WhatsApp Not Found', 'Could not open WhatsApp. Try sharing via other apps.');
     }
   };
 
@@ -200,19 +343,11 @@ export default function ShareCardScreen({ navigation, route }) {
               <View style={styles.divider} />
             </View>
 
-            <TouchableOpacity
-              style={styles.shareInAppBtn}
-              onPress={handleShareInApp}
-              activeOpacity={0.85}
-            >
+            <TouchableOpacity style={styles.shareInAppBtn} onPress={handleShareInApp} activeOpacity={0.85}>
               <Ionicons name="phone-portrait-outline" size={20} color="#fff" />
               <Text style={styles.shareBtnText}>  Share In App</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.whatsappBtn} onPress={handleWhatsApp} activeOpacity={0.85}>
-              <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>  Share on WhatsApp</Text>
-            </TouchableOpacity>
           </>
         )}
 
@@ -229,13 +364,9 @@ export default function ShareCardScreen({ navigation, route }) {
               Invite them to join and share your digital card instantly.
             </Text>
 
-            <TouchableOpacity
-              style={styles.inviteWhatsappBtn}
-              onPress={handleInviteWhatsApp}
-              activeOpacity={0.85}
-            >
+            <TouchableOpacity style={styles.inviteWhatsappBtn} onPress={handleShareWhatsApp} activeOpacity={0.85}>
               <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>  Share via WhatsApp</Text>
+              <Text style={styles.shareBtnText}>  Share on WhatsApp</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -422,15 +553,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-  },
-  whatsappBtn: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#25D366',
-    height: 50,
-    borderRadius: 12,
-    elevation: 3,
   },
   shareBtnText: {
     color: '#fff',
