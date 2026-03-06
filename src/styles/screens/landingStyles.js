@@ -1,9 +1,11 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../colors';
+import { SPACING, RADIUS, SHADOW } from '../globalStyles';
 
 export const landingStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: COLORS.background,
   },
 
   // ========== HEADER SECTION ==========
@@ -11,69 +13,67 @@ export const landingStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingHorizontal: SPACING.base,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.surface,
+    ...SHADOW.sm,
   },
 
   menuButton: {
-    padding: 8,
+    padding: SPACING.sm,
   },
 
   profileButton: {
-    padding: 4,
+    padding: SPACING.xs,
   },
 
   // ========== SEARCH SECTION ==========
   searchSection: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F5F5F5',
+    paddingHorizontal: SPACING.base,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.background,
   },
 
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    gap: 10,
+    borderColor: COLORS.borderLight,
+    gap: SPACING.sm,
+    ...SHADOW.xs,
   },
 
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#0F0F0F',
+    color: COLORS.text,
     padding: 0,
     margin: 0,
   },
 
   // ========== CONTACTS LIST SECTION ==========
   contactsListContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F5F5F5',
+    paddingHorizontal: SPACING.base,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.background,
   },
 
   contactCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    marginVertical: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    backgroundColor: COLORS.surface,
+    marginVertical: 6,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: COLORS.borderLight,
+    ...SHADOW.xs,
   },
 
   contactInfo: {
@@ -81,100 +81,151 @@ export const landingStyles = StyleSheet.create({
   },
 
   contactName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#0F0F0F',
+    color: COLORS.text,
   },
 
   contactCategory: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8E8E8',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 6,
+    backgroundColor: COLORS.accentLight,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.md,
+    gap: 4,
   },
 
   contactCategoryText: {
-    fontSize: 13,
-    color: '#4B5563',
-    fontWeight: '500',
+    fontSize: 12,
+    color: COLORS.accentDark,
+    fontWeight: '600',
   },
 
   // ========== EMPTY STATE ==========
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 40,
+    paddingHorizontal: SPACING.xl,
+  },
+
+  emptyIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.accentLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.lg,
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+
+  emptySubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: SPACING.xxl,
   },
 
   emptyText: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 16,
-    marginBottom: 24,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.base,
+    marginBottom: SPACING.xl,
     fontWeight: '500',
+    textAlign: 'center',
   },
 
   // ========== ACTION CONTAINER ==========
   actionContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#F5F5F5',
+    paddingHorizontal: SPACING.base,
+    paddingVertical: SPACING.base,
+    backgroundColor: COLORS.background,
   },
 
-  
-createButton: {
-  flexDirection: 'row',
-  backgroundColor: '#D4AF37',
-  paddingVertical: 20,
-  borderRadius: 20,
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: 8,
-  width: '90%',       // 🔥 90% width
-  alignSelf: 'center',
-},
+  createButton: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.accent,
+    paddingVertical: 16,
+    borderRadius: RADIUS.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    width: '100%',
+    alignSelf: 'center',
+    ...SHADOW.gold,
+  },
 
   createButtonText: {
-    color: '#0F0F0F',
-    fontSize: 14,
+    color: COLORS.surface,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+
+  secondaryButton: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    paddingVertical: 14,
+    borderRadius: RADIUS.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    width: '100%',
+    alignSelf: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.accent,
+    marginTop: SPACING.md,
+  },
+
+  secondaryButtonText: {
+    color: COLORS.accent,
+    fontSize: 15,
     fontWeight: '700',
   },
 
   // ========== FOOTER TABS ==========
   footerTabs: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: COLORS.borderLight,
     paddingBottom: 8,
-    paddingTop: 8,
+    paddingTop: 4,
+    ...SHADOW.sm,
   },
 
   footerTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
 
   footerTabActive: {
-    borderTopWidth: 3,
-    borderTopColor: '#D4AF37',
+    borderTopWidth: 2,
+    borderTopColor: COLORS.accent,
   },
 
   footerTabLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
-    color: '#999',
-    marginTop: 4,
+    color: COLORS.textMuted,
+    marginTop: 3,
   },
 
   footerTabLabelActive: {
-    color: '#000',
-    fontWeight: '600',
+    color: COLORS.text,
+    fontWeight: '700',
   },
 });
 

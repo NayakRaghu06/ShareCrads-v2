@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { COLORS } from '../../styles/colors';
 
 const AppHeader = () => {
   const navigation = useNavigation();
@@ -8,13 +9,13 @@ const AppHeader = () => {
   return (
     <View>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color="#C9A227" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
         </TouchableOpacity>
 
         <Text style={styles.title}>DIGITAL BUSINESS CARD</Text>
 
-        <View style={{ width: 26 }} />
+        <View style={{ width: 36 }} />
       </View>
 
       <View style={styles.goldLine} />
@@ -24,28 +25,33 @@ const AppHeader = () => {
 
 const styles = StyleSheet.create({
   header: {
-    height: 90,
+    height: 56,
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   backBtn: {
-    padding: 2,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.accentLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    color: '#000',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    color: COLORS.text,
     textAlign: 'center',
   },
   goldLine: {
     height: 2,
     width: '100%',
-    backgroundColor: '#C9A227',
+    backgroundColor: COLORS.accent,
   },
 });
 

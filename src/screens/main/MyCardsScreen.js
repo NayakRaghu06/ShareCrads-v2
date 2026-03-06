@@ -144,8 +144,19 @@ export default function MyCardsScreen({ navigation }) {
       <Text style={styles.sectionTitle}>My Cards</Text>
       {loading ? null : cards.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="albums-outline" size={64} color={GOLD} />
-          <Text style={styles.emptyText}>No saved cards yet</Text>
+          <View style={styles.emptyIconWrap}>
+            <Ionicons name="albums-outline" size={48} color={GOLD} />
+          </View>
+          <Text style={styles.emptyTitle}>No Cards Yet</Text>
+          <Text style={styles.emptyText}>Create your first digital business card and manage it here</Text>
+          <TouchableOpacity
+            style={styles.emptyAction}
+            onPress={() => navigation.navigate('PersonalDetails')}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="add-circle-outline" size={18} color="#fff" />
+            <Text style={styles.emptyActionText}>Create a Card</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
@@ -287,10 +298,43 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#F3E9D2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#888',
-    marginTop: 14,
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 28,
+  },
+  emptyAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: GOLD,
+    paddingVertical: 13,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+  },
+  emptyActionText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
   },
 });

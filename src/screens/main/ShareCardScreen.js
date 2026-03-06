@@ -63,12 +63,14 @@ export default function ShareCardScreen({ navigation, route }) {
       const senderId = await AsyncStorage.getItem('loggedInUserId');
       if (!senderId) { navigation.replace('Login'); return; }
       // POST /api/share
+      const resolvedCardId = cardData.cardId ?? cardData.id;
+      if (!resolvedCardId) { Alert.alert('Error', 'Card ID is missing. Please try again.'); return; }
       const { res, data } = await apiFetch('/api/share', {
         method: 'POST',
         body: JSON.stringify({
           senderId: Number(senderId),
           receiverMobile: Number(mobile),
-          cardId: Number(cardData.cardId),
+          cardId: Number(resolvedCardId),
         }),
       });
       if (res.status === 401) { navigation.replace('Login'); return; }
@@ -97,12 +99,14 @@ export default function ShareCardScreen({ navigation, route }) {
       const senderId = await AsyncStorage.getItem('loggedInUserId');
       if (!senderId) { navigation.replace('Login'); return; }
       // POST /api/share/whatsapp
+      const resolvedCardId = cardData.cardId ?? cardData.id;
+      if (!resolvedCardId) { Alert.alert('Error', 'Card ID is missing. Please try again.'); return; }
       const { res, data } = await apiFetch('/api/share/whatsapp', {
         method: 'POST',
         body: JSON.stringify({
           senderId: Number(senderId),
           receiverMobile: Number(mobile),
-          cardId: Number(cardData.cardId),
+          cardId: Number(resolvedCardId),
         }),
       });
       if (res.status === 401) { navigation.replace('Login'); return; }
