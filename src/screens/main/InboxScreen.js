@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
@@ -7,11 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Alert,
 } from 'react-native';
-=======
-import { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Animated } from 'react-native';
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
+import shareCardAsVCard from '../../utils/shareVCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -123,26 +120,6 @@ function InboxScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-<<<<<<< HEAD
-  // ── Real-time socket ────────────────────────────────────────────────────────
-  useEffect(() => {
-    AsyncStorage.getItem('loggedInUserId').then((userId) => {
-      if (userId) socket.emit('join', userId);
-    });
-
-    socket.on('receiveCard', (incomingItem) => {
-      setInbox((prev) => {
-        const exists = prev.some(
-          (i) => i.shareId && incomingItem.shareId && i.shareId === incomingItem.shareId
-        );
-        if (exists) return prev;
-        return [incomingItem, ...prev];
-      });
-    });
-
-    return () => { socket.off('receiveCard'); };
-  }, []);
-=======
   // Subscribe to user-specific inbox queue for real-time shares
   useEffect(() => {
     let unsubscribe = null;
@@ -177,7 +154,6 @@ function InboxScreen({ navigation }) {
       if (unsubscribe) unsubscribe();
     };
   }, [badgeScale]);
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
 
   const loadInbox = async () => {
     try {
@@ -206,6 +182,18 @@ function InboxScreen({ navigation }) {
     navigation.navigate('CardDetailsScreen', { cardData: item.card });
   };
 
+  const handleSaveContact = async (item) => {
+    if (!item.card) {
+      Alert.alert('Error', 'No card data available to save.');
+      return;
+    }
+    try {
+      await shareCardAsVCard(item.card);
+    } catch (e) {
+      Alert.alert('Error', 'Could not save contact.');
+    }
+  };
+
   const formatTime = useCallback((iso) => {
     if (!iso) return '';
     const diff = Date.now() - new Date(iso).getTime();
@@ -219,12 +207,13 @@ function InboxScreen({ navigation }) {
   // ── Staggered list item ─────────────────────────────────────────────────────
   const renderItem = useCallback(({ item, index }) => (
     <AnimatedCard index={index}>
-      <TouchableOpacity
-        style={[styles.card, !item.viewedAt && styles.cardUnread]}
-        onPress={() => handleOpen(item)}
-        activeOpacity={0.85}
-      >
-        <View style={styles.cardRow}>
+      <View style={[styles.card, !item.viewedAt && styles.cardUnread]}>
+        {/* Top row: avatar + info + time */}
+        <TouchableOpacity
+          style={styles.cardRow}
+          onPress={() => handleOpen(item)}
+          activeOpacity={0.85}
+        >
           {/* Avatar */}
           <View style={[styles.avatarWrap, !item.viewedAt && styles.avatarWrapUnread]}>
             <Ionicons name="person-circle" size={46} color={GOLD} />
@@ -246,15 +235,35 @@ function InboxScreen({ navigation }) {
             )}
           </View>
 
-          {/* Time + chevron */}
+          {/* Time */}
           <View style={styles.metaCol}>
             <Text style={styles.time}>{formatTime(item.sharedAt)}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#CCC" style={{ marginTop: 6 }} />
           </View>
+        </TouchableOpacity>
+
+        {/* Action buttons row */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={styles.actionBtnView}
+            onPress={() => handleOpen(item)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="eye-outline" size={15} color="#fff" />
+            <Text style={styles.actionBtnTextView}>View</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionBtnSave}
+            onPress={() => handleSaveContact(item)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="person-add-outline" size={15} color={GOLD} />
+            <Text style={styles.actionBtnTextSave}>Save Contact</Text>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     </AnimatedCard>
-  ), [handleOpen, formatTime]);
+  ), [handleOpen, handleSaveContact, formatTime]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -375,7 +384,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // ── Time + chevron column
+  // ── Time column
   metaCol: {
     alignItems: 'flex-end',
     marginLeft: 8,
@@ -384,6 +393,49 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: GOLD,
     fontWeight: '600',
+  },
+
+  // ── Action buttons
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0EADA',
+  },
+  actionBtnView: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: GOLD,
+    borderRadius: 8,
+    paddingVertical: 9,
+    gap: 5,
+    elevation: 1,
+  },
+  actionBtnTextView: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  actionBtnSave: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FDF6E3',
+    borderRadius: 8,
+    paddingVertical: 9,
+    borderWidth: 1.5,
+    borderColor: '#E6D7A3',
+    gap: 5,
+  },
+  actionBtnTextSave: {
+    color: GOLD,
+    fontSize: 13,
+    fontWeight: '700',
   },
   liveBadge: {
     alignSelf: 'center',

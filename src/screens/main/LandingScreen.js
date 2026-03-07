@@ -219,11 +219,8 @@ import { getDBCUsers } from '../../utils/contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
 import { getDashboard } from '../../utils/storage';
-<<<<<<< HEAD
 import AnimatedPressable from '../../components/common/AnimatedPressable';
-=======
 import websocketService from '../../utils/websocketService';
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
 
 // ─── Moved OUTSIDE LandingScreen — was previously defined inside render,
 //     causing it to remount on every parent state change.
@@ -780,3 +777,4 @@ const ls = StyleSheet.create({
   badgeText: { color: COLORS.surface, fontWeight: 'bold', fontSize: 11 },
   myCardsBtn: { marginTop: 12, backgroundColor: COLORS.accent },
 });
+

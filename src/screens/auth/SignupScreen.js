@@ -170,8 +170,12 @@ export default function SignupScreen({ navigation }) {
 
   // ── Send Email OTP ───────────────────────────────────────────────────────────
   const sendEmailOtp = async () => {
+    if (!form.email.trim()) {
+      setErrors(p => ({ ...p, email: 'Please enter your email address' }));
+      return;
+    }
     if (!validEmail(form.email)) {
-      setErrors(p => ({ ...p, email: 'Enter valid email address' }));
+      setErrors(p => ({ ...p, email: 'Please enter a valid email address' }));
       return;
     }
     setLoadingEmail(true);
@@ -261,7 +265,7 @@ export default function SignupScreen({ navigation }) {
     form.first.length >= 2 &&
     form.last.length >= 2 &&
     phoneState === 'verified' &&
-    (!form.email || emailState === 'verified');
+    emailState === 'verified';
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -274,7 +278,7 @@ export default function SignupScreen({ navigation }) {
           middleName: form.middle || null,
           lastName: form.last,
           mobileNumber: Number(form.phone),
-          email: form.email?.trim() || null,
+          email: form.email.trim(),
         }),
       });
       if (res.ok && data?.status === 1) {
@@ -306,14 +310,11 @@ export default function SignupScreen({ navigation }) {
   const emailRightButton = () => {
     if (emailState === 'verified') return { label: '✔ Verified', disabled: true };
     if (emailState === 'sent')     return { label: 'Edit', onPress: editEmail };
-    if (form.email.length > 0) {
-      return {
-        label: loadingEmail ? 'Sending...' : 'Send OTP',
-        onPress: sendEmailOtp,
-        disabled: !validEmail(form.email) || loadingEmail,
-      };
-    }
-    return null;
+    return {
+      label: loadingEmail ? 'Sending...' : 'Send OTP',
+      onPress: sendEmailOtp,
+      disabled: !validEmail(form.email) || loadingEmail,
+    };
   };
 
   // ── UI ───────────────────────────────────────────────────────────────────────
@@ -433,8 +434,9 @@ export default function SignupScreen({ navigation }) {
               {/* Email */}
               <InputField
                 label="Email Address"
+                required
                 icon="mail-outline"
-                placeholder="Enter email address (optional)"
+                placeholder="Enter email address"
                 keyboardType="email-address"
                 value={form.email}
                 onChangeText={v => handleChange('email', v)}

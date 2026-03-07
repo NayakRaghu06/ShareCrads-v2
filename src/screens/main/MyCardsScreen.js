@@ -189,7 +189,6 @@ export default function MyCardsScreen({ navigation }) {
           </View>
         </View>
 
-<<<<<<< HEAD
         <View style={styles.cardFooter}>
           <AnimatedPressable
             style={styles.shareBtn}
@@ -207,20 +206,6 @@ export default function MyCardsScreen({ navigation }) {
             <Ionicons name="share-social" size={15} color={GOLD} />
             <Text style={[styles.actionLabel, { color: GOLD }]}>Share</Text>
           </AnimatedPressable>
-=======
-      <View style={styles.cardFooter}>
-        <TouchableOpacity
-          style={styles.shareBtn}
-          onPress={() => {
-            const resolved = getCardId(item);
-            navigation.navigate('ShareCardScreen', { cardData: item, cardId: resolved });
-          }}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="share-social" size={15} color={GOLD} />
-          <Text style={[styles.actionLabel, { color: GOLD }]}>Share</Text>
-        </TouchableOpacity>
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
 
           <AnimatedPressable
             style={styles.editBtn}
@@ -450,3 +435,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
+

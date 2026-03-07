@@ -1,7 +1,75 @@
 import React from 'react';
+import { View, TouchableOpacity, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+
+// ── Custom bottom tab bar with a small gold indicator above active tab ─────────
+const TAB_ICONS = {
+  Home:     { active: 'home',        inactive: 'home-outline' },
+  Contacts: { active: 'people',      inactive: 'people-outline' },
+  Profile:  { active: 'person',      inactive: 'person-outline' },
+};
+
+function CustomTabBar({ state, descriptors, navigation }) {
+  return (
+    <View style={{
+      flexDirection: 'row',
+      backgroundColor: '#FFFFFF',
+      height: 60,
+      elevation: 8,
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowOffset: { width: 0, height: -2 },
+      shadowRadius: 4,
+    }}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const label = options.tabBarLabel ?? route.name;
+        const isFocused = state.index === index;
+        const icons = TAB_ICONS[route.name] ?? { active: 'ellipse', inactive: 'ellipse-outline' };
+
+        const onPress = () => {
+          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+          if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name);
+        };
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            activeOpacity={0.7}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+          >
+            {isFocused && (
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                width: 40,
+                height: 3,
+                backgroundColor: '#C9A227',
+                borderRadius: 2,
+              }} />
+            )}
+            <Ionicons
+              name={isFocused ? icons.active : icons.inactive}
+              size={24}
+              color={isFocused ? '#D4AF37' : '#9CA3AF'}
+            />
+            <Text style={{
+              fontSize: 12,
+              fontWeight: '600',
+              color: isFocused ? '#D4AF37' : '#9CA3AF',
+              marginTop: 4,
+            }}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
 
 import SplashScreen from '../screens/auth/SplashScreen';
 import CardDetailsScreen from '../screens/main/CardDetailsScreen';
@@ -24,6 +92,7 @@ import EditCardScreen from '../screens/main/EditCardScreen';
 import ContactsScreen from '../screens/main/ContactsScreen';
 import UploadScreen from '../screens/main/UploadScreen';
 import AppShareScreen from '../screens/main/AppShareScreen';
+import RecipientDetailsScreen from '../screens/main/RecipientDetailsScreen';
 // onboarding screens removed
 
 const Stack = createNativeStackNavigator();
@@ -33,37 +102,8 @@ const Tab = createBottomTabNavigator();
 function DashboardTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          } else if (route.name === 'Contacts') {
-            iconName = focused ? 'people' : 'people-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#D4AF37',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 2,
-          borderTopColor: '#D4AF37',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-          marginTop: 4,
-        },
-      })}
+      tabBar={props => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
       <Tab.Screen 
         name="Home" 
@@ -122,6 +162,7 @@ export default function AppNavigator() {
       <Stack.Screen name="CardDetailsScreen" component={CardDetailsScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="ShareCardScreen" component={require('../screens/main/ShareCardScreen').default} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="AppShareScreen" component={AppShareScreen} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="RecipientDetailsScreen" component={RecipientDetailsScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="Dashboard" component={DashboardTabs} options={{ animation: 'fade' }} />
     </Stack.Navigator>
   );
