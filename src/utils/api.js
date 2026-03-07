@@ -200,6 +200,17 @@ export const markCardViewed = (shareId) =>
 export const unshareCard = (shareId, userId) =>
   apiFetch(`/api/share/unshare/${shareId}?userId=${userId}`, { method: 'PUT' });
 
+export const generateShareLink = (cardId, recipientName, recipientMobile, recipientEmail) =>
+  apiFetch('/api/share/generate-link', {
+    method: 'POST',
+    body: JSON.stringify({
+      cardId: Number(cardId),
+      recipientName,
+      recipientMobile: recipientMobile ? Number(recipientMobile) : undefined,
+      recipientEmail: recipientEmail || undefined,
+    }),
+  });
+
 
 // ════════════════════════════════════════════
 //  AsyncStorage helpers

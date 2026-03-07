@@ -15,17 +15,13 @@ export default function LogoUploadCard({
   const pressedAnim = useRef(new Animated.Value(0)).current;
 
   const onPressIn = () => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, { toValue: 0.97, duration: 120, useNativeDriver: true }),
-      Animated.timing(pressedAnim, { toValue: 1, duration: 120, useNativeDriver: false }),
-    ]).start();
+    Animated.timing(scaleAnim, { toValue: 0.97, duration: 120, useNativeDriver: true }).start();
+    Animated.timing(pressedAnim, { toValue: 1, duration: 120, useNativeDriver: false }).start();
   };
 
   const onPressOut = () => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, { toValue: 1, duration: 120, useNativeDriver: true }),
-      Animated.timing(pressedAnim, { toValue: 0, duration: 120, useNativeDriver: false }),
-    ]).start();
+    Animated.timing(scaleAnim, { toValue: 1, duration: 120, useNativeDriver: true }).start();
+    Animated.timing(pressedAnim, { toValue: 0, duration: 120, useNativeDriver: false }).start();
   };
 
   return (

@@ -15,6 +15,10 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+<<<<<<< HEAD
+=======
+import AsyncStorage from '@react-native-async-storage/async-storage';
+>>>>>>> 984f61d2886af1bcbdeb231ae92f08cbf8fcdcf1
 import { apiFetch } from '../../utils/api';
 import websocketService from '../../utils/websocketService';
 import AppHeader from '../../components/common/AppHeader';
@@ -373,10 +377,26 @@ export default function ShareCardScreen({ navigation, route }) {
         )}
 
         {userFound === false && (
-          <View style={styles.errorBanner}>
-            <Ionicons name="close-circle" size={20} color="#DC2626" />
-            <Text style={styles.errorBannerText}>  User not registered in ShareCards</Text>
-          </View>
+          <>
+            <View style={styles.errorBanner}>
+              <Ionicons name="close-circle" size={20} color="#DC2626" />
+              <Text style={styles.errorBannerText}>  User Not Found on ShareCards</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.recipientBtn}
+              onPress={() =>
+                navigation.navigate('RecipientDetailsScreen', {
+                  cardId,
+                  cardData,
+                  prefillMobile: mobileNumber,
+                })
+              }
+              activeOpacity={0.85}
+            >
+              <Ionicons name="person-add-outline" size={20} color="#fff" />
+              <Text style={styles.recipientBtnText}>  Enter Recipient Details</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         {/* ── SECTION 3: User Preview Card ── */}
@@ -414,7 +434,7 @@ export default function ShareCardScreen({ navigation, route }) {
         )}
 
         {/* ── SECTION 4 & 5: Share Options ── */}
-        {userFound !== null && (
+        {userFound === true && (
           <>
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
@@ -422,42 +442,42 @@ export default function ShareCardScreen({ navigation, route }) {
               <View style={styles.dividerLine} />
             </View>
 
+<<<<<<< HEAD
             {/* Share In App — enabled only when user exists */}
+=======
+            {/* Share In App */}
+>>>>>>> 984f61d2886af1bcbdeb231ae92f08cbf8fcdcf1
             <TouchableOpacity
-              style={[styles.shareBtn, styles.shareBtnGold, !userFound && styles.shareBtnDisabled]}
+              style={[styles.shareBtn, styles.shareBtnGold]}
               onPress={handleShareInApp}
               activeOpacity={0.85}
-              disabled={!userFound}
             >
               <Ionicons name="phone-portrait-outline" size={20} color="#fff" />
               <Text style={styles.shareBtnText}>  Share In App</Text>
             </TouchableOpacity>
 
+<<<<<<< HEAD
             {/* Share on WhatsApp — always enabled; invite flow when user not found */}
+=======
+            {/* Share on WhatsApp */}
+>>>>>>> 984f61d2886af1bcbdeb231ae92f08cbf8fcdcf1
             <TouchableOpacity
               style={[styles.shareBtn, styles.shareBtnWhatsApp]}
               onPress={handleShareWhatsApp}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-whatsapp" size={20} color="#fff" />
+<<<<<<< HEAD
               <Text style={styles.shareBtnText}>
                 {userFound ? '  Share on WhatsApp' : '  Invite on WhatsApp'}
               </Text>
+=======
+              <Text style={styles.shareBtnText}>  Share on WhatsApp</Text>
+>>>>>>> 984f61d2886af1bcbdeb231ae92f08cbf8fcdcf1
             </TouchableOpacity>
-
-            {/* Extra invite option when user not found */}
-            {userFound === false && (
-              <TouchableOpacity
-                style={[styles.shareBtn, styles.shareBtnOutline]}
-                onPress={handleInviteShare}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="share-social-outline" size={20} color={GOLD} />
-                <Text style={[styles.shareBtnText, { color: GOLD }]}>  Share Invitation</Text>
-              </TouchableOpacity>
-            )}
           </>
         )}
+
 
       </ScrollView>
     </SafeAreaView>
@@ -632,6 +652,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#555',
     flex: 1,
+  },
+
+  // ── Recipient Details Button (user not found CTA)
+  recipientBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1A1A1A',
+    height: 50,
+    borderRadius: 12,
+    marginTop: 14,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  recipientBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+    letterSpacing: 0.3,
   },
 
   // ── Divider row

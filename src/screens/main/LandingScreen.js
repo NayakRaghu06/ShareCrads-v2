@@ -221,6 +221,10 @@ import { apiFetch } from '../../utils/api';
 import { getDashboard } from '../../utils/storage';
 import AnimatedPressable from '../../components/common/AnimatedPressable';
 import websocketService from '../../utils/websocketService';
+<<<<<<< HEAD
+=======
+
+>>>>>>> 984f61d2886af1bcbdeb231ae92f08cbf8fcdcf1
 // ─── Moved OUTSIDE LandingScreen — was previously defined inside render,
 //     causing it to remount on every parent state change.
 const InboxButton = React.memo(({ navigation }) => {
@@ -776,3 +780,4 @@ const ls = StyleSheet.create({
   badgeText: { color: COLORS.surface, fontWeight: 'bold', fontSize: 11 },
   myCardsBtn: { marginTop: 12, backgroundColor: COLORS.accent },
 });
+

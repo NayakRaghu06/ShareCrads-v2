@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { contactsStyles } from '../../styles/screens/contactsStyles';
-import { COLORS } from '../../styles/colors';
+import { contactsStyles as S } from '../../styles/screens/contactsStyles';
 import {
   requestContactPermission,
   readPhoneContacts,
@@ -20,6 +19,13 @@ import {
   getDBCUsers,
 } from '../../utils/contacts';
 import Footer from '../../components/common/Footer';
+
+const GOLD = '#C9A227';
+
+// Returns the first letter of the first word (or '?' as fallback)
+function initial(name) {
+  return (name || '').trim().charAt(0).toUpperCase() || '?';
+}
 
 export default function ContactsScreen({ navigation }) {
   const [contacts, setContacts] = useState([]);
@@ -36,7 +42,6 @@ export default function ContactsScreen({ navigation }) {
   const loadContacts = async () => {
     setLoading(true);
     try {
-      // Step 1: Request contact permission
       const hasPermission = await requestContactPermission();
       if (!hasPermission) {
         Alert.alert('Permission Denied', 'Cannot access contacts without permission');
@@ -45,13 +50,9 @@ export default function ContactsScreen({ navigation }) {
         return;
       }
       setPermissionGranted(true);
-      // Step 2: Read phone contacts
       const phoneContacts = await readPhoneContacts();
-      // Debug log for contacts count
       console.log('Contacts Count:', phoneContacts.length);
-      // Step 3: Get DBC users
       const dbcUsers = await getDBCUsers();
-      // Step 4: Compare and merge
       const mergedContacts = compareContactsWithUsers(phoneContacts, dbcUsers);
       setContacts(mergedContacts);
     } catch (error) {
@@ -68,16 +69,9 @@ export default function ContactsScreen({ navigation }) {
       Alert.alert('Error', 'Please fill in name and phone number');
       return;
     }
-
     const updatedContacts = [
       ...contacts,
-      {
-        name: newContact.name,
-        phone: newContact.phone,
-        email: newContact.email,
-        isDBCUser: false,
-        dbcUser: null,
-      },
+      { name: newContact.name, phone: newContact.phone, email: newContact.email, isDBCUser: false, dbcUser: null },
     ];
     setContacts(updatedContacts);
     setNewContact({ name: '', phone: '', email: '' });
@@ -88,13 +82,7 @@ export default function ContactsScreen({ navigation }) {
   const handleDeleteContact = (phone) => {
     Alert.alert('Delete Contact', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        onPress: () => {
-          setContacts(contacts.filter(c => c.phone !== phone));
-        },
-        style: 'destructive',
-      },
+      { text: 'Delete', onPress: () => setContacts(contacts.filter(c => c.phone !== phone)), style: 'destructive' },
     ]);
   };
 
@@ -110,141 +98,156 @@ export default function ContactsScreen({ navigation }) {
   const filteredContacts = contacts.filter(contact =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const dbcContacts = filteredContacts.filter(c => c.isDBCUser);
+  const dbcContacts   = filteredContacts.filter(c => c.isDBCUser);
   const otherContacts = filteredContacts.filter(c => !c.isDBCUser);
 
   return (
-    <SafeAreaView style={contactsStyles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.card} />
+    <SafeAreaView style={S.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Header */}
-      <View style={contactsStyles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color={COLORS.accent} />
+      {/* ── Header ── */}
+      <View style={S.header}>
+        <TouchableOpacity style={S.headerBackBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={20} color={GOLD} />
         </TouchableOpacity>
-        <Text style={contactsStyles.headerTitle}>Contacts</Text>
-        <TouchableOpacity onPress={() => setIsAddingContact(true)}>
-          <Ionicons name="add" size={28} color={COLORS.accent} />
+        <Text style={S.headerTitle}>Contacts</Text>
+        <TouchableOpacity style={S.headerAddBtn} onPress={() => setIsAddingContact(true)}>
+          <Ionicons name="add" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {loading ? (
-        <View style={contactsStyles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
-          <Text style={contactsStyles.loadingText}>Reading phone contacts...</Text>
+        <View style={S.loadingContainer}>
+          <ActivityIndicator size="large" color={GOLD} />
+          <Text style={S.loadingText}>Reading phone contacts…</Text>
         </View>
       ) : !permissionGranted ? (
-        <View style={contactsStyles.loadingContainer}>
-          <Ionicons name="lock-closed" size={48} color={COLORS.accent} />
-          <Text style={[contactsStyles.loadingText, { marginTop: 16 }]}>Permission Denied</Text>
-          <Text style={contactsStyles.permissionText}>We need access to your contacts to find DBC users</Text>
-          <TouchableOpacity style={contactsStyles.retryButton} onPress={loadContacts}>
-            <Text style={contactsStyles.retryButtonText}>Try Again</Text>
+        <View style={S.loadingContainer}>
+          <View style={S.emptyIconCircle}>
+            <Ionicons name="lock-closed-outline" size={32} color={GOLD} />
+          </View>
+          <Text style={S.emptyStateTitle}>Permission Required</Text>
+          <Text style={S.permissionText}>We need access to your contacts to find DBC users.</Text>
+          <TouchableOpacity style={S.retryButton} onPress={loadContacts}>
+            <Text style={S.retryButtonText}>Grant Access</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={contactsStyles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Search Bar */}
-          <View style={contactsStyles.searchBarContainer}>
-            <Ionicons name="search" size={20} color={COLORS.accent} style={contactsStyles.searchIcon} />
+        <ScrollView contentContainerStyle={S.scrollContent} showsVerticalScrollIndicator={false}>
+
+          {/* Search bar */}
+          <View style={S.searchBarContainer}>
+            <Ionicons name="search" size={18} color={GOLD} style={S.searchIcon} />
             <TextInput
-              style={contactsStyles.searchInput}
-              placeholder="Search contacts"
+              style={S.searchInput}
+              placeholder="Search contacts…"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholderTextColor="#666"
+              placeholderTextColor="#9CA3AF"
             />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Add Contact Form */}
+          {/* Add contact form */}
           {isAddingContact && (
-            <View style={contactsStyles.formContainer}>
-              <View style={contactsStyles.inputGroup}>
-                <Text style={contactsStyles.label}>Name</Text>
+            <View style={S.formContainer}>
+              <Text style={S.formTitle}>New Contact</Text>
+
+              <View style={S.inputGroup}>
+                <Text style={S.label}>Name</Text>
                 <TextInput
-                  style={contactsStyles.input}
+                  style={S.input}
                   placeholder="Enter name"
                   value={newContact.name}
                   onChangeText={(text) => setNewContact({ ...newContact, name: text })}
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
-
-              <View style={contactsStyles.inputGroup}>
-                <Text style={contactsStyles.label}>Phone</Text>
+              <View style={S.inputGroup}>
+                <Text style={S.label}>Phone</Text>
                 <TextInput
-                  style={contactsStyles.input}
+                  style={S.input}
                   placeholder="Enter phone number"
                   value={newContact.phone}
                   onChangeText={(text) => setNewContact({ ...newContact, phone: text })}
                   keyboardType="phone-pad"
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
-
-              <View style={contactsStyles.inputGroup}>
-                <Text style={contactsStyles.label}>Email</Text>
+              <View style={S.inputGroup}>
+                <Text style={S.label}>Email (optional)</Text>
                 <TextInput
-                  style={contactsStyles.input}
-                  placeholder="Enter email (optional)"
+                  style={S.input}
+                  placeholder="Enter email"
                   value={newContact.email}
                   onChangeText={(text) => setNewContact({ ...newContact, email: text })}
                   keyboardType="email-address"
-                  placeholderTextColor="#666"
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
 
-              <View style={contactsStyles.buttonGroup}>
+              <View style={S.buttonGroup}>
                 <TouchableOpacity
-                  style={contactsStyles.cancelButton}
-                  onPress={() => {
-                    setIsAddingContact(false);
-                    setNewContact({ name: '', phone: '', email: '' });
-                  }}
+                  style={S.cancelButton}
+                  onPress={() => { setIsAddingContact(false); setNewContact({ name: '', phone: '', email: '' }); }}
                 >
-                  <Text style={contactsStyles.cancelButtonText}>Cancel</Text>
+                  <Text style={S.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={contactsStyles.addButton}
-                  onPress={handleAddContact}
-                >
-                  <Text style={contactsStyles.addButtonText}>Add Contact</Text>
+                <TouchableOpacity style={S.addButton} onPress={handleAddContact}>
+                  <Text style={S.addButtonText}>Add Contact</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
 
-          {/* DBC Contacts Section */}
+          {/* DBC Contacts */}
           {dbcContacts.length > 0 && (
             <>
-              <View style={contactsStyles.sectionHeader}>
-                <Ionicons name="star" size={16} color={COLORS.accent} />
-                <Text style={contactsStyles.sectionTitle}>Using DBC ({dbcContacts.length})</Text>
+              <View style={S.sectionHeader}>
+                <Ionicons name="checkmark-circle" size={15} color={GOLD} />
+                <Text style={S.sectionTitle}>On ShareCards</Text>
+                <Text style={S.sectionCount}>{dbcContacts.length}</Text>
               </View>
-              <View style={contactsStyles.contactsList}>
+              <View style={S.contactsList}>
                 {dbcContacts.map((contact, index) => (
                   <TouchableOpacity
                     key={contact?.phone || contact?.email || `dbc-${index}`}
-                    style={contactsStyles.contactItemDBC}
+                    style={S.contactItemDBC}
                     onPress={() => handleViewDBCCard(contact)}
+                    activeOpacity={0.8}
                   >
-                    <View style={contactsStyles.contactInfo}>
-                      <View style={contactsStyles.nameRow}>
-                        <Text style={contactsStyles.contactName}>{contact.name}</Text>
-                        <View style={contactsStyles.dbcBadge}>
-                          <Ionicons name="checkmark-circle" size={14} color={COLORS.accent} />
-                          <Text style={contactsStyles.badgeText}>DBC</Text>
+                    {/* Avatar */}
+                    <View style={S.avatarDBC}>
+                      <Text style={S.avatarText}>{initial(contact.name)}</Text>
+                    </View>
+
+                    {/* Info */}
+                    <View style={S.contactInfo}>
+                      <View style={S.nameRow}>
+                        <Text style={S.contactName}>{contact.name}</Text>
+                        <View style={S.dbcBadge}>
+                          <Ionicons name="checkmark-circle" size={11} color={GOLD} />
+                          <Text style={S.badgeText}>DBC</Text>
                         </View>
                       </View>
-                      <Text style={contactsStyles.contactPhone}>{contact.phone}</Text>
+                      <Text style={S.contactPhone}>{contact.phone}</Text>
                       {contact.dbcUser?.card && (
-                        <Text style={contactsStyles.cardType}>{contact.dbcUser.card} Card</Text>
+                        <Text style={S.cardType}>{contact.dbcUser.card} Card</Text>
                       )}
                     </View>
-                    <TouchableOpacity onPress={() => handleDeleteContact(contact.phone)}>
-                      <Ionicons name="trash-outline" size={20} color={COLORS.accent} />
+
+                    {/* Delete */}
+                    <TouchableOpacity
+                      style={S.deleteBtn}
+                      onPress={() => handleDeleteContact(contact.phone)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#EF4444" />
                     </TouchableOpacity>
                   </TouchableOpacity>
                 ))}
@@ -252,23 +255,41 @@ export default function ContactsScreen({ navigation }) {
             </>
           )}
 
-          {/* Other Contacts Section */}
+          {/* Other Contacts */}
           {otherContacts.length > 0 && (
             <>
-              <View style={contactsStyles.sectionHeader}>
-                <Ionicons name="person-add" size={16} color="#666" />
-                <Text style={contactsStyles.sectionTitleOther}>Other Contacts ({otherContacts.length})</Text>
+              <View style={[S.sectionHeader, dbcContacts.length > 0 && { marginTop: 20 }]}>
+                <Ionicons name="people-outline" size={15} color="#9CA3AF" />
+                <Text style={S.sectionTitleOther}>Other Contacts</Text>
+                <Text style={S.sectionCount}>{otherContacts.length}</Text>
               </View>
-              <View style={contactsStyles.contactsList}>
+              <View style={S.contactsList}>
                 {otherContacts.map((contact, index) => (
-                  <View key={contact?.phone || contact?.email || `other-${index}`} style={contactsStyles.contactItem}>
-                    <View style={contactsStyles.contactInfo}>
-                      <Text style={contactsStyles.contactName}>{contact.name}</Text>
-                      <Text style={contactsStyles.contactPhone}>{contact.phone}</Text>
-                      {contact.email && <Text style={contactsStyles.contactEmail}>{contact.email}</Text>}
+                  <View
+                    key={contact?.phone || contact?.email || `other-${index}`}
+                    style={S.contactItem}
+                  >
+                    {/* Avatar */}
+                    <View style={S.avatarOther}>
+                      <Text style={S.avatarTextOther}>{initial(contact.name)}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => handleDeleteContact(contact.phone)}>
-                      <Ionicons name="trash-outline" size={20} color="#666" />
+
+                    {/* Info */}
+                    <View style={S.contactInfo}>
+                      <Text style={S.contactName}>{contact.name}</Text>
+                      <Text style={S.contactPhone}>{contact.phone}</Text>
+                      {contact.email ? (
+                        <Text style={S.contactEmail}>{contact.email}</Text>
+                      ) : null}
+                    </View>
+
+                    {/* Delete */}
+                    <TouchableOpacity
+                      style={S.deleteBtn}
+                      onPress={() => handleDeleteContact(contact.phone)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -276,17 +297,26 @@ export default function ContactsScreen({ navigation }) {
             </>
           )}
 
-          {/* Empty State */}
+          {/* Empty state */}
           {filteredContacts.length === 0 && !isAddingContact && (
-            <View style={contactsStyles.emptyState}>
-              <Text style={contactsStyles.emptyStateIcon}>👥</Text>
-              <Text style={contactsStyles.emptyStateText}>
-                {contacts.length === 0 ? 'No contacts found' : 'No contacts match your search'}
+            <View style={S.emptyState}>
+              <View style={S.emptyIconCircle}>
+                <Ionicons name="people-outline" size={34} color="#9CA3AF" />
+              </View>
+              <Text style={S.emptyStateTitle}>
+                {contacts.length === 0 ? 'No contacts found' : 'No results found'}
+              </Text>
+              <Text style={S.emptyStateText}>
+                {contacts.length === 0
+                  ? 'Your phone contacts will appear here.'
+                  : `No contacts match "${searchQuery}".`}
               </Text>
             </View>
           )}
+
         </ScrollView>
       )}
+
       <Footer activeTab="contacts" navigation={navigation} fromScreen="Contacts" />
     </SafeAreaView>
   );
