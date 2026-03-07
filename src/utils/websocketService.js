@@ -1,5 +1,4 @@
 import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import { BASE_URL, getSessionCookie } from './api';
 
 const WS_ENDPOINT = '/ws';
@@ -41,8 +40,10 @@ class WebsocketService {
     const cookie = await getSessionCookie();
     const connectHeaders = cookie ? { Cookie: cookie } : {};
 
+    const wsUrl = `${BASE_URL}${WS_ENDPOINT}/websocket`.replace(/^http/, 'ws');
+
     this.client = new Client({
-      webSocketFactory: () => new SockJS(`${BASE_URL}${WS_ENDPOINT}`),
+      webSocketFactory: () => new WebSocket(wsUrl),
       connectHeaders,
       reconnectDelay: 5000,
       heartbeatIncoming: 10000,

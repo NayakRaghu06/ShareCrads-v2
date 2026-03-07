@@ -219,12 +219,8 @@ import { getDBCUsers } from '../../utils/contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from '../../utils/api';
 import { getDashboard } from '../../utils/storage';
-<<<<<<< HEAD
 import AnimatedPressable from '../../components/common/AnimatedPressable';
-=======
 import websocketService from '../../utils/websocketService';
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
-
 // ─── Moved OUTSIDE LandingScreen — was previously defined inside render,
 //     causing it to remount on every parent state change.
 const InboxButton = React.memo(({ navigation }) => {
@@ -248,9 +244,9 @@ const InboxButton = React.memo(({ navigation }) => {
       loop.start();
       return () => loop.stop();
     } else {
-      pulseAnim.setValue(1);
+      Animated.spring(pulseAnim, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 0 }).start();
     }
-  }, [unreadCount]);
+  }, [unreadCount, pulseAnim]);
 
   const handleInboxPress = useCallback(() => {
     navigation.navigate('InboxScreen');

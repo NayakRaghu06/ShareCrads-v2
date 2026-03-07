@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
@@ -8,10 +7,6 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
-=======
-import { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Animated } from 'react-native';
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -123,26 +118,7 @@ function InboxScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-<<<<<<< HEAD
-  // ── Real-time socket ────────────────────────────────────────────────────────
-  useEffect(() => {
-    AsyncStorage.getItem('loggedInUserId').then((userId) => {
-      if (userId) socket.emit('join', userId);
-    });
 
-    socket.on('receiveCard', (incomingItem) => {
-      setInbox((prev) => {
-        const exists = prev.some(
-          (i) => i.shareId && incomingItem.shareId && i.shareId === incomingItem.shareId
-        );
-        if (exists) return prev;
-        return [incomingItem, ...prev];
-      });
-    });
-
-    return () => { socket.off('receiveCard'); };
-  }, []);
-=======
   // Subscribe to user-specific inbox queue for real-time shares
   useEffect(() => {
     let unsubscribe = null;
@@ -177,7 +153,7 @@ function InboxScreen({ navigation }) {
       if (unsubscribe) unsubscribe();
     };
   }, [badgeScale]);
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
+
 
   const loadInbox = async () => {
     try {

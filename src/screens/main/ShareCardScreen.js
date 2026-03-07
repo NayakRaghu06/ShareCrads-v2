@@ -12,9 +12,10 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { apiFetch, checkUser, shareCardInApp, shareCardWhatsApp, getUserId } from '../../utils/api';
+import { apiFetch } from '../../utils/api';
 import websocketService from '../../utils/websocketService';
 import AppHeader from '../../components/common/AppHeader';
 
@@ -23,13 +24,10 @@ const GOLD_LIGHT = '#E6D7A3';
 const GOLD_BG = '#FDF6E3';
 
 // ── Finds the first numeric ID field in any object regardless of field name ──
-// Checks known variants first, then scans all keys for anything ending in "id".
 function extractId(obj) {
   if (!obj || typeof obj !== 'object') return null;
-  // known common variants (camelCase and snake_case)
   const known = obj.cardId ?? obj.card_id ?? obj.id ?? obj.cardID ?? obj.CardId;
   if (known != null && !isNaN(Number(known))) return Number(known);
-  // scan all keys — find first numeric field whose name ends with "id" (case-insensitive)
   for (const key of Object.keys(obj)) {
     if (key.toLowerCase().endsWith('id') && obj[key] != null && !isNaN(Number(obj[key]))) {
       return Number(obj[key]);
@@ -65,14 +63,12 @@ export default function ShareCardScreen({ navigation, route }) {
     }
 
     for (const [key, value] of Object.entries(node)) {
-      // Recurse into likely card-containing branches first.
       if (key.toLowerCase().includes('card')) {
         const nested = extractCardIdDeep(value);
         if (nested) return nested;
       }
     }
 
-    // Fallback: recurse remaining branches.
     for (const value of Object.values(node)) {
       const nested = extractCardIdDeep(value);
       if (nested) return nested;
@@ -97,7 +93,6 @@ export default function ShareCardScreen({ navigation, route }) {
     const bName = String(b?.name || '').trim().toLowerCase();
     const aPhone = String(a?.phoneNumber ?? a?.phone ?? '').replace(/\D/g, '');
     const bPhone = String(b?.phoneNumber ?? b?.phone ?? '').replace(/\D/g, '');
-
     const nameMatch = aName && bName && aName === bName;
     const phoneMatch = aPhone && bPhone && aPhone === bPhone;
     return nameMatch || phoneMatch;
@@ -129,7 +124,6 @@ export default function ShareCardScreen({ navigation, route }) {
     const fromRoute = extractCardId({ ...cardData, cardId: route?.params?.cardId });
     if (fromRoute) return fromRoute;
 
-    // Final fallback: fetch latest cards and use first valid id
     const { res, data } = await apiFetch('/api/cards/view-cards');
     if (!res.ok) {
       console.log('[Share In App] view-cards status:', res.status);
@@ -143,7 +137,6 @@ export default function ShareCardScreen({ navigation, route }) {
       return null;
     }
 
-    // Prefer the id of the same card being shared, otherwise first valid id.
     let fromApi = null;
     for (const item of list) {
       if (looksSameCard(item, cardData)) {
@@ -170,21 +163,18 @@ export default function ShareCardScreen({ navigation, route }) {
   const [userData, setUserData]         = useState(null);
   const [loading, setLoading]           = useState(false);
 
-  // ── Resolve cardId — layer 1: route.params ─────────────────────────────────
   const [cardId, setCardId] = useState(() => extractId(cardData));
 
   useEffect(() => {
-    // Log what the backend actually sent so we can see the real field name
     console.log('[ShareCardScreen] cardData received:', JSON.stringify(cardData));
     console.log('[ShareCardScreen] resolved cardId (layer 1):', extractId(cardData));
   }, []);
 
   useEffect(() => {
-    if (cardId) return; // layer 1 already resolved — skip
+    if (cardId) return;
 
     (async () => {
       try {
-        // Layer 2: AsyncStorage 'activeCardId'
         const stored = await AsyncStorage.getItem('activeCardId');
         console.log('[ShareCardScreen] activeCardId from storage:', stored);
         if (stored && !isNaN(Number(stored))) {
@@ -192,7 +182,6 @@ export default function ShareCardScreen({ navigation, route }) {
           return;
         }
 
-        // Layer 3: fetch card list from API — use smart extractor on first result
         const { res, data } = await apiFetch('/api/cards/view-cards');
         console.log('[ShareCardScreen] view-cards response:', JSON.stringify(data));
         if (res.ok && Array.isArray(data) && data.length > 0) {
@@ -212,7 +201,6 @@ export default function ShareCardScreen({ navigation, route }) {
 
   // ── GET /api/share/check-user ──────────────────────────────────────────────
   const handleCheckUser = async () => {
-<<<<<<< HEAD
     setLoading(true);
     try {
       const { res, data } = await apiFetch(
@@ -223,23 +211,6 @@ export default function ShareCardScreen({ navigation, route }) {
       if (res.ok && data?.exists) {
         setUserData(data);
         setUserFound(true);
-=======
-    const receiverMobile = String(mobile || '').trim();
-    if (!/^[0-9]{10}$/.test(receiverMobile)) {
-      Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
-      return;
-    }
-
-    setChecking(true);
-    try {
-      const { res, data } = await checkUser(receiverMobile);
-      if (res.status === 401) { navigation.replace('Login'); return; }
-
-      const exists = Boolean(data?.exists ?? data?.data?.exists);
-      if (res.ok && exists) {
-        setFoundUser(data?.data || data);
-        setUserStatus('found');
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
       } else {
         setUserData(null);
         setUserFound(false);
@@ -254,7 +225,6 @@ export default function ShareCardScreen({ navigation, route }) {
   // ── POST /api/share ────────────────────────────────────────────────────────
   const handleShareInApp = async () => {
     try {
-<<<<<<< HEAD
       const senderId = await AsyncStorage.getItem('loggedInUserId');
       if (!senderId) { navigation.replace('Login'); return; }
       if (!cardId) { Alert.alert('Error', 'Card ID is missing. Please try again.'); return; }
@@ -265,7 +235,6 @@ export default function ShareCardScreen({ navigation, route }) {
         cardId: Number(cardId),
       };
 
-      // Debug — visible in Metro logs
       console.log('[ShareInApp] payload:', JSON.stringify(payload));
 
       const { res, data } = await apiFetch('/api/share', {
@@ -279,49 +248,16 @@ export default function ShareCardScreen({ navigation, route }) {
 
       if (res.ok) {
         const receiverId = userData?.userId ?? userData?.id;
-=======
-      const senderIdRaw = await getUserId();
-      const receiverMobileRaw = String(mobile || '').trim();
-
-      const senderId = Number(senderIdRaw);
-      const receiverMobile = Number(receiverMobileRaw);
-      const cardId = await resolveCardId();
-
-      console.log('[Share In App] senderId:', senderIdRaw);
-      console.log('[Share In App] receiverMobile:', receiverMobileRaw);
-      console.log('[Share In App] backendResolvedCardId:', cardId);
-
-      if (!senderIdRaw || !Number.isFinite(senderId) || senderId <= 0) {
-        navigation.replace('Login');
-        return;
-      }
-      if (!Number.isFinite(receiverMobile) || receiverMobileRaw.length !== 10) {
-        Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
-        return;
-      }
-      if (!Number.isFinite(cardId) || cardId <= 0) {
-        Alert.alert('Error', 'Card ID is missing. Please try again.');
-        return;
-      }
-
-      const { res, data } = await shareCardInApp(senderId, receiverMobile, cardId);
-      if (res.status === 401) { navigation.replace('Login'); return; }
-
-      if (res.ok) {
-        // Publish to STOMP destination: /app/share-card
-        const receiverId = foundUser?.userId || foundUser?.id;
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
         if (receiverId) {
-          await websocketService.connect(senderIdRaw);
+          await websocketService.connect(senderId);
           websocketService.sendShareCard({
-            senderId,
+            senderId: Number(senderId),
             receiverId: Number(receiverId),
             card: cardData,
           });
         }
         Alert.alert('Shared!', 'Card shared successfully.');
       } else {
-        // Show exactly what the backend says so we can diagnose
         const msg = data?.message || data?.error || `Server error ${res.status}`;
         console.warn('[ShareInApp] backend error:', msg);
         Alert.alert('Error', msg);
@@ -332,7 +268,6 @@ export default function ShareCardScreen({ navigation, route }) {
     }
   };
 
-<<<<<<< HEAD
   // ── POST /api/share/whatsapp ───────────────────────────────────────────────
   const handleShareWhatsApp = async () => {
     // If user is not on the app, fall back to an invite message
@@ -363,38 +298,6 @@ export default function ShareCardScreen({ navigation, route }) {
       if (res.status === 401) { navigation.replace('Login'); return; }
 
       const url = data?.whatsappUrl;
-=======
-  // POST /api/share/whatsapp — get WhatsApp URL then open it
-  const handleShareWhatsApp = async () => {
-    try {
-      const senderIdRaw = await getUserId();
-      const receiverMobileRaw = String(mobile || '').trim();
-
-      const senderId = Number(senderIdRaw);
-      const receiverMobile = Number(receiverMobileRaw);
-      const cardId = await resolveCardId();
-
-      console.log('[Share WhatsApp] senderId:', senderIdRaw);
-      console.log('[Share WhatsApp] receiverMobile:', receiverMobileRaw);
-      console.log('[Share WhatsApp] backendResolvedCardId:', cardId);
-
-      if (!senderIdRaw || !Number.isFinite(senderId) || senderId <= 0) {
-        navigation.replace('Login');
-        return;
-      }
-      if (!Number.isFinite(receiverMobile) || receiverMobileRaw.length !== 10) {
-        Alert.alert('Invalid Number', 'Please enter a valid 10 digit mobile number.');
-        return;
-      }
-      if (!Number.isFinite(cardId) || cardId <= 0) {
-        Alert.alert('Error', 'Card ID is missing. Please try again.');
-        return;
-      }
-
-      const { res, data } = await shareCardWhatsApp(senderId, receiverMobile, cardId);
-      if (res.status === 401) { navigation.replace('Login'); return; }
-      const url = data?.whatsappUrl || data?.whatsappLink;
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
       if (url) {
         await Linking.openURL(url);
       } else {
@@ -405,11 +308,7 @@ export default function ShareCardScreen({ navigation, route }) {
     }
   };
 
-<<<<<<< HEAD
   // ── Share invite via system share sheet ───────────────────────────────────
-=======
-  // INVITE via system share sheet
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
   const handleInviteShare = async () => {
     try {
       await Share.share({ message: inviteMessage });
@@ -483,7 +382,6 @@ export default function ShareCardScreen({ navigation, route }) {
         {/* ── SECTION 3: User Preview Card ── */}
         {userFound === true && userData && (
           <View style={styles.userCard}>
-            {/* Profile Photo */}
             {userData.profilePhoto ? (
               <Image
                 source={{ uri: userData.profilePhoto }}
@@ -495,7 +393,6 @@ export default function ShareCardScreen({ navigation, route }) {
               </View>
             )}
 
-            {/* User Info */}
             <View style={styles.userInfo}>
               <Text style={styles.userName} numberOfLines={1}>
                 {userData.name || `${userData.firstName ?? ''} ${userData.lastName ?? ''}`.trim() || 'Unknown'}
@@ -525,7 +422,6 @@ export default function ShareCardScreen({ navigation, route }) {
               <View style={styles.dividerLine} />
             </View>
 
-<<<<<<< HEAD
             {/* Share In App — enabled only when user exists */}
             <TouchableOpacity
               style={[styles.shareBtn, styles.shareBtnGold, !userFound && styles.shareBtnDisabled]}
@@ -533,14 +429,10 @@ export default function ShareCardScreen({ navigation, route }) {
               activeOpacity={0.85}
               disabled={!userFound}
             >
-=======
-            <TouchableOpacity style={styles.shareInAppBtn} onPress={handleShareInApp} activeOpacity={0.85}>
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
               <Ionicons name="phone-portrait-outline" size={20} color="#fff" />
               <Text style={styles.shareBtnText}>  Share In App</Text>
             </TouchableOpacity>
 
-<<<<<<< HEAD
             {/* Share on WhatsApp — always enabled; invite flow when user not found */}
             <TouchableOpacity
               style={[styles.shareBtn, styles.shareBtnWhatsApp]}
@@ -551,27 +443,6 @@ export default function ShareCardScreen({ navigation, route }) {
               <Text style={styles.shareBtnText}>
                 {userFound ? '  Share on WhatsApp' : '  Invite on WhatsApp'}
               </Text>
-=======
-          </>
-        )}
-
-        {/* ── USER NOT FOUND ── */}
-        {userStatus === 'notfound' && (
-          <>
-            <View style={styles.errorCard}>
-              <Ionicons name="close-circle" size={22} color="#DC2626" />
-              <Text style={styles.errorText}>  User Not Found</Text>
-            </View>
-
-            <Text style={styles.errorDesc}>
-              This number is not registered on DBC.{'\n\n'}
-              Invite them to join and share your digital card instantly.
-            </Text>
-
-            <TouchableOpacity style={styles.inviteWhatsappBtn} onPress={handleShareWhatsApp} activeOpacity={0.85}>
-              <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>  Share on WhatsApp</Text>
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
             </TouchableOpacity>
 
             {/* Extra invite option when user not found */}
@@ -685,102 +556,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
   },
-<<<<<<< HEAD
   errorBanner: {
-=======
-
-  /* ── User Card ── */
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
-    marginTop: 14,
-    borderWidth: 1,
-    borderColor: GOLD_LIGHT,
-    shadowColor: GOLD,
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  avatarCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: GOLD,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  avatarLetter: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 2,
-  },
-  userDesignation: {
-    fontSize: 13,
-    color: GOLD,
-    marginBottom: 2,
-  },
-  userCompany: {
-    fontSize: 13,
-    color: '#666',
-  },
-
-  /* ── Share Option Divider ── */
-  shareTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 14,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: GOLD_LIGHT,
-  },
-  shareTitle: {
-    marginHorizontal: 10,
-    fontWeight: '600',
-    color: '#555',
-    fontSize: 13,
-  },
-
-  /* ── Share Buttons ── */
-  shareInAppBtn: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: GOLD,
-    height: 50,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 3,
-    shadowColor: GOLD,
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  shareBtnText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-
-  /* ── User Not Found Banner ── */
-  errorCard: {
->>>>>>> 04a9308ccd7ad90b27ae9e5185368f18696a3b8d
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

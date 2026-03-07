@@ -8,8 +8,6 @@ export const defaultHeaders = {
 
 // ─────────────────────────────────────────────
 //  Session cookie helpers
-//  React Native fetch does NOT persist cookies automatically.
-//  We manually capture Set-Cookie after login and forward it on every request.
 // ─────────────────────────────────────────────
 const SESSION_COOKIE_KEY = 'sessionCookie';
 
@@ -23,47 +21,43 @@ export const clearSessionCookie = () =>
 
 // ─────────────────────────────────────────────
 //  Core fetch wrapper
+//  Fixes header-override bug: options.headers is extracted before spreading
+//  so the merged `headers` object always wins.
 // ─────────────────────────────────────────────
 export const apiFetch = async (endpoint, options = {}) => {
-  // Forward stored session cookie on every request
   const storedCookie = await AsyncStorage.getItem(SESSION_COOKIE_KEY);
+
+  // Build merged headers (defaultHeaders → cookie → caller overrides)
   const headers = {
     ...defaultHeaders,
     ...(storedCookie ? { Cookie: storedCookie } : {}),
     ...(options.headers || {}),
   };
 
+  // Drop `headers` from options before spreading so it can't override our merged headers
+  const { headers: _dropped, ...restOptions } = options;
+
   try {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
       credentials: 'include',
-      headers,
-      ...options,
+      ...restOptions,
+      headers,       // always applied last — guaranteed to be the merged set
     });
 
     const text = await res.text();
     let data = null;
     try {
       data = text ? JSON.parse(text) : null;
-    } catch (e) {
+    } catch {
       data = { raw: text };
     }
 
-    // ── Capture session cookie ──────────────────────────────────────────────
-    // React Native fetch blocks Set-Cookie headers (forbidden response-header
-    // name per the Fetch spec), so res.headers.get('set-cookie') always returns
-    // null. We use two fallbacks:
-    //
-    // 1. Standard Set-Cookie header — works in web/Axios but NOT in RN fetch.
-    // 2. Backend returns sessionId in the response body — the reliable fix.
-    //    Spring Boot: add  "sessionId", session.getId()  to your login response.
-
+    // Capture session cookie if the backend returns it
     const setCookieHeader = res.headers.get('set-cookie');
     if (setCookieHeader) {
-      // Works on web; kept as a future-proof fallback
       const cookieValue = setCookieHeader.split(';')[0].trim();
       if (cookieValue) await AsyncStorage.setItem(SESSION_COOKIE_KEY, cookieValue);
     } else if (data?.sessionId) {
-      // Reliable path for React Native: backend returns the session ID in body
       await AsyncStorage.setItem(SESSION_COOKIE_KEY, `JSESSIONID=${data.sessionId}`);
     }
 
@@ -102,7 +96,6 @@ export const verifyEmailOtp = (email, otp) =>
     body: JSON.stringify({ email, otp }),
   });
 
-// ✅ FIX: was /auth/register → correct is /auth/final-submit
 export const finalSignup = (firstName, middleName, lastName, mobileNumber, email) =>
   apiFetch('/auth/final-submit', {
     method: 'POST',
@@ -115,7 +108,6 @@ export const finalSignup = (firstName, middleName, lastName, mobileNumber, email
     }),
   });
 
-// ✅ FIX: resend was calling /auth/resend/login-otp (doesn't exist) → use this for both send & resend
 export const sendLoginOtp = (mobileNumber) =>
   apiFetch('/auth/mobile/login', {
     method: 'POST',
@@ -128,7 +120,6 @@ export const verifyLoginOtp = (mobileNumber, otp) =>
     body: JSON.stringify({ mobileNumber: Number(mobileNumber), otp }),
   });
 
-// ✅ FIX: screens were calling /user/logout → correct is /auth/logout
 export const logout = () =>
   apiFetch('/auth/logout', { method: 'POST' });
 
@@ -227,7 +218,6 @@ export const clearLoginSession = async () => {
   await AsyncStorage.multiRemove(['loggedInUserId', 'userPhone', 'activeCardId', SESSION_COOKIE_KEY]);
 };
 
-// Named helpers used by share APIs
 export const saveUserId = (userId) =>
   AsyncStorage.setItem('loggedInUserId', String(userId));
 
